@@ -1,0 +1,4 @@
+﻿[*.cs]
+
+# RCS1129: Remove redundant field initalization.
+dotnet_diagnostic.RCS1129.severity = silent
