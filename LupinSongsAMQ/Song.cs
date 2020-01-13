@@ -51,21 +51,6 @@ namespace LupinSongsAMQ
 			Status = status;
 		}
 
-		public Song Ft(params string[] people)
-		{
-			Featuring = people;
-			return this;
-		}
-
-		public Song IsEd()
-			=> SetType(SongType.Ed);
-
-		public Song IsInsert()
-			=> SetType(SongType.Insert);
-
-		public Song IsOp()
-			=> SetType(SongType.Op);
-
 		public string ToString(int nameLen, int artLen)
 		{
 			return new[]
@@ -78,11 +63,5 @@ namespace LupinSongsAMQ
 		}
 
 		public override string ToString() => ToString(0, 0);
-
-		private Song SetType(SongType type)
-		{
-			Type = type;
-			return this;
-		}
 	}
 }

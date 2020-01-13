@@ -16,6 +16,14 @@ namespace LupinSongsAMQ
 	{
 		public const string INFO_FILE = "info.amq";
 
+		private static readonly (int Size, Status Status)[] Resolutions = new[]
+		{
+			(480, Status.Res480),
+			(720, Status.Res720)
+		};
+
+		private static readonly (int, int) UnknownResolution = (-1, -1);
+
 		private static readonly JsonSerializerOptions Options = new JsonSerializerOptions
 		{
 			WriteIndented = true,
@@ -25,12 +33,16 @@ namespace LupinSongsAMQ
 		static Program()
 		{
 			Options.Converters.Add(new JsonStringEnumConverter());
+
+			Console.SetBufferSize(Console.BufferWidth, short.MaxValue - 1);
 		}
 
 		public static async Task Main()
 		{
-			var dir = @"D:\Lupin Songs not in AMQ";
-#if false
+#if true
+			const string dir = @"D:\Lupin Songs not in AMQ";
+#else
+			string dir;
 			Console.WriteLine("Enter a directory to process: ");
 			while (true)
 			{
@@ -40,6 +52,7 @@ namespace LupinSongsAMQ
 					if (directory.Exists)
 					{
 						dir = directory.FullName;
+						break;
 					}
 				}
 				catch
@@ -147,23 +160,21 @@ namespace LupinSongsAMQ
 					Console.WriteLine($"Source is null: {anime.Name}");
 					continue;
 				}
-				else if (!File.Exists(anime.Source))
+				else if (!File.Exists(anime.GetSourcePath()))
 				{
 					Console.WriteLine($"Source does not exist: {anime.Name}");
 					Console.ReadLine();
-					throw new ArgumentException($"{anime.Source} does not exist.", nameof(anime.Source));
+					throw new ArgumentException($"{anime.Source} source does not exist.", nameof(anime.Source));
 				}
 
 				var (_, height) = await GetResolutionAsync(anime).CAF();
-				var resolutions = new[] { 480, 720 }.Where(x =>
+				foreach (var res in Resolutions)
 				{
-					var valid = x < height;
-					if (!valid)
+					if (res.Size > height)
 					{
-						Console.WriteLine($"Source is smaller than {x}p: {anime.Name}");
+						Console.WriteLine($"Source is smaller than {res.Size}p: {anime.Name}");
 					}
-					return valid;
-				}).ToArray();
+				}
 
 				foreach (var song in anime.Songs)
 				{
@@ -173,9 +184,12 @@ namespace LupinSongsAMQ
 						continue;
 					}
 
-					foreach (var res in resolutions)
+					foreach (var res in Resolutions)
 					{
-						await ProcessVideoAsync(anime, song, res).CAF();
+						if (res.Size <= height && (song.Status & res.Status) == 0)
+						{
+							await ProcessVideoAsync(anime, song, res.Size, height).CAF();
+						}
 					}
 				}
 			}
@@ -189,26 +203,16 @@ namespace LupinSongsAMQ
 				$" -of csv=s=x:p=0" +
 				$" \"{anime.GetSourcePath()}\"";
 
-			using var process = new Process
-			{
-				StartInfo = new ProcessStartInfo
-				{
-					FileName = Utils.FFprobe,
-					Arguments = args,
-					UseShellExecute = false,
-					CreateNoWindow = true,
-					RedirectStandardOutput = true,
-					RedirectStandardError = true,
-				},
-			};
+			using var process = Utils.CreateProcess(Utils.FFprobe, args);
 
-			(int, int) res = (-1, -1);
+			(int, int) res = UnknownResolution;
 			void OnOutputReceived(object sender, DataReceivedEventArgs args)
 			{
 				process.OutputDataReceived -= OnOutputReceived;
 
-				var split = args.Data.Split('x').Select(int.Parse).ToArray();
-				res = (split[0], split[1]);
+				var split = args.Data.Split('x');
+				var cast = split.Select(int.Parse).ToArray(split.Length);
+				res = (cast[0], cast[1]);
 			}
 
 			process.OutputDataReceived += OnOutputReceived;
@@ -216,7 +220,7 @@ namespace LupinSongsAMQ
 			return res;
 		}
 
-		private static async Task<int> ProcessVideoAsync(Anime anime, Song song, int resolution)
+		private static async Task<int> ProcessVideoAsync(Anime anime, Song song, int resolution, int sourceResolution)
 		{
 			var file = $"[{anime.Name}] {song.Name} [{resolution}p].webm";
 			var output = Path.Combine(anime.Directory, file);
@@ -230,30 +234,37 @@ namespace LupinSongsAMQ
 			//AMQvideo.webm
 
 			var args = $" -y" + //Ignore overwrite confirmation
-				$" -i \"{anime.GetSourcePath()}\"" +
-				$" -ss {song.TimeStamp}" +
-				$" -to {song.TimeStamp + song.Length}" +
-				$" -f webm" + //Format webm
-				$" -crf 15" + //Variable bitrate, 15 should look lossless
-				$" -b:v 0" + //Specify the constant bitrate to be zero to only use the variable one
+				$" -ss {song.TimeStamp}" + //Starting time
+				$" -to {song.TimeStamp + song.Length}" + //Ending time
+				$" -i \"{anime.GetSourcePath()}\"" + //Video source
+				$" -map 0:v" + //Use the first input's video
+				$" -map 0:a" + //Use the first input's audio
 				$" -sn" + //No subtitles
-				$" -filter:v scale=-1:{resolution}" + //Make the video whatever resolution
-				$" -vcodec copy" +
-				$" -acodec libopus" +
+				$" -shortest" +
+				$" -c:a libopus" + //Set the audio codec to libopus
+				$" -b:a 320k" + //Set the audio bitrate to 320k
+				$" -c:v libvpx-vp9 " + //Set the video codec to libvpx-vp9
+				$" -b:v 0" + //Specify the constant bitrate to be zero to only use the variable one
+				$" -crf 20" + //Variable bitrate, 20 should look lossless
+				$" -pix_fmt yuv420p"; //Set the pixel format to yuv420p
+
+			if (resolution != sourceResolution)
+			{
+				args += $" -filter:v scale=-1:{resolution}"; //Make the video whatever resolution
+			}
+
+			args += $" -deadline good" +
+				$" -cpu-used 1" +
+				$" -tile-columns 6" +
+				$" -row-mt 1" +
+				$" -threads 8" + //Use 8 threads
+				$" -ac 2" +
 				$" \"{output}\"";
 
-			using var process = new Process
-			{
-				StartInfo = new ProcessStartInfo
-				{
-					FileName = Utils.FFmpeg,
-					Arguments = args,
-					UseShellExecute = false,
-					CreateNoWindow = true,
-					RedirectStandardOutput = true,
-					RedirectStandardError = true,
-				},
-			};
+			using var process = Utils.CreateProcess(Utils.FFmpeg, args);
+
+			process.OutputDataReceived += (s, e) => Console.WriteLine(e.Data);
+			process.ErrorDataReceived += (s, e) => Console.WriteLine(e.Data);
 
 			return await process.RunAsync().CAF();
 		}

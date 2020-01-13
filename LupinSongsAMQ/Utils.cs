@@ -12,8 +12,25 @@ namespace LupinSongsAMQ
 {
 	public static class Utils
 	{
-		public static string FFmpeg = FindProgram("ffmpeg");
-		public static string FFprobe = FindProgram("ffprobe");
+		private static readonly bool IsWindows = Environment.OSVersion.Platform.ToString().CaseInsContains("win");
+		public static string FFmpeg { get; } = FindProgram("ffmpeg");
+		public static string FFprobe { get; } = FindProgram("ffprobe");
+
+		public static Process CreateProcess(string program, string args)
+		{
+			return new Process
+			{
+				StartInfo = new ProcessStartInfo
+				{
+					FileName = program,
+					Arguments = args,
+					UseShellExecute = false,
+					CreateNoWindow = true,
+					RedirectStandardOutput = true,
+					RedirectStandardError = true,
+				},
+			};
+		}
 
 		public static Task<int> RunAsync(this Process process)
 		{
@@ -21,20 +38,10 @@ namespace LupinSongsAMQ
 
 			process.EnableRaisingEvents = true;
 			process.Exited += (s, e) => tcs.SetResult(process.ExitCode);
-			process.OutputDataReceived += (s, e) => Console.WriteLine(e.Data);
-			process.ErrorDataReceived += (s, e) =>
-			{
-				if (!string.IsNullOrWhiteSpace(e.Data))
-				{
-					Console.WriteLine("ERR: " + e.Data);
-				}
-			};
 
 			var started = process.Start();
 			if (!started)
 			{
-				//you may allow for the process to be re-used (started = false)
-				//but I'm not sure about the guarantees of the Exited event in such a case
 				throw new InvalidOperationException("Could not start process: " + process);
 			}
 
@@ -44,7 +51,45 @@ namespace LupinSongsAMQ
 			return tcs.Task;
 		}
 
+		public static T[] ToArray<T>(this IEnumerable<T> source, int count)
+		{
+			if (source == null)
+			{
+				throw new ArgumentNullException(nameof(source));
+			}
+			if (count < 0)
+			{
+				throw new ArgumentOutOfRangeException(nameof(count));
+			}
+
+			var array = new T[count];
+			var i = 0;
+			foreach (var item in source)
+			{
+				array[i++] = item;
+			}
+			return array;
+		}
+
 		private static string FindProgram(string program)
+		{
+			program = IsWindows ? program + ".exe" : program;
+			//Look through every directory and any subfolders they have called bin
+			foreach (var dir in GetDirectories(program))
+			{
+				if (TryGetProgram(dir, program, out var path))
+				{
+					return path;
+				}
+				else if (TryGetProgram(Path.Combine(dir, "bin"), program, out path))
+				{
+					return path;
+				}
+			}
+			return null;
+		}
+
+		private static IEnumerable<string> GetDirectories(string program)
 		{
 			static IReadOnlyList<T> GetValues<T>() where T : Enum
 			{
@@ -57,43 +102,37 @@ namespace LupinSongsAMQ
 				return cast;
 			}
 
-			var windows = Environment.OSVersion.Platform.ToString().CaseInsContains("win");
-			var fullProgram = windows ? program + ".exe" : program;
-
-			//Start with every special folder
-			var directories = GetValues<Environment.SpecialFolder>().Select(e =>
-			{
-				var p = Path.Combine(Environment.GetFolderPath(e), program);
-				return Directory.Exists(p) ? new DirectoryInfo(p) : null;
-			}).Where(x => x != null).ToList();
-			//Look through where the program is stored
+			//Check where the program is stored
 			if (Assembly.GetExecutingAssembly().Location is string assembly)
 			{
-				directories.Add(new DirectoryInfo(Path.GetDirectoryName(assembly)));
+				yield return Path.GetDirectoryName(assembly);
 			}
 			//Check path variables
-			foreach (var part in (Environment.GetEnvironmentVariable("PATH") ?? "").Split(windows ? ';' : ':'))
+			if (Environment.GetEnvironmentVariable("PATH") is string path)
 			{
-				if (!string.IsNullOrWhiteSpace(part))
+				foreach (var part in path.Split(IsWindows ? ';' : ':'))
 				{
-					directories.Add(new DirectoryInfo(part.Trim()));
+					yield return part.Trim();
 				}
 			}
-			//Look through every directory and any subfolders they have called bin
-			foreach (var dir in directories.SelectMany(x => new[] { x, new DirectoryInfo(Path.Combine(x?.FullName, "bin")) }))
+			//Check every special folder
+			foreach (var folder in GetValues<Environment.SpecialFolder>())
 			{
-				if (dir?.Exists != true)
-				{
-					continue;
-				}
+				yield return Path.Combine(Environment.GetFolderPath(folder), program);
+			}
+		}
 
-				var files = dir.GetFiles(fullProgram, SearchOption.TopDirectoryOnly);
-				if (files.Length > 0)
-				{
-					return files[0].FullName;
-				}
+		private static bool TryGetProgram(string directory, string program, out string path)
+		{
+			if (!Directory.Exists(directory))
+			{
+				path = null;
+				return false;
 			}
-			return null;
+
+			var files = Directory.EnumerateFiles(directory, program, SearchOption.TopDirectoryOnly);
+			path = files.FirstOrDefault();
+			return path != null;
 		}
 	}
 }
