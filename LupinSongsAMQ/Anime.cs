@@ -30,6 +30,9 @@ namespace LupinSongsAMQ
 			Name = name;
 		}
 
+		public string GetCleanSongPath(Song song)
+			=> song.CleanPath == null ? null : Path.Combine(Directory, song.CleanPath);
+
 		public string GetSourcePath()
 			=> Source == null ? null : Path.Combine(Directory, Source);
 	}

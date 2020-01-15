@@ -51,6 +51,9 @@ namespace LupinSongsAMQ
 			Status = status;
 		}
 
+		public bool IsMissing(Status status)
+			=> (Status & status) == 0;
+
 		public string ToString(int nameLen, int artLen)
 		{
 			return new[]

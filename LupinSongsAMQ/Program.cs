@@ -186,10 +186,14 @@ namespace LupinSongsAMQ
 
 					foreach (var res in Resolutions)
 					{
-						if (res.Size <= height && (song.Status & res.Status) == 0)
+						if (res.Size <= height && song.IsMissing(res.Status))
 						{
 							await ProcessVideoAsync(anime, song, res.Size, height).CAF();
 						}
+					}
+					if (song.IsMissing(Status.Mp3))
+					{
+						await ProcessMp3Async(anime, song).CAF();
 					}
 				}
 			}
@@ -197,10 +201,12 @@ namespace LupinSongsAMQ
 
 		private static async Task<(int, int)> GetResolutionAsync(Anime anime)
 		{
-			var args = $"-v error" +
-				$" -select_streams v:0" +
-				$" -show_entries stream=width,height" +
-				$" -of csv=s=x:p=0" +
+			const string ARGS = "-v error" +
+				" -select_streams v:0" +
+				" -show_entries stream=width,height" +
+				" -of csv=s=x:p=0";
+
+			var args = ARGS +
 				$" \"{anime.GetSourcePath()}\"";
 
 			using var process = Utils.CreateProcess(Utils.FFprobe, args);
@@ -211,8 +217,7 @@ namespace LupinSongsAMQ
 				process.OutputDataReceived -= OnOutputReceived;
 
 				var split = args.Data.Split('x');
-				var cast = split.Select(int.Parse).ToArray(split.Length);
-				res = (cast[0], cast[1]);
+				res = (int.Parse(split[0]), int.Parse(split[1]));
 			}
 
 			process.OutputDataReceived += OnOutputReceived;
@@ -229,37 +234,91 @@ namespace LupinSongsAMQ
 				return 0;
 			}
 
-			//ffmpeg -i <input.mkv> -ss <00:xx:xx.xxx> -to <00:xx:xx.xxx>
-			//-i <cleanAudio.flac/ogg> -map 0:v -map 1:a -vcodec copy -acodec libopus
-			//AMQvideo.webm
+			#region Args
+			const string ARGS =
+				" -sn" + //No subtitles
+				" -shortest" +
+				" -c:a libopus" + //Set the audio codec to libopus
+				" -b:a 320k" + //Set the audio bitrate to 320k
+				" -c:v libvpx-vp9 " + //Set the video codec to libvpx-vp9
+				" -b:v 0" + //Specify the constant bitrate to be zero to only use the variable one
+				" -crf 20" + //Variable bitrate, 20 should look lossless
+				" -pix_fmt yuv420p" + //Set the pixel format to yuv420p
+				" -deadline good" +
+				" -cpu-used 1" +
+				" -tile-columns 6" +
+				" -row-mt 1" +
+				" -threads 8" + //Use 8 threads
+				" -ac 2";
 
-			var args = $" -y" + //Ignore overwrite confirmation
+			var args =
 				$" -ss {song.TimeStamp}" + //Starting time
 				$" -to {song.TimeStamp + song.Length}" + //Ending time
 				$" -i \"{anime.GetSourcePath()}\"" + //Video source
-				$" -map 0:v" + //Use the first input's video
-				$" -map 0:a" + //Use the first input's audio
-				$" -sn" + //No subtitles
-				$" -shortest" +
-				$" -c:a libopus" + //Set the audio codec to libopus
-				$" -b:a 320k" + //Set the audio bitrate to 320k
-				$" -c:v libvpx-vp9 " + //Set the video codec to libvpx-vp9
-				$" -b:v 0" + //Specify the constant bitrate to be zero to only use the variable one
-				$" -crf 20" + //Variable bitrate, 20 should look lossless
-				$" -pix_fmt yuv420p"; //Set the pixel format to yuv420p
+				" -map 0:v"; //Use the first input's video
+
+			if (song.IsClean)
+			{
+				args += " -map 0:a"; //Use the first input's audio;
+			}
+			else
+			{
+				args +=
+					$" -i \"{anime.GetCleanSongPath(song)}\"" +
+					" -map 1:a"; //Use the second input's audio
+			}
+
+			args += ARGS; //Add in the constant args, like quality + cpu usage
 
 			if (resolution != sourceResolution)
 			{
-				args += $" -filter:v scale=-1:{resolution}"; //Make the video whatever resolution
+				args += $" -filter:v scale=-1:{resolution}"; //Resize video if needed
 			}
 
-			args += $" -deadline good" +
-				$" -cpu-used 1" +
-				$" -tile-columns 6" +
-				$" -row-mt 1" +
-				$" -threads 8" + //Use 8 threads
-				$" -ac 2" +
-				$" \"{output}\"";
+			args += $" \"{output}\"";
+			#endregion Args
+
+			using var process = Utils.CreateProcess(Utils.FFmpeg, args);
+
+			process.OutputDataReceived += (s, e) => Console.WriteLine(e.Data);
+			process.ErrorDataReceived += (s, e) => Console.WriteLine(e.Data);
+
+			return await process.RunAsync().CAF();
+		}
+
+		private static async Task<int> ProcessMp3Async(Anime anime, Song song)
+		{
+			var file = $"[{anime.Name}] {song.Name}.mp3";
+			var output = Path.Combine(anime.Directory, file);
+			if (File.Exists(output))
+			{
+				return 0;
+			}
+
+			#region Args
+			const string ARGS =
+				" -f mp3" +
+				" -b:a 320k";
+
+			string args;
+			if (song.IsClean)
+			{
+				args =
+					$" -ss {song.TimeStamp}" + //Starting time
+					$" -to {song.TimeStamp + song.Length}" + //Ending time
+					$" -i \"{anime.GetSourcePath()}\"" + //Video source
+					" -vn";
+			}
+			else
+			{
+				args =
+					$" -to {song.Length}" +
+					$" -i \"{anime.GetCleanSongPath(song)}\"";
+			}
+
+			args += ARGS;
+			args += $" \"{output}\"";
+			#endregion Args
 
 			using var process = Utils.CreateProcess(Utils.FFmpeg, args);
 
