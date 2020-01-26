@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text.Json.Serialization;
@@ -13,7 +13,7 @@ namespace LupinSongsAMQ
 
 		public int Id { get; set; }
 		public string Name { get; set; }
-		public Song[] Songs { get; set; } = Array.Empty<Song>();
+		public List<Song> Songs { get; set; } = new List<Song>(0);
 		public string Source { get; set; }
 		public int Year { get; set; }
 

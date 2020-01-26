@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using AdvorangesUtils;
 
 namespace LupinSongsAMQ
@@ -11,6 +12,7 @@ namespace LupinSongsAMQ
 
 		public string Artist { get; set; }
 		public string CleanPath { get; set; }
+		public int? Episode { get; set; }
 		public string[] Featuring { get; set; } = Array.Empty<string>();
 
 		public string FullArtist
@@ -25,14 +27,16 @@ namespace LupinSongsAMQ
 			}
 		}
 
+		public string FullName => $"{Name} ({FullArtist})";
 		public bool HasTimeStamp => TimeStampInSeconds != UNKNOWN_TIMESTAMP;
 		public bool IsClean => CleanPath == null;
 		public TimeSpan Length => TimeSpan.FromSeconds(LengthInSeconds);
-		public int LengthInSeconds { get; set; } = UNKNOWN_TIMESTAMP;
+		public float LengthInSeconds { get; set; } = UNKNOWN_TIMESTAMP;
 		public string Name { get; set; }
+		public bool ShouldIgnore { get; set; }
 		public Status Status { get; set; }
 		public TimeSpan TimeStamp => TimeSpan.FromSeconds(TimeStampInSeconds);
-		public int TimeStampInSeconds { get; set; }
+		public float TimeStampInSeconds { get; set; }
 		public SongType Type { get; set; }
 
 		private string DebuggerDisplay => $"{Name} ({FullArtist})";
@@ -51,6 +55,12 @@ namespace LupinSongsAMQ
 			Status = status;
 		}
 
+		public string GetMp3Path(Anime anime)
+			=> GetPath(anime, $"[{anime.Id}] {Name}.mp3");
+
+		public string GetVideoPath(Anime anime, int res)
+			=> GetPath(anime, $"[{anime.Id}] {Name} [{res}p].webm");
+
 		public bool IsMissing(Status status)
 			=> (Status & status) == 0;
 
@@ -66,5 +76,8 @@ namespace LupinSongsAMQ
 		}
 
 		public override string ToString() => ToString(0, 0);
+
+		private string GetPath(Anime anime, string file)
+			=> Path.Combine(anime.Directory, file);
 	}
 }

@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -15,12 +16,15 @@ namespace LupinSongsAMQ
 	public static class Program
 	{
 		public const string INFO_FILE = "info.amq";
+		public const string FIXES_FILE = "fixes.txt";
 
 		private static readonly (int Size, Status Status)[] Resolutions = new[]
 		{
 			(480, Status.Res480),
 			(720, Status.Res720)
 		};
+
+		private static readonly char[] TrimArray = new[] { '0', ':' };
 
 		private static readonly (int, int) UnknownResolution = (-1, -1);
 
@@ -39,10 +43,14 @@ namespace LupinSongsAMQ
 
 		public static async Task Main()
 		{
-#if true
-			const string dir = @"D:\Lupin Songs not in AMQ";
-#else
 			string dir;
+#if true
+#if false
+			dir = @"D:\Songs not in AMQ\Not Lupin";
+#else
+			dir = @"D:\Songs not in AMQ\Lupin";
+#endif
+#else
 			Console.WriteLine("Enter a directory to process: ");
 			while (true)
 			{
@@ -62,24 +70,20 @@ namespace LupinSongsAMQ
 				Console.WriteLine("Invalid directory provided; enter a valid one: ");
 			}
 #endif
-
-			var tasks = Directory.EnumerateDirectories(dir).Select(async x =>
+			var files = Directory.EnumerateFiles(dir, "*.amq", SearchOption.AllDirectories);
+			var tasks = files.Select(async x =>
 			{
-				var info = Path.Combine(x, INFO_FILE);
-				if (!File.Exists(info))
-				{
-					return null;
-				}
-
-				using var fs = new FileStream(info, FileMode.Open);
+				using var fs = new FileStream(x, FileMode.Open);
 
 				var anime = await JsonSerializer.DeserializeAsync<Anime>(fs, Options).CAF();
-				anime.Directory = Path.GetDirectoryName(info);
+				anime.Directory = Path.GetDirectoryName(x);
+				anime.Songs.RemoveAll(x => x.ShouldIgnore);
 				return anime;
 			});
 			var animes = (await Task.WhenAll(tasks).CAF()).Where(x => x != null).ToArray();
 
 			DisplayAnimes(animes);
+			ExportAnimeForSongFixes(dir, animes);
 			await ProcessAnimesAsync(animes).CAF();
 		}
 
@@ -151,6 +155,70 @@ namespace LupinSongsAMQ
 			}
 		}
 
+		private static void ExportAnimeForSongFixes(string dir, IReadOnlyList<Anime> animes)
+		{
+			static string FormatTimeSpan(TimeSpan ts)
+				=> ts.ToString().TrimStart(TrimArray).Split('.')[0];
+
+			static string FormatTimestamp(Song song)
+			{
+				var ts = FormatTimeSpan(song.TimeStamp);
+				if (song.Episode == null)
+				{
+					return ts;
+				}
+				return song.Episode.ToString() + "/" + ts;
+			}
+
+			var counts = new ConcurrentDictionary<string, List<Anime>>();
+			foreach (var anime in animes)
+			{
+				foreach (var song in anime.Songs)
+				{
+					var list = counts.GetOrAdd(song.FullName, _ => new List<Anime>());
+					list.Add(anime);
+				}
+			}
+
+			var file = Path.Combine(dir, FIXES_FILE);
+			using var fs = new FileStream(file, FileMode.Create);
+			using var sw = new StreamWriter(fs);
+
+			foreach (var anime in animes)
+			{
+				foreach (var song in anime.Songs)
+				{
+					if (song.Status != Status.NotSubmitted)
+					{
+						continue;
+					}
+
+					var sb = new StringBuilder();
+
+					sb.Append("**Anime:** ").AppendLine(anime.Name);
+					sb.Append("**ANNID:** ").AppendLine(anime.Id.ToString());
+					sb.Append("**Song Title:** ").AppendLine(song.Name);
+					sb.Append("**Artist:** ").AppendLine(song.Artist);
+					sb.Append("**Type:** ").AppendLine(song.Type.ToString());
+					sb.Append("**Episode/Timestamp:** ").AppendLine(FormatTimestamp(song));
+					sb.Append("**Length:** ").AppendLine(FormatTimeSpan(song.Length));
+
+					var matches = counts[song.FullName];
+					if (matches.Count > 1)
+					{
+						var others = matches
+							.Where(x => x.Id != anime.Id)
+							.OrderBy(x => x.Id);
+
+						sb.Append("**Duplicate found in:** ")
+							.AppendLine(others.Join(x => x.Id.ToString()));
+					}
+
+					sw.Write(sb.AppendLine().ToString());
+				}
+			}
+		}
+
 		private static async Task ProcessAnimesAsync(IReadOnlyList<Anime> animes)
 		{
 			foreach (var anime in animes)
@@ -184,16 +252,16 @@ namespace LupinSongsAMQ
 						continue;
 					}
 
+					if (song.IsMissing(Status.Mp3))
+					{
+						await ProcessMp3Async(anime, song).CAF();
+					}
 					foreach (var res in Resolutions)
 					{
 						if (res.Size <= height && song.IsMissing(res.Status))
 						{
 							await ProcessVideoAsync(anime, song, res.Size, height).CAF();
 						}
-					}
-					if (song.IsMissing(Status.Mp3))
-					{
-						await ProcessMp3Async(anime, song).CAF();
 					}
 				}
 			}
@@ -221,14 +289,13 @@ namespace LupinSongsAMQ
 			}
 
 			process.OutputDataReceived += OnOutputReceived;
-			await process.RunAsync().CAF();
+			await process.RunAsync(false).CAF();
 			return res;
 		}
 
 		private static async Task<int> ProcessVideoAsync(Anime anime, Song song, int resolution, int sourceResolution)
 		{
-			var file = $"[{anime.Name}] {song.Name} [{resolution}p].webm";
-			var output = Path.Combine(anime.Directory, file);
+			var output = song.GetVideoPath(anime, resolution);
 			if (File.Exists(output))
 			{
 				return 0;
@@ -254,17 +321,19 @@ namespace LupinSongsAMQ
 			var args =
 				$" -ss {song.TimeStamp}" + //Starting time
 				$" -to {song.TimeStamp + song.Length}" + //Ending time
-				$" -i \"{anime.GetSourcePath()}\"" + //Video source
-				" -map 0:v"; //Use the first input's video
+				$" -i \"{anime.GetSourcePath()}\""; //Video source
 
 			if (song.IsClean)
 			{
-				args += " -map 0:a"; //Use the first input's audio;
+				args +=
+					" -map 0:v" + //Use the first input's video
+					" -map 0:a"; //Use the first input's audio;
 			}
 			else
 			{
 				args +=
 					$" -i \"{anime.GetCleanSongPath(song)}\"" +
+					" -map 0:v" + //Use the first input's video
 					" -map 1:a"; //Use the second input's audio
 			}
 
@@ -280,16 +349,12 @@ namespace LupinSongsAMQ
 
 			using var process = Utils.CreateProcess(Utils.FFmpeg, args);
 
-			process.OutputDataReceived += (s, e) => Console.WriteLine(e.Data);
-			process.ErrorDataReceived += (s, e) => Console.WriteLine(e.Data);
-
-			return await process.RunAsync().CAF();
+			return await process.RunAsync(true).CAF();
 		}
 
 		private static async Task<int> ProcessMp3Async(Anime anime, Song song)
 		{
-			var file = $"[{anime.Name}] {song.Name}.mp3";
-			var output = Path.Combine(anime.Directory, file);
+			var output = song.GetMp3Path(anime);
 			if (File.Exists(output))
 			{
 				return 0;
@@ -322,10 +387,7 @@ namespace LupinSongsAMQ
 
 			using var process = Utils.CreateProcess(Utils.FFmpeg, args);
 
-			process.OutputDataReceived += (s, e) => Console.WriteLine(e.Data);
-			process.ErrorDataReceived += (s, e) => Console.WriteLine(e.Data);
-
-			return await process.RunAsync().CAF();
+			return await process.RunAsync(true).CAF();
 		}
 	}
 }

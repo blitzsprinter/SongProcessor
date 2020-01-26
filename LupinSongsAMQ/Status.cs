@@ -10,5 +10,6 @@ namespace LupinSongsAMQ
 		Mp3 = (1U << 2),
 		Res480 = (1U << 3),
 		Res720 = (1U << 4),
+		SubmittedAsFix = (1U << 5),
 	}
 }

@@ -32,12 +32,30 @@ namespace LupinSongsAMQ
 			};
 		}
 
-		public static Task<int> RunAsync(this Process process)
+		public static Task<int> RunAsync(this Process process, bool write)
 		{
+			void HandleClosing(object source, EventArgs e)
+			{
+				process.Kill();
+				process.Dispose();
+			}
+
 			var tcs = new TaskCompletionSource<int>();
 
 			process.EnableRaisingEvents = true;
-			process.Exited += (s, e) => tcs.SetResult(process.ExitCode);
+
+			AppDomain.CurrentDomain.ProcessExit += HandleClosing;
+			process.Exited += (s, e) =>
+			{
+				tcs.SetResult(process.ExitCode);
+				AppDomain.CurrentDomain.ProcessExit -= HandleClosing;
+			};
+
+			if (write)
+			{
+				process.OutputDataReceived += (s, e) => Console.WriteLine(e.Data);
+				process.ErrorDataReceived += (s, e) => Console.WriteLine(e.Data);
+			}
 
 			var started = process.Start();
 			if (!started)
