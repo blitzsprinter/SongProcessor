@@ -47,8 +47,8 @@ namespace LupinSongsAMQ
 			AppDomain.CurrentDomain.ProcessExit += HandleClosing;
 			process.Exited += (s, e) =>
 			{
-				tcs.SetResult(process.ExitCode);
 				AppDomain.CurrentDomain.ProcessExit -= HandleClosing;
+				tcs.SetResult(process.ExitCode);
 			};
 
 			if (write)

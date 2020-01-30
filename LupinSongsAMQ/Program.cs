@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -45,11 +46,7 @@ namespace LupinSongsAMQ
 		{
 			string dir;
 #if true
-#if false
-			dir = @"D:\Songs not in AMQ\Not Lupin";
-#else
 			dir = @"D:\Songs not in AMQ\Lupin";
-#endif
 #else
 			Console.WriteLine("Enter a directory to process: ");
 			while (true)
@@ -85,6 +82,49 @@ namespace LupinSongsAMQ
 			DisplayAnimes(animes);
 			ExportAnimeForSongFixes(dir, animes);
 			await ProcessAnimesAsync(animes).CAF();
+		}
+
+		private static async Task ADownloadSongAsync()
+		{
+			var req = new HttpRequestMessage
+			{
+				RequestUri = new Uri("https://music.dmkt-sp.jp/trial/music"),
+				Method = HttpMethod.Post,
+			};
+
+			//req.Headers.Add(":authority", "music.dmkt-sp.jp");
+			//req.Headers.Add(":method", "POST");
+			//req.Headers.Add(":path", "/trial/music");
+			//req.Headers.Add(":scheme", "https");
+			req.Headers.Add("accept", "application/json, text/javascript, */*; q=0.01");
+			req.Headers.Add("accept-encoding", "gzip, deflate, br");
+			req.Headers.Add("accept-language", "en-US,en;q=0.9");
+			req.Headers.Add("cache-control", "no-cache");
+			req.Headers.Add("cookie", "storedmusicid=6uhuaocsehsmmc60vkit8q6nog; trid=73.170.190.2331580343199335244; login_redirect_url=https%253A%252F%252Fmusic.dmkt-sp.jp%252Fproducts%252F%253Fsh%253D1004403588; __extfc=1; storedmusicid=6uhuaocsehsmmc60vkit8q6nog");
+			req.Headers.Add("dnt", "1");
+			req.Headers.Add("origin", "https://music.dmkt-sp.jp");
+			req.Headers.Add("pragma", "no-cache");
+			req.Headers.Add("referer", "https://music.dmkt-sp.jp/song/S14102310");
+			req.Headers.Add("sec-fetch-mode", "cors");
+			req.Headers.Add("sec-fetch-site", "same-origin");
+			req.Headers.Add("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36");
+			req.Headers.Add("x-requested-with", "XMLHttpRequest");
+
+			req.Content = new FormUrlEncodedContent(new Dictionary<string, string>
+			{
+				{ "musicId", "14102310" },
+				{ "trialType", "TYPICAL_TRACK" },
+			});
+			req.Content.Headers.Add("content-length", "40");
+
+			var client = new HttpClient();
+			var response = await client.SendAsync(req).CAF();
+			var stream = await response.Content.ReadAsStreamAsync().CAF();
+
+			const string path = @"D:\Songs not in AMQ\Failed Lupin\[Lupin] [2005] Angel Tactics\test.mp3";
+			using var fs = new FileStream(path, FileMode.Create);
+
+			await stream.CopyToAsync(fs).CAF();
 		}
 
 		private static void DisplayAnimes(IReadOnlyList<Anime> animes)
@@ -157,6 +197,11 @@ namespace LupinSongsAMQ
 
 		private static void ExportAnimeForSongFixes(string dir, IReadOnlyList<Anime> animes)
 		{
+			if (animes.Count == 0)
+			{
+				return;
+			}
+
 			static string FormatTimeSpan(TimeSpan ts)
 				=> ts.ToString().TrimStart(TrimArray).Split('.')[0];
 
@@ -175,8 +220,7 @@ namespace LupinSongsAMQ
 			{
 				foreach (var song in anime.Songs)
 				{
-					var list = counts.GetOrAdd(song.FullName, _ => new List<Anime>());
-					list.Add(anime);
+					counts.GetOrAdd(song.FullName, _ => new List<Anime>()).Add(anime);
 				}
 			}
 
@@ -341,7 +385,11 @@ namespace LupinSongsAMQ
 
 			if (resolution != sourceResolution)
 			{
-				args += $" -filter:v scale=-1:{resolution}"; //Resize video if needed
+				args += $" -filter:v \"scale=-1:{resolution}\""; //Resize video if needed
+			}
+			if (song.VolumeModifier != null)
+			{
+				args += $" -filter:a \"volume={song.VolumeModifier}\"";
 			}
 
 			args += $" \"{output}\"";
@@ -379,6 +427,11 @@ namespace LupinSongsAMQ
 				args =
 					$" -to {song.Length}" +
 					$" -i \"{anime.GetCleanSongPath(song)}\"";
+			}
+
+			if (song.VolumeModifier != null)
+			{
+				args += $" -filter:a \"volume={song.VolumeModifier}\"";
 			}
 
 			args += ARGS;

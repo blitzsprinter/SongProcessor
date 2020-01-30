@@ -8,7 +8,7 @@ namespace LupinSongsAMQ
 	[DebuggerDisplay("{DebuggerDisplay,nq}")]
 	public class Song
 	{
-		public const int UNKNOWN_TIMESTAMP = -1;
+		public const float UNKNOWN_TIMESTAMP = -1;
 
 		public string Artist { get; set; }
 		public string CleanPath { get; set; }
@@ -38,7 +38,7 @@ namespace LupinSongsAMQ
 		public TimeSpan TimeStamp => TimeSpan.FromSeconds(TimeStampInSeconds);
 		public float TimeStampInSeconds { get; set; }
 		public SongType Type { get; set; }
-
+		public string VolumeModifier { get; set; }
 		private string DebuggerDisplay => $"{Name} ({FullArtist})";
 
 		public Song()
