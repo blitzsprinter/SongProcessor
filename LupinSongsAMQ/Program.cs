@@ -25,7 +25,7 @@ namespace LupinSongsAMQ
 			(720, Status.Res720)
 		};
 
-		private static readonly AspectRatio OptimalAspectRatio = new AspectRatio(16, 9);
+		private static readonly AspectRatio SquareSAR = new AspectRatio(1, 1);
 
 		private static readonly char[] TrimArray = new[] { '0', ':' };
 
@@ -358,15 +358,18 @@ namespace LupinSongsAMQ
 
 			args += ARGS; //Add in the constant args, like quality + cpu usage
 
+			var width = -1;
 			var videoFilterParts = new List<string>();
 			//Resize video if needed
-			if (anime.SourceInfo.Height != resolution)
+			if (anime.SourceInfo.SAR != SquareSAR)
 			{
-				videoFilterParts.Add($"scale=-1:{resolution}");
+				videoFilterParts.Add($"setsar={SquareSAR.ToString('/')}");
+				videoFilterParts.Add($"setdar={anime.SourceInfo.DAR.ToString('/')}");
+				width = (int)(resolution * anime.SourceInfo.DAR.Ratio);
 			}
-			if (anime.SourceInfo.DAR != OptimalAspectRatio)
+			if (anime.SourceInfo.Height != resolution || width != -1)
 			{
-				videoFilterParts.Add($"setdar={OptimalAspectRatio.ToString('/')}");
+				videoFilterParts.Add($"scale={width}:{resolution}");
 			}
 			if (videoFilterParts.Count > 0)
 			{

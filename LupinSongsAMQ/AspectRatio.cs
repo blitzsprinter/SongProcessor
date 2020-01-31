@@ -8,7 +8,7 @@ namespace LupinSongsAMQ
 	public readonly struct AspectRatio : IEquatable<AspectRatio>
 	{
 		public int Height { get; }
-		public float Ratio => Width / Height;
+		public float Ratio => Width / (float)Height;
 		public int Width { get; }
 
 		private string DebuggerDisplay => ToString();
@@ -28,7 +28,7 @@ namespace LupinSongsAMQ
 		public override bool Equals(object obj)
 			=> Equals(obj as AspectRatio?);
 
-		public bool Equals([AllowNull] AspectRatio? other)
+		public bool Equals(AspectRatio? other)
 		{
 			if (other == null)
 			{
