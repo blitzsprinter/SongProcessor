@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 using AdvorangesUtils;
@@ -87,6 +89,21 @@ namespace LupinSongsAMQ
 				array[i++] = item;
 			}
 			return array;
+		}
+
+		public static T ToObject<T>(this JsonElement element, JsonSerializerOptions options = null)
+		{
+			var json = element.GetRawText();
+			return JsonSerializer.Deserialize<T>(json, options);
+		}
+
+		public static T ToObject<T>(this JsonDocument document, JsonSerializerOptions options = null)
+		{
+			if (document == null)
+			{
+				throw new ArgumentNullException(nameof(document));
+			}
+			return document.RootElement.ToObject<T>(options);
 		}
 
 		private static string FindProgram(string program)

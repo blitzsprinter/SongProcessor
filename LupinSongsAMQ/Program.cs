@@ -25,9 +25,9 @@ namespace LupinSongsAMQ
 			(720, Status.Res720)
 		};
 
-		private static readonly char[] TrimArray = new[] { '0', ':' };
+		private static readonly AspectRatio OptimalAspectRatio = new AspectRatio(16, 9);
 
-		private static readonly (int, int) UnknownResolution = (-1, -1);
+		private static readonly char[] TrimArray = new[] { '0', ':' };
 
 		private static readonly JsonSerializerOptions Options = new JsonSerializerOptions
 		{
@@ -46,7 +46,7 @@ namespace LupinSongsAMQ
 		{
 			string dir;
 #if true
-			dir = @"D:\Songs not in AMQ\Lupin";
+			dir = @"D:\Songs not in AMQ\Failed Lupin";
 #else
 			Console.WriteLine("Enter a directory to process: ");
 			while (true)
@@ -67,64 +67,22 @@ namespace LupinSongsAMQ
 				Console.WriteLine("Invalid directory provided; enter a valid one: ");
 			}
 #endif
-			var files = Directory.EnumerateFiles(dir, "*.amq", SearchOption.AllDirectories);
-			var tasks = files.Select(async x =>
+			var animes = new List<Anime>();
+			foreach (var file in Directory.EnumerateFiles(dir, "*.amq", SearchOption.AllDirectories))
 			{
-				using var fs = new FileStream(x, FileMode.Open);
+				using var fs = new FileStream(file, FileMode.Open);
 
 				var anime = await JsonSerializer.DeserializeAsync<Anime>(fs, Options).CAF();
-				anime.Directory = Path.GetDirectoryName(x);
+				anime.Directory = Path.GetDirectoryName(file);
 				anime.Songs.RemoveAll(x => x.ShouldIgnore);
-				return anime;
-			});
-			var animes = (await Task.WhenAll(tasks).CAF()).Where(x => x != null).ToArray();
+
+				anime.SourceInfo = await GetVideoInfo(anime).CAF();
+				animes.Add(anime);
+			}
 
 			DisplayAnimes(animes);
 			ExportAnimeForSongFixes(dir, animes);
 			await ProcessAnimesAsync(animes).CAF();
-		}
-
-		private static async Task ADownloadSongAsync()
-		{
-			var req = new HttpRequestMessage
-			{
-				RequestUri = new Uri("https://music.dmkt-sp.jp/trial/music"),
-				Method = HttpMethod.Post,
-			};
-
-			//req.Headers.Add(":authority", "music.dmkt-sp.jp");
-			//req.Headers.Add(":method", "POST");
-			//req.Headers.Add(":path", "/trial/music");
-			//req.Headers.Add(":scheme", "https");
-			req.Headers.Add("accept", "application/json, text/javascript, */*; q=0.01");
-			req.Headers.Add("accept-encoding", "gzip, deflate, br");
-			req.Headers.Add("accept-language", "en-US,en;q=0.9");
-			req.Headers.Add("cache-control", "no-cache");
-			req.Headers.Add("cookie", "storedmusicid=6uhuaocsehsmmc60vkit8q6nog; trid=73.170.190.2331580343199335244; login_redirect_url=https%253A%252F%252Fmusic.dmkt-sp.jp%252Fproducts%252F%253Fsh%253D1004403588; __extfc=1; storedmusicid=6uhuaocsehsmmc60vkit8q6nog");
-			req.Headers.Add("dnt", "1");
-			req.Headers.Add("origin", "https://music.dmkt-sp.jp");
-			req.Headers.Add("pragma", "no-cache");
-			req.Headers.Add("referer", "https://music.dmkt-sp.jp/song/S14102310");
-			req.Headers.Add("sec-fetch-mode", "cors");
-			req.Headers.Add("sec-fetch-site", "same-origin");
-			req.Headers.Add("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36");
-			req.Headers.Add("x-requested-with", "XMLHttpRequest");
-
-			req.Content = new FormUrlEncodedContent(new Dictionary<string, string>
-			{
-				{ "musicId", "14102310" },
-				{ "trialType", "TYPICAL_TRACK" },
-			});
-			req.Content.Headers.Add("content-length", "40");
-
-			var client = new HttpClient();
-			var response = await client.SendAsync(req).CAF();
-			var stream = await response.Content.ReadAsStreamAsync().CAF();
-
-			const string path = @"D:\Songs not in AMQ\Failed Lupin\[Lupin] [2005] Angel Tactics\test.mp3";
-			using var fs = new FileStream(path, FileMode.Create);
-
-			await stream.CopyToAsync(fs).CAF();
 		}
 
 		private static void DisplayAnimes(IReadOnlyList<Anime> animes)
@@ -178,6 +136,11 @@ namespace LupinSongsAMQ
 			foreach (var anime in animes)
 			{
 				Console.WriteLine($"[{anime.Year}] [{anime.Id}] {anime.Name}");
+				var info = anime.SourceInfo;
+				if (info != null)
+				{
+					Console.WriteLine($"[{info.Width}x{info.Height}] [{info.SAR}] [{info.DAR}]");
+				}
 
 				foreach (var song in anime.Songs)
 				{
@@ -279,12 +242,16 @@ namespace LupinSongsAMQ
 					throw new ArgumentException($"{anime.Source} source does not exist.", nameof(anime.Source));
 				}
 
-				var (_, height) = await GetResolutionAsync(anime).CAF();
+				var validResolutions = new List<(int Size, Status Status)>(Resolutions.Length);
 				foreach (var res in Resolutions)
 				{
-					if (res.Size > height)
+					if (res.Size > anime.SourceInfo?.Height)
 					{
 						Console.WriteLine($"Source is smaller than {res.Size}p: {anime.Name}");
+					}
+					else
+					{
+						validResolutions.Add(res);
 					}
 				}
 
@@ -300,44 +267,52 @@ namespace LupinSongsAMQ
 					{
 						await ProcessMp3Async(anime, song).CAF();
 					}
-					foreach (var res in Resolutions)
+					foreach (var res in validResolutions)
 					{
-						if (res.Size <= height && song.IsMissing(res.Status))
+						if (song.IsMissing(res.Status))
 						{
-							await ProcessVideoAsync(anime, song, res.Size, height).CAF();
+							await ProcessVideoAsync(anime, song, res.Size).CAF();
 						}
 					}
 				}
 			}
 		}
 
-		private static async Task<(int, int)> GetResolutionAsync(Anime anime)
+		private static async Task<FfProbeInfo> GetVideoInfo(Anime anime)
 		{
-			const string ARGS = "-v error" +
+			var path = anime.GetSourcePath();
+			if (path == null)
+			{
+				return null;
+			}
+
+			#region Args
+			const string ARGS = "-v quiet" +
 				" -select_streams v:0" +
-				" -show_entries stream=width,height" +
-				" -of csv=s=x:p=0";
+				" -print_format json" +
+				" -show_streams";
 
 			var args = ARGS +
-				$" \"{anime.GetSourcePath()}\"";
+				$" \"{path}\"";
+			#endregion Args
 
 			using var process = Utils.CreateProcess(Utils.FFprobe, args);
 
-			(int, int) res = UnknownResolution;
+			var sb = new StringBuilder();
 			void OnOutputReceived(object sender, DataReceivedEventArgs args)
-			{
-				process.OutputDataReceived -= OnOutputReceived;
-
-				var split = args.Data.Split('x');
-				res = (int.Parse(split[0]), int.Parse(split[1]));
-			}
+				=> sb.Append(args.Data);
 
 			process.OutputDataReceived += OnOutputReceived;
 			await process.RunAsync(false).CAF();
-			return res;
+			process.OutputDataReceived -= OnOutputReceived;
+
+			using var doc = JsonDocument.Parse(sb.ToString());
+
+			var infoJson = doc.RootElement.GetProperty("streams")[0];
+			return infoJson.ToObject<FfProbeInfo>(Options);
 		}
 
-		private static async Task<int> ProcessVideoAsync(Anime anime, Song song, int resolution, int sourceResolution)
+		private static async Task<int> ProcessVideoAsync(Anime anime, Song song, int resolution)
 		{
 			var output = song.GetVideoPath(anime, resolution);
 			if (File.Exists(output))
@@ -383,10 +358,21 @@ namespace LupinSongsAMQ
 
 			args += ARGS; //Add in the constant args, like quality + cpu usage
 
-			if (resolution != sourceResolution)
+			var videoFilterParts = new List<string>();
+			//Resize video if needed
+			if (anime.SourceInfo.Height != resolution)
 			{
-				args += $" -filter:v \"scale=-1:{resolution}\""; //Resize video if needed
+				videoFilterParts.Add($"scale=-1:{resolution}");
 			}
+			if (anime.SourceInfo.DAR != OptimalAspectRatio)
+			{
+				videoFilterParts.Add($"setdar={OptimalAspectRatio.ToString('/')}");
+			}
+			if (videoFilterParts.Count > 0)
+			{
+				args += $" -filter:v \"{videoFilterParts.Join(",")}\"";
+			}
+
 			if (song.VolumeModifier != null)
 			{
 				args += $" -filter:a \"volume={song.VolumeModifier}\"";
