@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -16,7 +15,6 @@ namespace LupinSongsAMQ
 {
 	public static class Program
 	{
-		public const string INFO_FILE = "info.amq";
 		public const string FIXES_FILE = "fixes.txt";
 
 		private static readonly (int Size, Status Status)[] Resolutions = new[]
@@ -27,7 +25,7 @@ namespace LupinSongsAMQ
 
 		private static readonly AspectRatio SquareSAR = new AspectRatio(1, 1);
 
-		private static readonly char[] TrimArray = new[] { '0', ':' };
+		private static readonly char[] TimeSpanStartTrimChars = new[] { '0', ':' };
 
 		private static readonly JsonSerializerOptions Options = new JsonSerializerOptions
 		{
@@ -38,6 +36,8 @@ namespace LupinSongsAMQ
 		static Program()
 		{
 			Options.Converters.Add(new JsonStringEnumConverter());
+			Options.Converters.Add(new AspectRatioJsonConverter());
+			Options.Converters.Add(new SongTypeAndPositionJsonConverter());
 
 			Console.SetBufferSize(Console.BufferWidth, short.MaxValue - 1);
 		}
@@ -46,7 +46,7 @@ namespace LupinSongsAMQ
 		{
 			string dir;
 #if true
-			dir = @"D:\Songs not in AMQ\Failed Lupin";
+			dir = @"D:\Songs not in AMQ\Not Lupin";
 #else
 			Console.WriteLine("Enter a directory to process: ");
 			while (true)
@@ -67,40 +67,36 @@ namespace LupinSongsAMQ
 				Console.WriteLine("Invalid directory provided; enter a valid one: ");
 			}
 #endif
-			var animes = new List<Anime>();
+			var anime = new List<Anime>();
 			foreach (var file in Directory.EnumerateFiles(dir, "*.amq", SearchOption.AllDirectories))
 			{
 				using var fs = new FileStream(file, FileMode.Open);
 
-				var anime = await JsonSerializer.DeserializeAsync<Anime>(fs, Options).CAF();
-				anime.Directory = Path.GetDirectoryName(file);
-				anime.Songs.RemoveAll(x => x.ShouldIgnore);
+				var show = await JsonSerializer.DeserializeAsync<Anime>(fs, Options).CAF();
+				show.Directory = Path.GetDirectoryName(file);
+				show.Songs.RemoveAll(x => x.ShouldIgnore);
+				show.SourceInfo = await GetVideoInfoAsync(show).CAF();
 
-				anime.SourceInfo = await GetVideoInfo(anime).CAF();
-				animes.Add(anime);
+				anime.Add(show);
 			}
 
-			DisplayAnimes(animes);
-			ExportAnimeForSongFixes(dir, animes);
-			await ProcessAnimesAsync(animes).CAF();
+			Display(anime);
+			await ExportFixesAsync(dir, anime).CAF();
+			await ProcessAsync(anime).CAF();
 		}
 
-		private static void DisplayAnimes(IReadOnlyList<Anime> animes)
+		private static void Display(IReadOnlyList<Anime> anime)
 		{
-			static void WriteBool(bool item)
-			{
-				var originalColor = Console.ForegroundColor;
-				Console.ForegroundColor = item ? ConsoleColor.Green : ConsoleColor.Red;
-				Console.Write(item.ToString().PadRight(bool.FalseString.Length));
-				Console.ForegroundColor = originalColor;
-			}
-
 			static void DisplayStatusItems(params bool[] items)
 			{
 				foreach (var item in items)
 				{
 					Console.Write(" | ");
-					WriteBool(item);
+
+					var originalColor = Console.ForegroundColor;
+					Console.ForegroundColor = item ? ConsoleColor.Green : ConsoleColor.Red;
+					Console.Write(item.ToString().PadRight(bool.FalseString.Length));
+					Console.ForegroundColor = originalColor;
 				}
 			}
 
@@ -123,9 +119,9 @@ namespace LupinSongsAMQ
 
 			var nameLen = int.MinValue;
 			var artLen = int.MinValue;
-			foreach (var anime in animes)
+			foreach (var show in anime)
 			{
-				foreach (var song in anime.Songs)
+				foreach (var song in show.Songs)
 				{
 					nameLen = Math.Max(nameLen, song.Name.Length);
 					artLen = Math.Max(artLen, song.FullArtist.Length);
@@ -133,16 +129,16 @@ namespace LupinSongsAMQ
 			}
 
 			var originalBackground = Console.BackgroundColor;
-			foreach (var anime in animes)
+			foreach (var show in anime)
 			{
-				Console.WriteLine($"[{anime.Year}] [{anime.Id}] {anime.Name}");
-				var info = anime.SourceInfo;
-				if (info != null)
+				var text = $"[{show.Year}] [{show.Id}] {show.Name}";
+				if (show.SourceInfo is FfProbeInfo i)
 				{
-					Console.WriteLine($"[{info.Width}x{info.Height}] [{info.SAR}] [{info.DAR}]");
+					text += $" [{i.Width}x{i.Height}] [SAR: {i.SAR}] [DAR: {i.DAR}]";
 				}
+				Console.WriteLine(text);
 
-				foreach (var song in anime.Songs)
+				foreach (var song in show.Songs)
 				{
 					var submitted = song.Status != Status.NotSubmitted;
 					var hasMp3 = (song.Status & Status.Mp3) != 0;
@@ -158,15 +154,15 @@ namespace LupinSongsAMQ
 			}
 		}
 
-		private static void ExportAnimeForSongFixes(string dir, IReadOnlyList<Anime> animes)
+		private static async Task ExportFixesAsync(string dir, IReadOnlyList<Anime> anime)
 		{
-			if (animes.Count == 0)
+			if (anime.Count == 0)
 			{
 				return;
 			}
 
 			static string FormatTimeSpan(TimeSpan ts)
-				=> ts.ToString().TrimStart(TrimArray).Split('.')[0];
+				=> ts.ToString().TrimStart(TimeSpanStartTrimChars).Split('.')[0];
 
 			static string FormatTimestamp(Song song)
 			{
@@ -179,11 +175,11 @@ namespace LupinSongsAMQ
 			}
 
 			var counts = new ConcurrentDictionary<string, List<Anime>>();
-			foreach (var anime in animes)
+			foreach (var show in anime)
 			{
-				foreach (var song in anime.Songs)
+				foreach (var song in show.Songs)
 				{
-					counts.GetOrAdd(song.FullName, _ => new List<Anime>()).Add(anime);
+					counts.GetOrAdd(song.FullName, _ => new List<Anime>()).Add(show);
 				}
 			}
 
@@ -191,9 +187,9 @@ namespace LupinSongsAMQ
 			using var fs = new FileStream(file, FileMode.Create);
 			using var sw = new StreamWriter(fs);
 
-			foreach (var anime in animes)
+			foreach (var show in anime)
 			{
-				foreach (var song in anime.Songs)
+				foreach (var song in show.Songs)
 				{
 					if (song.Status != Status.NotSubmitted)
 					{
@@ -202,8 +198,8 @@ namespace LupinSongsAMQ
 
 					var sb = new StringBuilder();
 
-					sb.Append("**Anime:** ").AppendLine(anime.Name);
-					sb.Append("**ANNID:** ").AppendLine(anime.Id.ToString());
+					sb.Append("**Anime:** ").AppendLine(show.Name);
+					sb.Append("**ANNID:** ").AppendLine(show.Id.ToString());
 					sb.Append("**Song Title:** ").AppendLine(song.Name);
 					sb.Append("**Artist:** ").AppendLine(song.Artist);
 					sb.Append("**Type:** ").AppendLine(song.Type.ToString());
@@ -214,40 +210,40 @@ namespace LupinSongsAMQ
 					if (matches.Count > 1)
 					{
 						var others = matches
-							.Where(x => x.Id != anime.Id)
+							.Where(x => x.Id != show.Id)
 							.OrderBy(x => x.Id);
 
 						sb.Append("**Duplicate found in:** ")
 							.AppendLine(others.Join(x => x.Id.ToString()));
 					}
 
-					sw.Write(sb.AppendLine().ToString());
+					await sw.WriteAsync(sb.AppendLine()).CAF();
 				}
 			}
 		}
 
-		private static async Task ProcessAnimesAsync(IReadOnlyList<Anime> animes)
+		private static async Task ProcessAsync(IReadOnlyList<Anime> anime)
 		{
-			foreach (var anime in animes)
+			foreach (var show in anime)
 			{
-				if (anime.Source == null)
+				if (show.Source == null)
 				{
-					Console.WriteLine($"Source is null: {anime.Name}");
+					Console.WriteLine($"Source is null: {show.Name}");
 					continue;
 				}
-				else if (!File.Exists(anime.GetSourcePath()))
+				else if (!File.Exists(show.GetSourcePath()))
 				{
-					Console.WriteLine($"Source does not exist: {anime.Name}");
+					Console.WriteLine($"Source does not exist: {show.Name}");
 					Console.ReadLine();
-					throw new ArgumentException($"{anime.Source} source does not exist.", nameof(anime.Source));
+					throw new ArgumentException($"{show.Source} source does not exist.", nameof(show.Source));
 				}
 
 				var validResolutions = new List<(int Size, Status Status)>(Resolutions.Length);
 				foreach (var res in Resolutions)
 				{
-					if (res.Size > anime.SourceInfo?.Height)
+					if (res.Size > show.SourceInfo?.Height)
 					{
-						Console.WriteLine($"Source is smaller than {res.Size}p: {anime.Name}");
+						Console.WriteLine($"Source is smaller than {res.Size}p: {show.Name}");
 					}
 					else
 					{
@@ -255,7 +251,7 @@ namespace LupinSongsAMQ
 					}
 				}
 
-				foreach (var song in anime.Songs)
+				foreach (var song in show.Songs)
 				{
 					if (!song.HasTimeStamp)
 					{
@@ -265,20 +261,20 @@ namespace LupinSongsAMQ
 
 					if (song.IsMissing(Status.Mp3))
 					{
-						await ProcessMp3Async(anime, song).CAF();
+						await ProcessMp3Async(show, song).CAF();
 					}
 					foreach (var res in validResolutions)
 					{
 						if (song.IsMissing(res.Status))
 						{
-							await ProcessVideoAsync(anime, song, res.Size).CAF();
+							await ProcessVideoAsync(show, song, res.Size).CAF();
 						}
 					}
 				}
 			}
 		}
 
-		private static async Task<FfProbeInfo> GetVideoInfo(Anime anime)
+		private static async Task<FfProbeInfo> GetVideoInfoAsync(Anime anime)
 		{
 			var path = anime.GetSourcePath();
 			if (path == null)
@@ -345,14 +341,14 @@ namespace LupinSongsAMQ
 			if (song.IsClean)
 			{
 				args +=
-					" -map 0:v" + //Use the first input's video
-					" -map 0:a"; //Use the first input's audio;
+					$" -map 0:v:{song.OverrideVideoTrack}" + //Use the first input's video
+					$" -map 0:a:{song.OverrideAudioTrack}"; //Use the first input's audio
 			}
 			else
 			{
 				args +=
 					$" -i \"{anime.GetCleanSongPath(song)}\"" +
-					" -map 0:v" + //Use the first input's video
+					$" -map 0:v:{song.OverrideVideoTrack}" + //Use the first input's video
 					" -map 1:a"; //Use the second input's audio
 			}
 
@@ -409,6 +405,7 @@ namespace LupinSongsAMQ
 					$" -ss {song.TimeStamp}" + //Starting time
 					$" -to {song.TimeStamp + song.Length}" + //Ending time
 					$" -i \"{anime.GetSourcePath()}\"" + //Video source
+					$" -map 0:a:{song.OverrideAudioTrack}" + //Use the first input's audio
 					" -vn";
 			}
 			else

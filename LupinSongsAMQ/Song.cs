@@ -33,11 +33,13 @@ namespace LupinSongsAMQ
 		public TimeSpan Length => TimeSpan.FromSeconds(LengthInSeconds);
 		public float LengthInSeconds { get; set; } = UNKNOWN_TIMESTAMP;
 		public string Name { get; set; }
+		public int OverrideAudioTrack { get; set; }
+		public int OverrideVideoTrack { get; set; }
 		public bool ShouldIgnore { get; set; }
 		public Status Status { get; set; }
 		public TimeSpan TimeStamp => TimeSpan.FromSeconds(TimeStampInSeconds);
 		public float TimeStampInSeconds { get; set; }
-		public SongType Type { get; set; }
+		public SongTypeAndPosition Type { get; set; }
 		public string VolumeModifier { get; set; }
 		private string DebuggerDisplay => $"{Name} ({FullArtist})";
 
@@ -45,7 +47,7 @@ namespace LupinSongsAMQ
 		{
 		}
 
-		public Song(string name, string artist, int timestamp, int length, SongType type, Status status)
+		public Song(string name, string artist, int timestamp, int length, SongTypeAndPosition type, Status status)
 		{
 			Artist = artist;
 			Name = name;

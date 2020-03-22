@@ -38,7 +38,6 @@ namespace LupinSongsAMQ
 		public string ColorRange { get; set; }
 
 		[JsonPropertyName("display_aspect_ratio")]
-		[JsonConverter(typeof(AspectRatioJsonConverter))]
 		public AspectRatio DAR { get; set; }
 
 		[JsonPropertyName("has_b_frames")]
@@ -66,7 +65,6 @@ namespace LupinSongsAMQ
 		public string RFrameRate { get; set; }
 
 		[JsonPropertyName("sample_aspect_ratio")]
-		[JsonConverter(typeof(AspectRatioJsonConverter))]
 		public AspectRatio SAR { get; set; }
 
 		[JsonPropertyName("start_pts")]

@@ -3,7 +3,11 @@
 	public enum SongType
 	{
 		Op = 0,
+		Opening = Op,
 		Ed = 1,
-		Insert = 2,
+		Ending = Ed,
+		In = 2,
+		Ins = In,
+		Insert = In,
 	}
 }
