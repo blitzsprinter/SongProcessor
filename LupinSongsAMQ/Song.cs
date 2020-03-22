@@ -8,10 +8,11 @@ namespace LupinSongsAMQ
 	[DebuggerDisplay("{DebuggerDisplay,nq}")]
 	public class Song
 	{
-		public const float UNKNOWN_TIMESTAMP = -1;
+		public static readonly TimeSpan UnknownTime = TimeSpan.FromSeconds(-1);
 
 		public string Artist { get; set; }
 		public string CleanPath { get; set; }
+		public TimeSpan End { get; set; }
 		public int? Episode { get; set; }
 		public string[] Featuring { get; set; } = Array.Empty<string>();
 
@@ -28,17 +29,15 @@ namespace LupinSongsAMQ
 		}
 
 		public string FullName => $"{Name} ({FullArtist})";
-		public bool HasTimeStamp => TimeStampInSeconds != UNKNOWN_TIMESTAMP;
+		public bool HasTimeStamp => Start != UnknownTime;
 		public bool IsClean => CleanPath == null;
-		public TimeSpan Length => TimeSpan.FromSeconds(LengthInSeconds);
-		public float LengthInSeconds { get; set; } = UNKNOWN_TIMESTAMP;
+		public TimeSpan Length => End - Start;
 		public string Name { get; set; }
 		public int OverrideAudioTrack { get; set; }
 		public int OverrideVideoTrack { get; set; }
 		public bool ShouldIgnore { get; set; }
+		public TimeSpan Start { get; set; }
 		public Status Status { get; set; }
-		public TimeSpan TimeStamp => TimeSpan.FromSeconds(TimeStampInSeconds);
-		public float TimeStampInSeconds { get; set; }
 		public SongTypeAndPosition Type { get; set; }
 		public string VolumeModifier { get; set; }
 		private string DebuggerDisplay => $"{Name} ({FullArtist})";
@@ -47,12 +46,12 @@ namespace LupinSongsAMQ
 		{
 		}
 
-		public Song(string name, string artist, int timestamp, int length, SongTypeAndPosition type, Status status)
+		public Song(string name, string artist, TimeSpan start, TimeSpan end, SongTypeAndPosition type, Status status)
 		{
 			Artist = artist;
 			Name = name;
-			TimeStampInSeconds = timestamp;
-			LengthInSeconds = length;
+			Start = start;
+			End = end;
 			Type = type;
 			Status = status;
 		}
@@ -72,8 +71,8 @@ namespace LupinSongsAMQ
 			{
 				Name.PadRight(nameLen),
 				FullArtist.PadRight(artLen),
-				HasTimeStamp ? TimeStamp.ToString("hh\\:mm\\:ss") : "Unknown ",
-				Length.ToString("mm\\:ss")
+				HasTimeStamp ? Start.ToString("hh\\:mm\\:ss") : "Unknown ",
+				HasTimeStamp ? Length.ToString("mm\\:ss") : "Unknown ",
 			}.Join(" | ");
 		}
 

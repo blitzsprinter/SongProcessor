@@ -38,6 +38,7 @@ namespace LupinSongsAMQ
 			Options.Converters.Add(new JsonStringEnumConverter());
 			Options.Converters.Add(new AspectRatioJsonConverter());
 			Options.Converters.Add(new SongTypeAndPositionJsonConverter());
+			Options.Converters.Add(new TimeSpanJsonConverter());
 
 			Console.SetBufferSize(Console.BufferWidth, short.MaxValue - 1);
 		}
@@ -70,6 +71,33 @@ namespace LupinSongsAMQ
 			var anime = new List<Anime>();
 			foreach (var file in Directory.EnumerateFiles(dir, "*.amq", SearchOption.AllDirectories))
 			{
+				var text = File.ReadAllText(file);
+				var jObject = Newtonsoft.Json.Linq.JObject.Parse(text);
+				foreach (Newtonsoft.Json.Linq.JObject song in jObject[nameof(Anime.Songs)])
+				{
+					TimeSpan GetTimeSpan(string name)
+					{
+						var startToken = song[name];
+						song.Remove(name);
+						var seconds = startToken.ToObject<double>();
+						return TimeSpan.FromSeconds(seconds);
+					}
+
+					var start = GetTimeSpan("TimeStampInSeconds");
+					var length = GetTimeSpan("LengthInSeconds");
+					var end = start + length;
+
+					song.Add("Start", start);
+					song.Add("End", end);
+				}
+
+				var text2 = jObject.ToString();
+				var show = JsonSerializer.Deserialize<Anime>(text2, Options);
+
+				var ser = JsonSerializer.Serialize(show, Options);
+				File.WriteAllText(file, ser);
+
+				/*
 				using var fs = new FileStream(file, FileMode.Open);
 
 				var show = await JsonSerializer.DeserializeAsync<Anime>(fs, Options).CAF();
@@ -77,7 +105,7 @@ namespace LupinSongsAMQ
 				show.Songs.RemoveAll(x => x.ShouldIgnore);
 				show.SourceInfo = await GetVideoInfoAsync(show).CAF();
 
-				anime.Add(show);
+				anime.Add(show);*/
 			}
 
 			Display(anime);
@@ -166,7 +194,7 @@ namespace LupinSongsAMQ
 
 			static string FormatTimestamp(Song song)
 			{
-				var ts = FormatTimeSpan(song.TimeStamp);
+				var ts = FormatTimeSpan(song.Start);
 				if (song.Episode == null)
 				{
 					return ts;
@@ -334,8 +362,8 @@ namespace LupinSongsAMQ
 				" -ac 2";
 
 			var args =
-				$" -ss {song.TimeStamp}" + //Starting time
-				$" -to {song.TimeStamp + song.Length}" + //Ending time
+				$" -ss {song.Start}" + //Starting time
+				$" -to {song.End}" + //Ending time
 				$" -i \"{anime.GetSourcePath()}\""; //Video source
 
 			if (song.IsClean)
@@ -402,8 +430,8 @@ namespace LupinSongsAMQ
 			if (song.IsClean)
 			{
 				args =
-					$" -ss {song.TimeStamp}" + //Starting time
-					$" -to {song.TimeStamp + song.Length}" + //Ending time
+					$" -ss {song.Start}" + //Starting time
+					$" -to {song.End}" + //Ending time
 					$" -i \"{anime.GetSourcePath()}\"" + //Video source
 					$" -map 0:a:{song.OverrideAudioTrack}" + //Use the first input's audio
 					" -vn";
