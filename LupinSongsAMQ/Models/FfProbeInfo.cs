@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace LupinSongsAMQ
+namespace LupinSongsAMQ.Models
 {
 	public sealed class FfProbeInfo
 	{

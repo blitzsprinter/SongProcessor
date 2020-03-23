@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using AdvorangesUtils;
 
-namespace LupinSongsAMQ
+namespace LupinSongsAMQ.Models
 {
 	[DebuggerDisplay("{DebuggerDisplay,nq}")]
 	public class Song

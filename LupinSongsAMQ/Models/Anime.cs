@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text.Json.Serialization;
 
-namespace LupinSongsAMQ
+namespace LupinSongsAMQ.Models
 {
 	[DebuggerDisplay("{DebuggerDisplay,nq}")]
 	public class Anime

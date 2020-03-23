@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace LupinSongsAMQ
+namespace LupinSongsAMQ.Models
 {
 	[Flags]
 	public enum Status : uint

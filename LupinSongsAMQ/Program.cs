@@ -11,6 +11,9 @@ using System.Threading.Tasks;
 
 using AdvorangesUtils;
 
+using LupinSongsAMQ.Converters;
+using LupinSongsAMQ.Models;
+
 namespace LupinSongsAMQ
 {
 	public static class Program
@@ -24,8 +27,6 @@ namespace LupinSongsAMQ
 		};
 
 		private static readonly AspectRatio SquareSAR = new AspectRatio(1, 1);
-
-		private static readonly char[] TimeSpanStartTrimChars = new[] { '0', ':' };
 
 		private static readonly JsonSerializerOptions Options = new JsonSerializerOptions
 		{
@@ -71,33 +72,6 @@ namespace LupinSongsAMQ
 			var anime = new List<Anime>();
 			foreach (var file in Directory.EnumerateFiles(dir, "*.amq", SearchOption.AllDirectories))
 			{
-				var text = File.ReadAllText(file);
-				var jObject = Newtonsoft.Json.Linq.JObject.Parse(text);
-				foreach (Newtonsoft.Json.Linq.JObject song in jObject[nameof(Anime.Songs)])
-				{
-					TimeSpan GetTimeSpan(string name)
-					{
-						var startToken = song[name];
-						song.Remove(name);
-						var seconds = startToken.ToObject<double>();
-						return TimeSpan.FromSeconds(seconds);
-					}
-
-					var start = GetTimeSpan("TimeStampInSeconds");
-					var length = GetTimeSpan("LengthInSeconds");
-					var end = start + length;
-
-					song.Add("Start", start);
-					song.Add("End", end);
-				}
-
-				var text2 = jObject.ToString();
-				var show = JsonSerializer.Deserialize<Anime>(text2, Options);
-
-				var ser = JsonSerializer.Serialize(show, Options);
-				File.WriteAllText(file, ser);
-
-				/*
 				using var fs = new FileStream(file, FileMode.Open);
 
 				var show = await JsonSerializer.DeserializeAsync<Anime>(fs, Options).CAF();
@@ -105,7 +79,7 @@ namespace LupinSongsAMQ
 				show.Songs.RemoveAll(x => x.ShouldIgnore);
 				show.SourceInfo = await GetVideoInfoAsync(show).CAF();
 
-				anime.Add(show);*/
+				anime.Add(show);
 			}
 
 			Display(anime);
@@ -190,7 +164,10 @@ namespace LupinSongsAMQ
 			}
 
 			static string FormatTimeSpan(TimeSpan ts)
-				=> ts.ToString().TrimStart(TimeSpanStartTrimChars).Split('.')[0];
+			{
+				var format = ts.TotalHours < 1 ? @"mm\:ss" : @"hh\:mm\:ss";
+				return ts.ToString(format);
+			}
 
 			static string FormatTimestamp(Song song)
 			{
@@ -351,14 +328,14 @@ namespace LupinSongsAMQ
 				" -c:a libopus" + //Set the audio codec to libopus
 				" -b:a 320k" + //Set the audio bitrate to 320k
 				" -c:v libvpx-vp9 " + //Set the video codec to libvpx-vp9
-				" -b:v 0" + //Specify the constant bitrate to be zero to only use the variable one
+				" -b:v 0" + //Constant bitrate = 0 so only the variable one is used
 				" -crf 20" + //Variable bitrate, 20 should look lossless
 				" -pix_fmt yuv420p" + //Set the pixel format to yuv420p
 				" -deadline good" +
 				" -cpu-used 1" +
 				" -tile-columns 6" +
 				" -row-mt 1" +
-				" -threads 8" + //Use 8 threads
+				" -threads 8" +
 				" -ac 2";
 
 			var args =
@@ -375,7 +352,7 @@ namespace LupinSongsAMQ
 			else
 			{
 				args +=
-					$" -i \"{anime.GetCleanSongPath(song)}\"" +
+					$" -i \"{anime.GetCleanSongPath(song)}\"" + //Audio source
 					$" -map 0:v:{song.OverrideVideoTrack}" + //Use the first input's video
 					" -map 1:a"; //Use the second input's audio
 			}

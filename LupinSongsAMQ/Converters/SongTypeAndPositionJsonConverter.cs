@@ -2,7 +2,9 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace LupinSongsAMQ
+using LupinSongsAMQ.Models;
+
+namespace LupinSongsAMQ.Converters
 {
 	public sealed class SongTypeAndPositionJsonConverter : JsonConverter<SongTypeAndPosition>
 	{

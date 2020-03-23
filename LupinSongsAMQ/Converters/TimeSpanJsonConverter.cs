@@ -2,7 +2,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace LupinSongsAMQ
+namespace LupinSongsAMQ.Converters
 {
 	public sealed class TimeSpanJsonConverter : JsonConverter<TimeSpan>
 	{

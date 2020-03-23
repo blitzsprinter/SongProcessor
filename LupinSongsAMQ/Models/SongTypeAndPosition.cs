@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Diagnostics;
 
-namespace LupinSongsAMQ
+namespace LupinSongsAMQ.Models
 {
+	[DebuggerDisplay("{DebuggerDisplay,nq}")]
 	public struct SongTypeAndPosition
 	{
 		private readonly SongType _Type;
@@ -23,6 +25,8 @@ namespace LupinSongsAMQ
 			SongType.In => nameof(SongType.In),
 			_ => throw new ArgumentOutOfRangeException(nameof(_Type)),
 		};
+
+		private string DebuggerDisplay => ToString();
 
 		public SongTypeAndPosition(SongType type, int? position)
 		{

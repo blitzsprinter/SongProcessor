@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 
-namespace LupinSongsAMQ
+namespace LupinSongsAMQ.Models
 {
 	[DebuggerDisplay("{DebuggerDisplay,nq}")]
 	public readonly struct AspectRatio : IEquatable<AspectRatio>
