@@ -19,7 +19,8 @@ namespace AMQSongProcessor
 				Console.WriteLine($"Finished processing \"{value.Path}\".\n");
 				return;
 			}
-			Console.WriteLine($"\"{value.Path}\" is {value.Percentage * 100:00.0}% complete.");
+			Console.WriteLine($"\"{value.Path}\" is {value.Percentage * 100:00.0}% complete. " +
+				$"ETA on completion: {value.CompletionETA}");
 		}
 	}
 }
