@@ -1,8 +1,8 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace LupinSongsAMQ.Models
+namespace AMQSongProcessor.Models
 {
-	public sealed class FfProbeInfo
+	public sealed class VideoInfo
 	{
 		[JsonPropertyName("avg_frame_rate")]
 		public string AverageFrameRate { get; set; }

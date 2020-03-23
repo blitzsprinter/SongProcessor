@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text.Json.Serialization;
 
-namespace LupinSongsAMQ.Models
+namespace AMQSongProcessor.Models
 {
 	[DebuggerDisplay("{DebuggerDisplay,nq}")]
 	public class Anime
@@ -20,7 +20,7 @@ namespace LupinSongsAMQ.Models
 		public string Source { get; set; }
 
 		[JsonIgnore]
-		public FfProbeInfo SourceInfo { get; set; }
+		public VideoInfo VideoInfo { get; set; }
 
 		public int Year { get; set; }
 

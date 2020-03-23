@@ -2,9 +2,9 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-using LupinSongsAMQ.Models;
+using AMQSongProcessor.Models;
 
-namespace LupinSongsAMQ.Converters
+namespace AMQSongProcessor.Converters
 {
 	public sealed class AspectRatioJsonConverter : JsonConverter<AspectRatio>
 	{

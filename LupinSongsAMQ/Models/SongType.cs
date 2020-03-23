@@ -1,4 +1,4 @@
-﻿namespace LupinSongsAMQ.Models
+﻿namespace AMQSongProcessor.Models
 {
 	public enum SongType
 	{

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace LupinSongsAMQ.Models
+namespace AMQSongProcessor.Models
 {
 	[DebuggerDisplay("{DebuggerDisplay,nq}")]
 	public struct SongTypeAndPosition

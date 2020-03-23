@@ -11,10 +11,10 @@ using System.Threading.Tasks;
 
 using AdvorangesUtils;
 
-using LupinSongsAMQ.Converters;
-using LupinSongsAMQ.Models;
+using AMQSongProcessor.Converters;
+using AMQSongProcessor.Models;
 
-namespace LupinSongsAMQ
+namespace AMQSongProcessor
 {
 	public static class Program
 	{
@@ -77,7 +77,7 @@ namespace LupinSongsAMQ
 				var show = await JsonSerializer.DeserializeAsync<Anime>(fs, Options).CAF();
 				show.Directory = Path.GetDirectoryName(file);
 				show.Songs.RemoveAll(x => x.ShouldIgnore);
-				show.SourceInfo = await GetVideoInfoAsync(show).CAF();
+				show.VideoInfo = await GetVideoInfoAsync(show).CAF();
 
 				anime.Add(show);
 			}
@@ -134,7 +134,7 @@ namespace LupinSongsAMQ
 			foreach (var show in anime)
 			{
 				var text = $"[{show.Year}] [{show.Id}] {show.Name}";
-				if (show.SourceInfo is FfProbeInfo i)
+				if (show.VideoInfo is VideoInfo i)
 				{
 					text += $" [{i.Width}x{i.Height}] [SAR: {i.SAR}] [DAR: {i.DAR}]";
 				}
@@ -246,7 +246,7 @@ namespace LupinSongsAMQ
 				var validResolutions = new List<(int Size, Status Status)>(Resolutions.Length);
 				foreach (var res in Resolutions)
 				{
-					if (res.Size > show.SourceInfo?.Height)
+					if (res.Size > show.VideoInfo?.Height)
 					{
 						Console.WriteLine($"Source is smaller than {res.Size}p: {show.Name}");
 					}
@@ -279,7 +279,7 @@ namespace LupinSongsAMQ
 			}
 		}
 
-		private static async Task<FfProbeInfo> GetVideoInfoAsync(Anime anime)
+		private static async Task<VideoInfo> GetVideoInfoAsync(Anime anime)
 		{
 			var path = anime.GetSourcePath();
 			if (path == null)
@@ -310,7 +310,7 @@ namespace LupinSongsAMQ
 			using var doc = JsonDocument.Parse(sb.ToString());
 
 			var infoJson = doc.RootElement.GetProperty("streams")[0];
-			return infoJson.ToObject<FfProbeInfo>(Options);
+			return infoJson.ToObject<VideoInfo>(Options);
 		}
 
 		private static async Task<int> ProcessVideoAsync(Anime anime, Song song, int resolution)
@@ -362,13 +362,13 @@ namespace LupinSongsAMQ
 			var width = -1;
 			var videoFilterParts = new List<string>();
 			//Resize video if needed
-			if (anime.SourceInfo.SAR != SquareSAR)
+			if (anime.VideoInfo.SAR != SquareSAR)
 			{
 				videoFilterParts.Add($"setsar={SquareSAR.ToString('/')}");
-				videoFilterParts.Add($"setdar={anime.SourceInfo.DAR.ToString('/')}");
-				width = (int)(resolution * anime.SourceInfo.DAR.Ratio);
+				videoFilterParts.Add($"setdar={anime.VideoInfo.DAR.ToString('/')}");
+				width = (int)(resolution * anime.VideoInfo.DAR.Ratio);
 			}
-			if (anime.SourceInfo.Height != resolution || width != -1)
+			if (anime.VideoInfo.Height != resolution || width != -1)
 			{
 				videoFilterParts.Add($"scale={width}:{resolution}");
 			}

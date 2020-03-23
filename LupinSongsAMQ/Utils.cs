@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 using AdvorangesUtils;
 
-namespace LupinSongsAMQ
+namespace AMQSongProcessor
 {
 	public static class Utils
 	{
