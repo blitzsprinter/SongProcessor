@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using AdvorangesUtils;
@@ -14,8 +15,21 @@ namespace AMQSongProcessor
 {
 	public sealed class SongProcessor : ISongProcessor
 	{
+		private const string BITRATE = "bitrate";
 		private const int FILE_ALREADY_EXISTS = 183;
 		private const int MP3_RESOLUTION = -1;
+		private const string SIZE = "size";
+		private const string SPEED = "speed";
+		private const string TIME = "time";
+
+		private static readonly string FfmpegProgressPattern =
+			$@"{SIZE}=\s*(?<{SIZE}>\d*)kB\s*" +
+			$@"{TIME}=(?<{TIME}>[0-9\\:\\.]+)\s*" +
+			$@"{BITRATE}=\s*(?<{BITRATE}>\d*(\.\d+)?)kbits\/s\s*" +
+			$@"{SPEED}=(?<{SPEED}>\d*(\.\d+)?)x";
+
+		private static readonly Regex FfmpegProgressRegex
+			= new Regex(FfmpegProgressPattern, RegexOptions.Compiled);
 
 		private static readonly Resolution[] Resolutions = new[]
 		{
@@ -27,6 +41,8 @@ namespace AMQSongProcessor
 		private static readonly AspectRatio SquareSAR = new AspectRatio(1, 1);
 
 		public string FixesFile { get; set; } = "fixes.txt";
+		public IProgress<ProcessingData> Processing { get; set; }
+		public IProgress<string> Warnings { get; set; }
 
 		public async Task ExportFixesAsync(string dir, IReadOnlyList<Anime> anime)
 		{
@@ -99,20 +115,18 @@ namespace AMQSongProcessor
 			}
 		}
 
-		public async IAsyncEnumerable<string> ProcessAsync(IReadOnlyList<Anime> anime)
+		public async Task ProcessAsync(IReadOnlyList<Anime> anime)
 		{
 			foreach (var show in anime)
 			{
 				if (show.Source == null)
 				{
-					Console.WriteLine($"Source is null: {show.Name}");
+					Warnings.Report($"Source is null: {show.Name}");
 					continue;
 				}
 				else if (!File.Exists(show.GetSourcePath()))
 				{
-					Console.WriteLine($"Source does not exist: {show.Name}");
-					Console.ReadLine();
-					throw new ArgumentException($"{show.Source} does not exist.", nameof(show.Source));
+					throw new ArgumentException($"{show.Name} {show.Source} does not exist.", nameof(show.Source));
 				}
 
 				var validResolutions = new List<Resolution>(Resolutions.Length);
@@ -120,7 +134,7 @@ namespace AMQSongProcessor
 				{
 					if (res.Size > show.VideoInfo?.Height)
 					{
-						Console.WriteLine($"Source is smaller than {res.Size}p: {show.Name}");
+						Warnings.Report($"Source is smaller than {res.Size}p: {show.Name}");
 					}
 					else
 					{
@@ -132,7 +146,7 @@ namespace AMQSongProcessor
 				{
 					if (!song.HasTimeStamp)
 					{
-						Console.WriteLine($"Timestamp is null: {song.Name}");
+						Warnings.Report($"Timestamp is null: {song.Name}");
 						continue;
 					}
 
@@ -143,32 +157,51 @@ namespace AMQSongProcessor
 							continue;
 						}
 
-						var result = res.IsMp3
-							? await ProcessMp3Async(show, song).CAF()
-							: await ProcessVideoAsync(show, song, res.Size).CAF();
-						if (result.IsSuccess)
-						{
-							yield return result.Path;
-						}
+						var t = res.IsMp3
+							? ProcessMp3Async(show, song)
+							: ProcessVideoAsync(show, song, res.Size);
+						await t.CAF();
 					}
 				}
 			}
 		}
 
-		private static async Task<ProcessResult> ProcessAsync(string path, string args)
+		private async Task<int> ProcessAsync(long ticks, string path, string args)
 		{
 			using var process = Utils.CreateProcess(Utils.FFmpeg, args);
 
-			var result = await process.RunAsync(true).CAF();
-			return new ProcessResult(result, path);
+			//ffmpeg always outputs to err
+			process.ErrorDataReceived += (s, e) =>
+			{
+				if (e.Data == null)
+				{
+					return;
+				}
+
+				var match = FfmpegProgressRegex.Match(e.Data);
+				if (!match.Success)
+				{
+					return;
+				}
+
+				var size = int.Parse(match.Groups[SIZE].Value);
+				var time = TimeSpan.Parse(match.Groups[TIME].Value);
+				var bitrate = double.Parse(match.Groups[BITRATE].Value);
+				var speed = double.Parse(match.Groups[SPEED].Value);
+				var percentage = time.Ticks / (double)ticks;
+				var data = new ProcessingData(path, size, time, bitrate, speed, percentage);
+				Processing.Report(data);
+			};
+
+			return await process.RunAsync(false).CAF();
 		}
 
-		private static Task<ProcessResult> ProcessMp3Async(Anime anime, Song song)
+		private Task<int> ProcessMp3Async(Anime anime, Song song)
 		{
 			var path = song.GetMp3Path(anime);
 			if (File.Exists(path))
 			{
-				return Task.FromResult(new ProcessResult(FILE_ALREADY_EXISTS, path));
+				return Task.FromResult(FILE_ALREADY_EXISTS);
 			}
 
 			#region Args
@@ -202,15 +235,15 @@ namespace AMQSongProcessor
 			args += $" \"{path}\"";
 			#endregion Args
 
-			return ProcessAsync(path, args);
+			return ProcessAsync(song.Length.Ticks, path, args);
 		}
 
-		private static Task<ProcessResult> ProcessVideoAsync(Anime anime, Song song, int resolution)
+		private Task<int> ProcessVideoAsync(Anime anime, Song song, int resolution)
 		{
 			var path = song.GetVideoPath(anime, resolution);
 			if (File.Exists(path))
 			{
-				return Task.FromResult(new ProcessResult(FILE_ALREADY_EXISTS, path));
+				return Task.FromResult(FILE_ALREADY_EXISTS);
 			}
 
 			#region Args
@@ -277,20 +310,7 @@ namespace AMQSongProcessor
 			args += $" \"{path}\"";
 			#endregion Args
 
-			return ProcessAsync(path, args);
-		}
-
-		private readonly struct ProcessResult
-		{
-			public bool IsSuccess => Result == 0;
-			public string Path { get; }
-			public int Result { get; }
-
-			public ProcessResult(int result, string path)
-			{
-				Path = path;
-				Result = result;
-			}
+			return ProcessAsync(song.Length.Ticks, path, args);
 		}
 
 		private readonly struct Resolution

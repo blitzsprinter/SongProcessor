@@ -2,3 +2,6 @@
 
 # RCS1129: Remove redundant field initalization.
 dotnet_diagnostic.RCS1129.severity = silent
+
+# RCS1190: Join string expressions.
+dotnet_diagnostic.RCS1190.severity = none

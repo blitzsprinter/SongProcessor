@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -72,12 +70,13 @@ namespace AMQSongProcessor
 
 			Display(anime);
 
-			var processor = new SongProcessor();
-			await processor.ExportFixesAsync(dir, anime).CAF();
-			await foreach (var item in processor.ProcessAsync(anime).ConfigureAwait(false))
+			var processor = new SongProcessor
 			{
-				Console.WriteLine($"Finished processing {item}");
-			}
+				Processing = new ProcessingProgress(),
+				Warnings = new ConsoleProgress(),
+			};
+			await processor.ExportFixesAsync(dir, anime).CAF();
+			await processor.ProcessAsync(anime).CAF();
 		}
 
 		private static void Display(IReadOnlyList<Anime> anime)

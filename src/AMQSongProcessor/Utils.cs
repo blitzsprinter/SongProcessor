@@ -36,14 +36,15 @@ namespace AMQSongProcessor
 
 		public static Task<int> RunAsync(this Process process, bool write)
 		{
-			process.EnableRaisingEvents = true;
-			var tcs = new TaskCompletionSource<int>();
-
 			void HandleClosing(object source, EventArgs e)
 			{
 				process.Kill();
 				process.Dispose();
 			}
+
+			var tcs = new TaskCompletionSource<int>();
+
+			process.EnableRaisingEvents = true;
 
 			//If the program gets shut down, make sure it also shuts down the ffmpeg process
 			AppDomain.CurrentDomain.ProcessExit += HandleClosing;
