@@ -1,10 +1,11 @@
 ﻿<UserControl xmlns = "https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:models="clr-namespace:AMQSongProcessor.Models;assembly=AMQSongProcessor"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-        x:Class="AMQSongProcessor.UI.Views.SongView">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:models="clr-namespace:AMQSongProcessor.Models;assembly=AMQSongProcessor"
+             xmlns:controls="clr-namespace:AMQSongProcessor.UI.Controls;assembly=AMQSongProcessor.UI"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="AMQSongProcessor.UI.Views.SongView">
 
   <Grid RowDefinitions="1*,19*">
     <Grid Grid.Row="0" ColumnDefinitions="9*,1*">
@@ -13,14 +14,35 @@
     </Grid>
 
     <Grid Grid.Row="1" ColumnDefinitions="9*,1*">
-      <TreeView Items="{Binding Anime}">
+      <TreeView Name="Tree" Items="{Binding Anime}">
         <TreeView.DataTemplates>
           <TreeDataTemplate DataType="models:Anime" ItemsSource="{Binding Songs}">
-            <TextBlock Text="{Binding Name}" />
+            <TextBlock>
+              <TextBlock.ContextMenu>
+                <ContextMenu>
+                  <MenuItem Header="Copy ANNID" Command="{Binding ElementName=Tree, Path=DataContext.CopyANNID}" CommandParameter="{Binding Id}" />
+                  <MenuItem Header="-" />
+                  <MenuItem Header="Add Song" Command="{Binding ElementName=Tree, Path=DataContext.AddSong}" CommandParameter="{Binding Id}" />
+                </ContextMenu>
+              </TextBlock.ContextMenu>
+              <TextBlock.Text>
+                <MultiBinding StringFormat="[{0}] {1}">
+                  <Binding Path="Year" />
+                  <Binding Path="Name" />
+                </MultiBinding>
+              </TextBlock.Text>
+            </TextBlock>
           </TreeDataTemplate>
 
           <DataTemplate DataType="models:Song">
-            <TextBlock Text="{Binding Name}" />
+            <TextBlock Text="{Binding FullName}" VerticalAlignment="Center">
+              <TextBlock.ContextMenu>
+                <ContextMenu>
+                  <MenuItem Header="Edit Song" Command="{Binding ElementName=Tree, Path=DataContext.EditSong}" CommandParameter="{Binding Id}" />
+                  <MenuItem Header="Remove Song" Command="{Binding ElementName=Tree, Path=DataContext.RemoveSong}" CommandParameter="{Binding Id}" />
+                </ContextMenu>
+              </TextBlock.ContextMenu>
+            </TextBlock>
           </DataTemplate>
         </TreeView.DataTemplates>
       </TreeView>

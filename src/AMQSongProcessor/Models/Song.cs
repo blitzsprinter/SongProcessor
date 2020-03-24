@@ -30,6 +30,7 @@ namespace AMQSongProcessor.Models
 
 		public string FullName => $"{Name} ({FullArtist})";
 		public bool HasTimeStamp => Start != UnknownTime;
+		public Guid Id { get; } = Guid.NewGuid();
 		public bool IsClean => CleanPath == null;
 		public TimeSpan Length => End - Start;
 		public string Name { get; set; }

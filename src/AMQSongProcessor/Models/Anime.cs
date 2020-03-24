@@ -12,11 +12,8 @@ namespace AMQSongProcessor.Models
 		public string Directory { get; set; }
 
 		public int Id { get; set; }
-
 		public string Name { get; set; }
-
 		public List<Song> Songs { get; set; } = new List<Song>(0);
-
 		public string Source { get; set; }
 
 		[JsonIgnore]

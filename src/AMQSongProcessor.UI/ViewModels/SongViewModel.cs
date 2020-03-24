@@ -16,10 +16,11 @@ namespace AMQSongProcessor.UI.ViewModels
 	[DataContract]
 	public class SongViewModel : ReactiveObject, IRoutableViewModel
 	{
-		private readonly ReactiveCommand<Unit, Unit> _Load;
 		private string _Directory;
 
 		public ObservableCollection<Anime> Anime { get; } = new ObservableCollection<Anime>();
+
+		public ICommand CopyANNID { get; }
 
 		[DataMember]
 		public string Directory
@@ -29,7 +30,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		}
 
 		public IScreen HostScreen { get; }
-		public ICommand Load => _Load;
+		public ICommand Load { get; }
 		public string UrlPathSegment => "/songs";
 
 		public SongViewModel(IScreen screen = null)
@@ -44,7 +45,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			var canLoad = this
 				.WhenAnyValue(x => x.Directory)
 				.Select(System.IO.Directory.Exists);
-			_Load = ReactiveCommand.CreateFromTask(async () =>
+			Load = ReactiveCommand.CreateFromTask(async () =>
 			{
 				await Dispatcher.UIThread.InvokeAsync(async () =>
 				{
@@ -55,6 +56,11 @@ namespace AMQSongProcessor.UI.ViewModels
 					}
 				}).CAF();
 			}, canLoad);
+
+			CopyANNID = ReactiveCommand.CreateFromTask<int>(async id =>
+			{
+				await Avalonia.Application.Current.Clipboard.SetTextAsync(id.ToString()).CAF();
+			});
 		}
 	}
 }

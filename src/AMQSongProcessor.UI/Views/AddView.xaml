@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="AMQSongProcessor.UI.Views.AddView">
+
   <Grid RowDefinitions="1*,1*,1*,1*,6*">
     <TextBlock Grid.Row="0" Text="Add view" Margin="5" />
     <TextBox Grid.Row="1" Watermark="Directory" Text="{Binding Directory, Mode=TwoWay}" />
