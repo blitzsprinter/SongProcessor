@@ -17,7 +17,7 @@ namespace AMQSongProcessor
 	{
 		private const string BITRATE = "bitrate";
 		private const int FILE_ALREADY_EXISTS = 183;
-		private const int MP3_RESOLUTION = -1;
+		private const int MP3 = -1;
 		private const string SIZE = "size";
 		private const string SPEED = "speed";
 		private const string TIME = "time";
@@ -29,11 +29,11 @@ namespace AMQSongProcessor
 			$@"{SPEED}=(?<{SPEED}>\d*(\.\d+)?)x";
 
 		private static readonly Regex FfmpegProgressRegex
-			= new Regex(FfmpegProgressPattern, RegexOptions.Compiled);
+			= new Regex(FfmpegProgressPattern, RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 
 		private static readonly Resolution[] Resolutions = new[]
 		{
-			new Resolution(MP3_RESOLUTION, Status.Mp3),
+			new Resolution(MP3, Status.Mp3),
 			new Resolution(480, Status.Res480),
 			new Resolution(720, Status.Res720)
 		};
@@ -206,6 +206,9 @@ namespace AMQSongProcessor
 
 			#region Args
 			const string ARGS =
+				" -v quiet" +
+				" -stats" +
+				" -vn" + //No video
 				" -f mp3" +
 				" -b:a 320k";
 
@@ -216,8 +219,7 @@ namespace AMQSongProcessor
 					$" -ss {song.Start}" + //Starting time
 					$" -to {song.End}" + //Ending time
 					$" -i \"{anime.GetSourcePath()}\"" + //Video source
-					$" -map 0:a:{song.OverrideAudioTrack}" + //Use the first input's audio
-					" -vn";
+					$" -map 0:a:{song.OverrideAudioTrack}"; //Use the first input's audio
 			}
 			else
 			{
@@ -248,6 +250,8 @@ namespace AMQSongProcessor
 
 			#region Args
 			const string ARGS =
+				" -v quiet" +
+				" -stats" +
 				" -sn" + //No subtitles
 				" -shortest" +
 				" -c:a libopus" + //Set the audio codec to libopus
@@ -315,7 +319,7 @@ namespace AMQSongProcessor
 
 		private readonly struct Resolution
 		{
-			public bool IsMp3 => Size == MP3_RESOLUTION;
+			public bool IsMp3 => Size == MP3;
 			public int Size { get; }
 			public Status Status { get; }
 
