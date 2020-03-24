@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
@@ -11,10 +13,25 @@ namespace AMQSongProcessor
 {
 	public static class ANNGatherer
 	{
+		private const string ARTIST = "arist";
+		private const string NAME = "name";
+		private const string POSITION = "position";
 		private const string URL = "https://cdn.animenewsnetwork.com/encyclopedia/api.xml?anime=";
+
 		private static readonly HttpClient _Client = new HttpClient();
 
-		public static async Task<Anime> GatherBarebones(int id)
+		private static readonly string SongPattern =
+			$@"(?<{POSITION}>\d*?)" + //Some openings/endings will have a position
+			  "(: )?" + //The position will be followed up with a colon and space
+			$@"""(?<{NAME}>.+?)""" + //The name will be in quotes
+			  ".+?by " + //The name may have a translation in parans, and will be followed with by
+			 $"(?<{ARTIST}>.+?)" + //The artist is just a simple match of any characters
+			 @"( \(eps|$)"; //The artist ends at (eps ###-###) or the end of the line
+
+		private static readonly Regex SongRegex =
+			new Regex(SongPattern, RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+
+		public static async Task<Anime> GetAsync(int id)
 		{
 			var url = URL + id;
 			var result = await _Client.GetAsync(url).CAF();
@@ -28,33 +45,59 @@ namespace AMQSongProcessor
 
 			var title = "";
 			var vintage = long.MaxValue;
+			var songs = new List<Song>();
+
+			void ProcessTitle(XElement e, string _)
+				=> title = e.Value;
+
+			void ProcessVintage(XElement e, string _)
+			{
+				var dt = DateTime.Parse(e.Value.Split(' ')[0]);
+				vintage = Math.Min(vintage, dt.Ticks);
+			}
+
+			void ProcessSong(XElement e, string t)
+			{
+				var match = SongRegex.Match(e.Value);
+				var type = Enum.Parse<SongType>(t.Split(' ')[0], true);
+				var position = match.Groups.TryGetValue(POSITION, out var a)
+					&& int.TryParse(a.Value, out var temp) ? temp : default(int?);
+				songs.Add(new Song
+				{
+					Type = new SongTypeAndPosition(type, position),
+					Name = match.Groups[NAME].Value,
+					Artist = match.Groups[ARTIST].Value,
+				});
+			}
+
 			foreach (var info in doc.Descendants("info"))
 			{
-				switch (info.Attribute("type").Value.ToLower())
+				var type = info.Attribute("type").Value.ToLower();
+				try
 				{
-					case "main title":
-						title = info.Value;
-						break;
-
-					case "vintage":
-						DateTime dt;
-						try
-						{
-							dt = DateTime.Parse(info.Value.Split(' ')[0]);
-						}
-						catch (FormatException fe)
-						{
-							throw new FormatException($"Invalid date format provided by ANN for {id}", fe);
-						}
-						vintage = Math.Min(vintage, dt.Ticks);
-						break;
+					var f = type switch
+					{
+						"main title" => ProcessTitle,
+						"vintage" => ProcessVintage,
+						"opening theme" => ProcessSong,
+						"ending theme" => ProcessSong,
+						"insert song" => ProcessSong,
+						_ => default(Action<XElement, string>)
+					};
+					f?.Invoke(info, type);
+				}
+				catch (Exception e)
+				{
+					throw new FormatException($"Invalid {type} provided by ANN for {id}", e);
 				}
 			}
 
 			return new Anime
 			{
+				Id = id,
 				Name = title,
 				Year = new DateTime(vintage).Year,
+				Songs = songs,
 			};
 		}
 	}

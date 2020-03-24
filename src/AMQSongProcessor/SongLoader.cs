@@ -46,5 +46,12 @@ namespace AMQSongProcessor
 				yield return show;
 			}
 		}
+
+		public async Task SaveAsync(string file, Anime anime)
+		{
+			using var fs = new FileStream(file, FileMode.Create);
+
+			await JsonSerializer.SerializeAsync(fs, anime, _Options).CAF();
+		}
 	}
 }

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -23,9 +24,7 @@ namespace AMQSongProcessor
 			=> GetInfoAsync<AudioInfo>('a', file, track);
 
 		public Task<string> GetAverageVolumeAsync(string file)
-		{
-			return Task.FromResult("asdf");
-		}
+			=> throw new NotImplementedException();
 
 		public Task<VideoInfo> GetVideoInfoAsync(string file, int track = 0)
 			=> GetInfoAsync<VideoInfo>('v', file, track);

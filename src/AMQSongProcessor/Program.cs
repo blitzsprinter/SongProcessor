@@ -1,5 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 using AdvorangesUtils;
@@ -41,6 +45,9 @@ namespace AMQSongProcessor
 			}
 #endif
 			var loader = new SongLoader();
+
+			await ProcessNewFolders(loader, dir).CAF();
+
 			var anime = await loader.LoadAsync(dir).ToListAsync().CAF();
 
 			Display(anime);
@@ -121,6 +128,39 @@ namespace AMQSongProcessor
 					Console.WriteLine();
 				}
 			}
+		}
+
+		private static async Task ProcessNewFolders(SongLoader loader, string dir)
+		{
+			var file = Path.Combine(dir, "new.txt");
+			if (!File.Exists(file))
+			{
+				return;
+			}
+
+			var invalid = new HashSet<char>(Path.GetInvalidFileNameChars());
+			foreach (var id in File.ReadAllLines(file).Select(int.Parse))
+			{
+				var anime = await ANNGatherer.GetAsync(id).CAF();
+				var sb = new StringBuilder($"[{anime.Year}] ");
+				foreach (var c in anime.Name)
+				{
+					if (!invalid.Contains(c))
+					{
+						sb.Append(c);
+					}
+				}
+
+				var path = Path.Combine(dir, sb.ToString());
+				Directory.CreateDirectory(path);
+
+				var file2 = Path.Combine(path, "info.amq");
+				await loader.SaveAsync(file2, anime).CAF();
+
+				Console.WriteLine($"Got information from ANN for {anime.Name}.");
+			}
+
+			File.Create(file);
 		}
 	}
 }

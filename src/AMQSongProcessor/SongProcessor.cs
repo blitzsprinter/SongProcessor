@@ -28,8 +28,8 @@ namespace AMQSongProcessor
 			$@"{BITRATE}=\s*(?<{BITRATE}>\d*(\.\d+)?)kbits\/s\s*" +
 			$@"{SPEED}=(?<{SPEED}>\d*(\.\d+)?)x";
 
-		private static readonly Regex FfmpegProgressRegex
-			= new Regex(FfmpegProgressPattern, RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+		private static readonly Regex FfmpegProgressRegex =
+			new Regex(FfmpegProgressPattern, RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 
 		private static readonly Resolution[] Resolutions = new[]
 		{
