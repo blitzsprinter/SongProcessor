@@ -1,31 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 using AdvorangesUtils;
 
-using AMQSongProcessor.Converters;
 using AMQSongProcessor.Models;
 
 namespace AMQSongProcessor
 {
 	public static class Program
 	{
-		private static readonly JsonSerializerOptions Options = new JsonSerializerOptions
-		{
-			WriteIndented = true,
-			IgnoreReadOnlyProperties = true,
-		};
-
 		static Program()
 		{
-			Options.Converters.Add(new JsonStringEnumConverter());
-			Options.Converters.Add(new SongTypeAndPositionJsonConverter());
-			Options.Converters.Add(new TimeSpanJsonConverter());
-
 			Console.SetBufferSize(Console.BufferWidth, short.MaxValue - 1);
 		}
 
@@ -54,19 +40,8 @@ namespace AMQSongProcessor
 				Console.WriteLine("Invalid directory provided; enter a valid one: ");
 			}
 #endif
-			var anime = new List<Anime>();
-			var gatherer = new SourceInfoGatherer();
-			foreach (var file in Directory.EnumerateFiles(dir, "*.amq", SearchOption.AllDirectories))
-			{
-				using var fs = new FileStream(file, FileMode.Open);
-
-				var show = await JsonSerializer.DeserializeAsync<Anime>(fs, Options).CAF();
-				show.Directory = Path.GetDirectoryName(file);
-				show.Songs.RemoveAll(x => x.ShouldIgnore);
-				show.VideoInfo = await gatherer.GetVideoInfoAsync(show.GetSourcePath()).CAF();
-
-				anime.Add(show);
-			}
+			var loader = new SongLoader();
+			var anime = await loader.LoadAsync(dir).ToListAsync().CAF();
 
 			Display(anime);
 

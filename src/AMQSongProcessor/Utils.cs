@@ -91,6 +91,16 @@ namespace AMQSongProcessor
 			return array;
 		}
 
+		public static async Task<List<T>> ToListAsync<T>(this IAsyncEnumerable<T> enumerable)
+		{
+			var list = new List<T>();
+			await foreach (var value in enumerable)
+			{
+				list.Add(value);
+			}
+			return list;
+		}
+
 		public static T ToObject<T>(this JsonElement element, JsonSerializerOptions options = null)
 		{
 			var json = element.GetRawText();

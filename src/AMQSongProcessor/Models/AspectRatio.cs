@@ -4,7 +4,7 @@ using System.Diagnostics;
 namespace AMQSongProcessor.Models
 {
 	[DebuggerDisplay("{DebuggerDisplay,nq}")]
-	public readonly struct AspectRatio : IEquatable<AspectRatio>
+	public readonly struct AspectRatio : IEquatable<AspectRatio>, IComparable<AspectRatio>
 	{
 		public int Height { get; }
 		public float Ratio => Width / (float)Height;
@@ -23,6 +23,9 @@ namespace AMQSongProcessor.Models
 
 		public static bool operator ==(AspectRatio item1, AspectRatio item2)
 			=> item1.Equals(item2);
+
+		public int CompareTo(AspectRatio other)
+			=> Ratio.CompareTo(other.Ratio);
 
 		public override bool Equals(object obj)
 			=> Equals(obj as AspectRatio?);

@@ -1,0 +1,7 @@
+﻿[*.cs]
+
+# IDE0053: Use expression body for lambda expressions
+csharp_style_expression_bodied_lambdas = when_on_single_line:none
+
+# RCS1021: Simplify lambda expression.
+dotnet_diagnostic.RCS1021.severity = none
