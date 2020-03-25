@@ -12,6 +12,7 @@ namespace AMQSongProcessor.UI.ViewModels
 	[DataContract]
 	public class AddViewModel : ReactiveValidationObject<AddViewModel>, IRoutableViewModel
 	{
+		private readonly IScreen _HostScreen;
 		private string _Directory;
 		private int _Id;
 		private string _IdText;
@@ -25,7 +26,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _Directory, value);
 		}
 
-		public IScreen HostScreen { get; }
+		public IScreen HostScreen => _HostScreen ?? Locator.Current.GetService<IScreen>();
 
 		[DataMember]
 		public int Id
@@ -44,7 +45,7 @@ namespace AMQSongProcessor.UI.ViewModels
 
 		public AddViewModel(IScreen screen = null)
 		{
-			HostScreen = screen ?? Locator.Current.GetService<IScreen>();
+			_HostScreen = screen;
 
 			this.ValidationRule(
 				x => x.Directory,

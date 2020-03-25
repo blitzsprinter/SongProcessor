@@ -10,12 +10,10 @@ namespace AMQSongProcessor.UI.ViewModels
 	[DataContract]
 	public class MainViewModel : ReactiveObject, IScreen
 	{
-		private readonly ReactiveCommand<Unit, Unit> _Add;
-		private readonly ReactiveCommand<Unit, Unit> _Load;
 		private RoutingState _Router = new RoutingState();
 
-		public ICommand Add => _Add;
-		public ICommand Load => _Load;
+		public ICommand Add { get; }
+		public ICommand Load { get; }
 
 		[DataMember]
 		public RoutingState Router
@@ -29,7 +27,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			var canLoad = this
 				.WhenAnyObservable(x => x.Router.CurrentViewModel)
 				.Select(x => !(x is SongViewModel));
-			_Load = ReactiveCommand.Create(() =>
+			Load = ReactiveCommand.Create(() =>
 			{
 				Router.Navigate.Execute(new SongViewModel());
 			}, canLoad);
@@ -37,7 +35,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			var canAdd = this
 				.WhenAnyObservable(x => x.Router.CurrentViewModel)
 				.Select(x => !(x is AddViewModel));
-			_Add = ReactiveCommand.Create(() =>
+			Add = ReactiveCommand.Create(() =>
 			{
 				Router.Navigate.Execute(new AddViewModel());
 			}, canAdd);

@@ -33,6 +33,12 @@ namespace AMQSongProcessor
 			};
 		}
 
+		public static T Max<T>(T x, T y, Func<T, T, int> cmp)
+			=> (cmp(x, y) > 0) ? x : y;
+
+		public static T Max<T>(T x, T y) where T : IComparable<T>
+			=> Max(x, y, (a, b) => a.CompareTo(b));
+
 		public static Task<int> RunAsync(this Process process, bool write)
 		{
 			void HandleClosing(object source, EventArgs e)

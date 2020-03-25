@@ -46,7 +46,7 @@ namespace AMQSongProcessor
 #endif
 			var loader = new SongLoader();
 
-			await ProcessNewFolders(loader, dir).CAF();
+			await AddNewShowsAsync(loader, dir).CAF();
 
 			var anime = await loader.LoadAsync(dir).ToListAsync().CAF();
 
@@ -130,16 +130,16 @@ namespace AMQSongProcessor
 			}
 		}
 
-		private static async Task ProcessNewFolders(SongLoader loader, string dir)
+		private static async Task AddNewShowsAsync(SongLoader loader, string directory)
 		{
-			var file = Path.Combine(dir, "new.txt");
-			if (!File.Exists(file))
+			var ids = Path.Combine(directory, "new.txt");
+			if (!File.Exists(ids))
 			{
 				return;
 			}
 
 			var invalid = new HashSet<char>(Path.GetInvalidFileNameChars());
-			foreach (var id in File.ReadAllLines(file).Select(int.Parse))
+			foreach (var id in File.ReadAllLines(ids).Select(int.Parse))
 			{
 				var anime = await ANNGatherer.GetAsync(id).CAF();
 				var sb = new StringBuilder($"[{anime.Year}] ");
@@ -151,16 +151,16 @@ namespace AMQSongProcessor
 					}
 				}
 
-				var path = Path.Combine(dir, sb.ToString());
-				Directory.CreateDirectory(path);
+				var dir = Path.Combine(directory, sb.ToString());
+				Directory.CreateDirectory(dir);
 
-				var file2 = Path.Combine(path, "info.amq");
-				await loader.SaveAsync(file2, anime).CAF();
+				var file = Path.Combine(dir, $"info.{loader.Extension}");
+				await loader.SaveAsync(file, anime).CAF();
 
 				Console.WriteLine($"Got information from ANN for {anime.Name}.");
 			}
 
-			File.Create(file);
+			File.Create(ids);
 		}
 	}
 }

@@ -18,5 +18,24 @@
     <Style Selector="Button:pointerover.round/template/ContentPresenter">
       <Setter Property="BorderBrush" Value="#FFDD4812" />
     </Style>
+    <Style Selector="HeaderedContentControl">
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate>
+            <Border>
+              <StackPanel>
+                <ContentPresenter TextBlock.FontWeight="Bold" Content="{TemplateBinding Header}" />
+                <Border
+                    BorderBrush="{TemplateBinding Background}"
+                    BorderThickness="2"
+                    CornerRadius="5">
+                  <ContentPresenter Content="{TemplateBinding Content}" />
+                </Border>
+              </StackPanel>
+            </Border>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
   </Application.Styles>
 </Application>

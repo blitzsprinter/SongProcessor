@@ -2,11 +2,9 @@
 using System.IO;
 using System.Reactive;
 using System.Reactive.Linq;
-using AMQSongProcessor.UI.Views;
-using Avalonia;
-using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Markup.Xaml;
+
 using Newtonsoft.Json;
+
 using ReactiveUI;
 
 namespace AMQSongProcessor.UI
@@ -18,6 +16,8 @@ namespace AMQSongProcessor.UI
 		private readonly JsonSerializerSettings _Options = new JsonSerializerSettings
 		{
 			TypeNameHandling = TypeNameHandling.All,
+			Formatting = Formatting.Indented,
+			ContractResolver = new WritablePropertiesOnlyResolver(),
 		};
 
 		public NewtonsoftJsonSuspensionDriver(string file)

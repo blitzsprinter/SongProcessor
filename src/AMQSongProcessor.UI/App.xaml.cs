@@ -27,6 +27,7 @@ namespace AMQSongProcessor.UI
 
 			Locator.CurrentMutable.Register<IViewFor<SongViewModel>>(() => new SongView());
 			Locator.CurrentMutable.Register<IViewFor<AddViewModel>>(() => new AddView());
+			Locator.CurrentMutable.Register<IViewFor<EditViewModel>>(() => new EditView());
 
 			if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
 			{

@@ -19,6 +19,7 @@ namespace AMQSongProcessor
 			IgnoreReadOnlyProperties = true,
 		};
 
+		public string Extension { get; set; } = "amq";
 		public bool RemoveIgnoredSongs { get; set; } = true;
 
 		public SongLoader()
@@ -26,17 +27,19 @@ namespace AMQSongProcessor
 			_Options.Converters.Add(new JsonStringEnumConverter());
 			_Options.Converters.Add(new SongTypeAndPositionJsonConverter());
 			_Options.Converters.Add(new TimeSpanJsonConverter());
+			_Options.Converters.Add(new VolumeModifierConverter());
 		}
 
 		public async IAsyncEnumerable<Anime> LoadAsync(string dir)
 		{
 			var gatherer = new SourceInfoGatherer();
-			foreach (var file in Directory.EnumerateFiles(dir, "*.amq", SearchOption.AllDirectories))
+			foreach (var file in Directory.EnumerateFiles(dir, $"*.{Extension}", SearchOption.AllDirectories))
 			{
 				using var fs = new FileStream(file, FileMode.Open);
 
 				var show = await JsonSerializer.DeserializeAsync<Anime>(fs, _Options).CAF();
 				show.Directory = Path.GetDirectoryName(file);
+				show.Songs = new SongCollection(show, show.Songs);
 				if (RemoveIgnoredSongs)
 				{
 					show.Songs.RemoveAll(x => x.ShouldIgnore);

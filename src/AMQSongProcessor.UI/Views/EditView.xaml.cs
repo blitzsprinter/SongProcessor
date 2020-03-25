@@ -5,9 +5,9 @@ using Avalonia.ReactiveUI;
 
 namespace AMQSongProcessor.UI.Views
 {
-	public sealed class MainWindow : ReactiveWindow<MainViewModel>
+	public class EditView : ReactiveUserControl<EditViewModel>
 	{
-		public MainWindow()
+		public EditView()
 		{
 			InitializeComponent();
 		}

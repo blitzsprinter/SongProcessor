@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Text.Json.Serialization;
+
 using AdvorangesUtils;
 
 namespace AMQSongProcessor.Models
@@ -9,6 +11,9 @@ namespace AMQSongProcessor.Models
 	public class Song
 	{
 		public static readonly TimeSpan UnknownTime = TimeSpan.FromSeconds(-1);
+
+		[JsonIgnore]
+		public Anime Anime { get; set; }
 
 		public string Artist { get; set; }
 		public string CleanPath { get; set; }
@@ -30,7 +35,6 @@ namespace AMQSongProcessor.Models
 
 		public string FullName => $"{Name} ({FullArtist})";
 		public bool HasTimeStamp => Start != UnknownTime;
-		public Guid Id { get; } = Guid.NewGuid();
 		public bool IsClean => CleanPath == null;
 		public TimeSpan Length => End - Start;
 		public string Name { get; set; }
@@ -40,7 +44,7 @@ namespace AMQSongProcessor.Models
 		public TimeSpan Start { get; set; }
 		public Status Status { get; set; }
 		public SongTypeAndPosition Type { get; set; }
-		public string VolumeModifier { get; set; }
+		public VolumeModifer? VolumeModifier { get; set; }
 		private string DebuggerDisplay => $"{Name} ({FullArtist})";
 
 		public Song()

@@ -7,7 +7,7 @@
 		Ed = 1,
 		Ending = Ed,
 		In = 2,
-		Ins = In,
 		Insert = In,
+		Ins = In,
 	}
 }

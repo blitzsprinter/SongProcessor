@@ -13,7 +13,7 @@ namespace AMQSongProcessor.Models
 
 		public int Id { get; set; }
 		public string Name { get; set; }
-		public List<Song> Songs { get; set; } = new List<Song>(0);
+		public IList<Song> Songs { get; set; }
 		public string Source { get; set; }
 
 		[JsonIgnore]
@@ -25,9 +25,10 @@ namespace AMQSongProcessor.Models
 
 		public Anime()
 		{
+			Songs = new SongCollection(this);
 		}
 
-		public Anime(int year, int id, string name)
+		public Anime(int year, int id, string name) : this()
 		{
 			Year = year;
 			Id = id;

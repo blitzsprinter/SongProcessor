@@ -4,7 +4,7 @@ using System.Diagnostics;
 namespace AMQSongProcessor.Models
 {
 	[DebuggerDisplay("{DebuggerDisplay,nq}")]
-	public struct SongTypeAndPosition : IEquatable<SongTypeAndPosition>, IComparable<SongTypeAndPosition>
+	public readonly struct SongTypeAndPosition : IEquatable<SongTypeAndPosition>, IComparable<SongTypeAndPosition>
 	{
 		public string LongType => Type switch
 		{
@@ -45,6 +45,46 @@ namespace AMQSongProcessor.Models
 		public static bool operator ==(SongTypeAndPosition item1, SongTypeAndPosition item2)
 			=> item1.Equals(item2);
 
+		public static SongTypeAndPosition Parse(string s)
+		{
+			if (!TryParse(s, out var result))
+			{
+				throw new FormatException($"Invalid format: {s}");
+			}
+			return result;
+		}
+
+		public static bool TryParse(string s, out SongTypeAndPosition result)
+		{
+			if (s == null)
+			{
+				result = default;
+				return false;
+			}
+
+			var index = GetFirstDigitIndex(s);
+			if (!Enum.TryParse<SongType>(s[..index].Trim(), out var type))
+			{
+				result = default;
+				return false;
+			}
+
+			var position = default(int?);
+			if (index != s.Length)
+			{
+				if (!int.TryParse(s[index..], out var parsed) || parsed < 1)
+				{
+					result = default;
+					return false;
+				}
+
+				position = parsed;
+			}
+
+			result = new SongTypeAndPosition(type, position);
+			return true;
+		}
+
 		public int CompareTo(SongTypeAndPosition other)
 		{
 			var typeComparison = Type.CompareTo(other.Type);
@@ -82,6 +122,18 @@ namespace AMQSongProcessor.Models
 			}
 
 			return s + " " + Position.ToString();
+		}
+
+		private static int GetFirstDigitIndex(string value)
+		{
+			for (var i = 0; i < value.Length; ++i)
+			{
+				if (char.IsDigit(value[i]))
+				{
+					return i;
+				}
+			}
+			return value.Length;
 		}
 	}
 }

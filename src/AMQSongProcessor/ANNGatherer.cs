@@ -43,17 +43,19 @@ namespace AMQSongProcessor
 			var stream = await result.Content.ReadAsStreamAsync().CAF();
 			var doc = XElement.Load(stream);
 
-			var title = "";
-			var vintage = long.MaxValue;
-			var songs = new List<Song>();
+			var anime = new Anime
+			{
+				Id = id,
+				Year = new DateTime(long.MaxValue).Year,
+			};
 
 			void ProcessTitle(XElement e, string _)
-				=> title = e.Value;
+				=> anime.Name = e.Value;
 
 			void ProcessVintage(XElement e, string _)
 			{
 				var dt = DateTime.Parse(e.Value.Split(' ')[0]);
-				vintage = Math.Min(vintage, dt.Ticks);
+				anime.Year = Math.Min(anime.Year, dt.Year);
 			}
 
 			void ProcessSong(XElement e, string t)
@@ -62,7 +64,7 @@ namespace AMQSongProcessor
 				var type = Enum.Parse<SongType>(t.Split(' ')[0], true);
 				var position = match.Groups.TryGetValue(POSITION, out var a)
 					&& int.TryParse(a.Value, out var temp) ? temp : default(int?);
-				songs.Add(new Song
+				anime.Songs.Add(new Song
 				{
 					Type = new SongTypeAndPosition(type, position),
 					Name = match.Groups[NAME].Value,
@@ -92,13 +94,7 @@ namespace AMQSongProcessor
 				}
 			}
 
-			return new Anime
-			{
-				Id = id,
-				Name = title,
-				Year = new DateTime(vintage).Year,
-				Songs = songs,
-			};
+			return anime;
 		}
 	}
 }

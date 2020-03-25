@@ -7,8 +7,9 @@
 
   <Grid RowDefinitions="1*,1*,1*,1*,6*">
     <TextBlock Grid.Row="0" Text="Add view" Margin="5" />
-    <TextBox Grid.Row="1" Watermark="Directory" Text="{Binding Directory, Mode=TwoWay}" />
-    <NumericUpDown Grid.Row="2" Watermark="ANN Id" Minimum="1" Value="{Binding Id, Mode=TwoWay}" Text="{Binding IdText, Mode=TwoWay}" />
+    <TextBox Grid.Row="1" Watermark="Directory" Text="{Binding Directory}" />
+    <NumericUpDown Grid.Row="2" Watermark="ANN Id" Minimum="1" Value="{Binding Id}"
+                   Text="{Binding IdText, Mode=OneWayToSource}" />
     <Button Grid.Row="3" Content="Add" Command="{Binding Add}" />
   </Grid>
 </UserControl>

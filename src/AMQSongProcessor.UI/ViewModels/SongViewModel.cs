@@ -1,23 +1,29 @@
 ﻿using System.Collections.ObjectModel;
-using System.Reactive;
+using System.Linq;
 using System.Reactive.Linq;
 using System.Runtime.Serialization;
 using System.Windows.Input;
 
 using AdvorangesUtils;
+
 using AMQSongProcessor.Models;
+
 using Avalonia.Threading;
+
 using ReactiveUI;
+using ReactiveUI.Validation.Extensions;
+using ReactiveUI.Validation.Helpers;
 
 using Splat;
 
 namespace AMQSongProcessor.UI.ViewModels
 {
 	[DataContract]
-	public class SongViewModel : ReactiveObject, IRoutableViewModel
+	public class SongViewModel : ReactiveValidationObject<SongViewModel>, IRoutableViewModel
 	{
+		private readonly IScreen _HostScreen;
 		private string _Directory;
-
+		public ICommand AddSong { get; }
 		public ObservableCollection<Anime> Anime { get; } = new ObservableCollection<Anime>();
 
 		public ICommand CopyANNID { get; }
@@ -29,22 +35,31 @@ namespace AMQSongProcessor.UI.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _Directory, value);
 		}
 
-		public IScreen HostScreen { get; }
+		public ICommand EditSong { get; }
+		public IScreen HostScreen => _HostScreen ?? Locator.Current.GetService<IScreen>();
 		public ICommand Load { get; }
+		public ICommand RemoveSong { get; }
 		public string UrlPathSegment => "/songs";
 
 		public SongViewModel(IScreen screen = null)
 		{
-			HostScreen = screen ?? Locator.Current.GetService<IScreen>();
+			_HostScreen = screen;
 
 			var loader = new SongLoader
 			{
 				RemoveIgnoredSongs = false,
 			};
 
-			var canLoad = this
-				.WhenAnyValue(x => x.Directory)
-				.Select(System.IO.Directory.Exists);
+			CopyANNID = ReactiveCommand.CreateFromTask<int>(async id =>
+			{
+				await Avalonia.Application.Current.Clipboard.SetTextAsync(id.ToString()).CAF();
+			});
+
+			this.ValidationRule(
+				x => x.Directory,
+				System.IO.Directory.Exists,
+				"Nonexistent directory.");
+
 			Load = ReactiveCommand.CreateFromTask(async () =>
 			{
 				await Dispatcher.UIThread.InvokeAsync(async () =>
@@ -55,11 +70,24 @@ namespace AMQSongProcessor.UI.ViewModels
 						Anime.Add(anime);
 					}
 				}).CAF();
-			}, canLoad);
+			}, this.IsValid());
 
-			CopyANNID = ReactiveCommand.CreateFromTask<int>(async id =>
+			AddSong = ReactiveCommand.Create<Anime>(anime =>
 			{
-				await Avalonia.Application.Current.Clipboard.SetTextAsync(id.ToString()).CAF();
+				var song = new Song();
+				anime.Songs.Add(song);
+
+				HostScreen.Router.Navigate.Execute(new EditViewModel(song));
+			});
+
+			EditSong = ReactiveCommand.Create<Song>(song =>
+			{
+				HostScreen.Router.Navigate.Execute(new EditViewModel(song));
+			});
+
+			RemoveSong = ReactiveCommand.Create<Song>(song =>
+			{
+				song.Anime.Songs.Remove(song);
 			});
 		}
 	}
