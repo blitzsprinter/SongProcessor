@@ -5,10 +5,9 @@
   <Application.Styles>
     <StyleInclude Source="resm:Avalonia.Themes.Default.DefaultTheme.xaml?assembly=Avalonia.Themes.Default" />
     <StyleInclude Source="resm:Avalonia.Themes.Default.Accents.BaseDark.xaml?assembly=Avalonia.Themes.Default" />
-    <!--
     <Style Selector="TextBox">
       <Setter Property="VerticalContentAlignment" Value="Center" />
-    </Style>-->
+    </Style>
     <Style Selector="Button.round/template/ContentPresenter">
       <Setter Property="CornerRadius" Value="10" />
     </Style>

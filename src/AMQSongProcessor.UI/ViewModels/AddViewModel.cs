@@ -2,20 +2,20 @@
 using System.Windows.Input;
 
 using ReactiveUI;
+using ReactiveUI.Validation.Abstractions;
+using ReactiveUI.Validation.Contexts;
 using ReactiveUI.Validation.Extensions;
-using ReactiveUI.Validation.Helpers;
 
 using Splat;
 
 namespace AMQSongProcessor.UI.ViewModels
 {
 	[DataContract]
-	public class AddViewModel : ReactiveValidationObject<AddViewModel>, IRoutableViewModel
+	public class AddViewModel : ReactiveObject, IRoutableViewModel, IValidatableViewModel
 	{
 		private readonly IScreen _HostScreen;
 		private string _Directory;
 		private int _Id;
-		private string _IdText;
 
 		public ICommand Add { get; }
 
@@ -35,13 +35,8 @@ namespace AMQSongProcessor.UI.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _Id, value);
 		}
 
-		public string IdText
-		{
-			get => _IdText;
-			set => this.RaiseAndSetIfChanged(ref _IdText, value);
-		}
-
 		public string UrlPathSegment => "/add";
+		public ValidationContext ValidationContext { get; } = new ValidationContext();
 
 		public AddViewModel(IScreen screen = null)
 		{
@@ -50,17 +45,11 @@ namespace AMQSongProcessor.UI.ViewModels
 			this.ValidationRule(
 				x => x.Directory,
 				System.IO.Directory.Exists,
-				"Nonexistent directory.");
-
+				"Directory must exist.");
 			this.ValidationRule(
 				x => x.Id,
 				x => x > 0,
-				"Id is less than 1.");
-
-			this.ValidationRule(
-				x => x.IdText,
-				x => int.TryParse(x, out _),
-				"Not a number.");
+				"Id must be greater than 0.");
 
 			Add = ReactiveCommand.CreateFromTask(async () =>
 			{

@@ -1,6 +1,4 @@
 ﻿using System.Collections.ObjectModel;
-using System.Linq;
-using System.Reactive.Linq;
 using System.Runtime.Serialization;
 using System.Windows.Input;
 
@@ -11,15 +9,16 @@ using AMQSongProcessor.Models;
 using Avalonia.Threading;
 
 using ReactiveUI;
+using ReactiveUI.Validation.Abstractions;
+using ReactiveUI.Validation.Contexts;
 using ReactiveUI.Validation.Extensions;
-using ReactiveUI.Validation.Helpers;
 
 using Splat;
 
 namespace AMQSongProcessor.UI.ViewModels
 {
 	[DataContract]
-	public class SongViewModel : ReactiveValidationObject<SongViewModel>, IRoutableViewModel
+	public class SongViewModel : ReactiveObject, IRoutableViewModel, IValidatableViewModel
 	{
 		private readonly IScreen _HostScreen;
 		private string _Directory;
@@ -40,6 +39,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		public ICommand Load { get; }
 		public ICommand RemoveSong { get; }
 		public string UrlPathSegment => "/songs";
+		public ValidationContext ValidationContext { get; } = new ValidationContext();
 
 		public SongViewModel(IScreen screen = null)
 		{
@@ -58,8 +58,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			this.ValidationRule(
 				x => x.Directory,
 				System.IO.Directory.Exists,
-				"Nonexistent directory.");
-
+				"Directory must exist.");
 			Load = ReactiveCommand.CreateFromTask(async () =>
 			{
 				await Dispatcher.UIThread.InvokeAsync(async () =>

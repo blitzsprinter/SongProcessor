@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+
 using Avalonia.Data.Converters;
 
 namespace AMQSongProcessor.UI.Converters
