@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -42,6 +43,11 @@ namespace AMQSongProcessor
 
 			var stream = await result.Content.ReadAsStreamAsync().CAF();
 			var doc = XElement.Load(stream);
+
+			if (doc.Descendants("warning").Any(x => x.Value.Contains("no result for anime")))
+			{
+				throw new HttpRequestException($"{id} does not exist on ANN.");
+			}
 
 			var anime = new Anime
 			{

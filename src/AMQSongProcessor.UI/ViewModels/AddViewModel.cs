@@ -16,13 +16,13 @@ namespace AMQSongProcessor.UI.ViewModels
 	{
 		private readonly IScreen _HostScreen;
 		private readonly SongLoader _Loader;
-		private IEnumerable<Anime> _Anime;
+		private Anime[] _Anime;
 		private string _Directory;
 		private Exception _Exception;
 		private int _Id;
 		public ICommand Add { get; }
 
-		public IEnumerable<Anime> Anime
+		public Anime[] Anime
 		{
 			get => _Anime;
 			set => this.RaiseAndSetIfChanged(ref _Anime, value);

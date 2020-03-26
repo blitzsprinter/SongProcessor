@@ -45,9 +45,8 @@ namespace AMQSongProcessor
 			}
 #endif
 			var loader = new SongLoader();
-
 			await AddNewShowsAsync(loader, dir).CAF();
-
+			await loader.LoadFromANNAsync(@"D:\Dogs", int.MaxValue).CAF();
 			var anime = await loader.LoadAsync(dir).ToListAsync().CAF();
 
 			Display(anime);
