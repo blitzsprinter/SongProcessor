@@ -2,14 +2,51 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:models="clr-namespace:AMQSongProcessor.Models;assembly=AMQSongProcessor"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="AMQSongProcessor.UI.Views.AddView">
 
-  <Grid RowDefinitions="1*,1*,1*,1*,6*">
-    <TextBlock Grid.Row="0" Text="Add view" Margin="5" />
-    <TextBox Grid.Row="1" Watermark="Directory" Text="{Binding Directory}" />
-    <NumericUpDown Grid.Row="2" Watermark="ANN Id" Minimum="1" Value="{Binding Id}"
-                   Text="{Binding IdText, Mode=OneWayToSource}" />
-    <Button Grid.Row="3" Content="Add" Command="{Binding Add}" />
+  <Grid RowDefinitions="3*,1*">
+    <TextBlock Text="Hello :)">
+      <TextBlock.IsVisible>
+        <MultiBinding Converter="{x:Static BoolConverters.And}">
+          <Binding Path="Anime" Converter="{x:Static ObjectConverters.IsNull}" />
+          <Binding Path="Exception" Converter="{x:Static ObjectConverters.IsNull}" />
+        </MultiBinding>
+      </TextBlock.IsVisible>
+    </TextBlock>
+    <TreeView Items="{Binding Anime}" IsVisible="{Binding !!Anime}">
+      <TreeView.DataTemplates>
+        <TreeDataTemplate DataType="models:Anime" ItemsSource="{Binding Songs}">
+          <TextBlock>
+            <TextBlock.Text>
+              <MultiBinding StringFormat="[{0}] {1}">
+                <Binding Path="Year" />
+                <Binding Path="Name" />
+              </MultiBinding>
+            </TextBlock.Text>
+          </TextBlock>
+        </TreeDataTemplate>
+
+        <DataTemplate DataType="models:Song">
+          <TextBlock>
+            <TextBlock.Text>
+              <MultiBinding StringFormat="[{0}] {1}">
+                <Binding Path="Type" />
+                <Binding Path="FullName" />
+              </MultiBinding>
+            </TextBlock.Text>
+          </TextBlock>
+        </DataTemplate>
+      </TreeView.DataTemplates>
+    </TreeView>
+    <TextBlock Text="{Binding Exception, Mode=OneWay}" IsVisible="{Binding !!Exception}" />
+
+    <Grid Grid.Row="1" RowDefinitions="1*,1*" ColumnDefinitions="9*,1*">
+      <TextBox Grid.Row="0" Watermark="Directory" Text="{Binding Directory}" />
+      <NumericUpDown Grid.Row="1" Watermark="ANN Id" Minimum="1" Value="{Binding Id}" />
+
+      <Button Grid.Column="1" Grid.RowSpan="2" Content="Add" Command="{Binding Add}" />
+    </Grid>
   </Grid>
 </UserControl>

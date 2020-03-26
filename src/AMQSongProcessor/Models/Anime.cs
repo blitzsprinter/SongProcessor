@@ -9,7 +9,10 @@ namespace AMQSongProcessor.Models
 	public class Anime
 	{
 		[JsonIgnore]
-		public string Directory { get; set; }
+		public string Directory => Path.GetDirectoryName(File);
+
+		[JsonIgnore]
+		public string File { get; set; }
 
 		public int Id { get; set; }
 		public string Name { get; set; }

@@ -46,7 +46,7 @@ namespace AMQSongProcessor
 			var anime = new Anime
 			{
 				Id = id,
-				Year = new DateTime(long.MaxValue).Year,
+				Year = int.MaxValue,
 			};
 
 			void ProcessTitle(XElement e, string _)

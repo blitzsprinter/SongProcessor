@@ -7,45 +7,41 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="AMQSongProcessor.UI.Views.SongView">
 
-  <Grid RowDefinitions="1*,19*">
-    <Grid Grid.Row="0" ColumnDefinitions="9*,1*">
-      <TextBox Grid.Column="0" Watermark="Directory" Text="{Binding Directory, Mode=TwoWay}" KeyDown="OnKeyDown" />
-      <Button Grid.Column="1" Content="Load" Command="{Binding Load}" />
-    </Grid>
+  <Grid RowDefinitions="1*,19*" ColumnDefinitions="9*,1*">
+    <TextBox Grid.Column="0" Watermark="Directory" Text="{Binding Directory}" KeyDown="OnKeyDown" />
+    <Button Grid.Column="1" Content="Load" Command="{Binding Load}" />
 
-    <Grid Grid.Row="1" ColumnDefinitions="9*,1*">
-      <TreeView Name="Tree" Items="{Binding Anime}">
-        <TreeView.DataTemplates>
-          <TreeDataTemplate DataType="models:Anime" ItemsSource="{Binding Songs}">
-            <TextBlock>
-              <TextBlock.ContextMenu>
-                <ContextMenu>
-                  <MenuItem Header="Copy ANNID" Command="{Binding ElementName=Tree, Path=DataContext.CopyANNID}" CommandParameter="{Binding Id}" />
-                  <MenuItem Header="-" />
-                  <MenuItem Header="Add Song" Command="{Binding ElementName=Tree, Path=DataContext.AddSong}" CommandParameter="{Binding}" />
-                </ContextMenu>
-              </TextBlock.ContextMenu>
-              <TextBlock.Text>
-                <MultiBinding StringFormat="[{0}] {1}">
-                  <Binding Path="Year" />
-                  <Binding Path="Name" />
-                </MultiBinding>
-              </TextBlock.Text>
-            </TextBlock>
-          </TreeDataTemplate>
+    <TreeView Name="Tree" Grid.Row="1" Items="{Binding Anime}">
+      <TreeView.DataTemplates>
+        <TreeDataTemplate DataType="models:Anime" ItemsSource="{Binding Songs}">
+          <TextBlock>
+            <TextBlock.ContextMenu>
+              <ContextMenu>
+                <MenuItem Header="Copy ANNID" Command="{Binding ElementName=Tree, Path=DataContext.CopyANNID}" CommandParameter="{Binding Id}" />
+                <MenuItem Header="-" />
+                <MenuItem Header="Add Song" Command="{Binding ElementName=Tree, Path=DataContext.AddSong}" CommandParameter="{Binding}" />
+              </ContextMenu>
+            </TextBlock.ContextMenu>
+            <TextBlock.Text>
+              <MultiBinding StringFormat="[{0}] {1}">
+                <Binding Path="Year" />
+                <Binding Path="Name" />
+              </MultiBinding>
+            </TextBlock.Text>
+          </TextBlock>
+        </TreeDataTemplate>
 
-          <DataTemplate DataType="models:Song">
-            <TextBlock Text="{Binding FullName}" VerticalAlignment="Center">
-              <TextBlock.ContextMenu>
-                <ContextMenu>
-                  <MenuItem Header="Edit Song" Command="{Binding ElementName=Tree, Path=DataContext.EditSong}" CommandParameter="{Binding}" />
-                  <MenuItem Header="Remove Song" Command="{Binding ElementName=Tree, Path=DataContext.RemoveSong}" CommandParameter="{Binding}" />
-                </ContextMenu>
-              </TextBlock.ContextMenu>
-            </TextBlock>
-          </DataTemplate>
-        </TreeView.DataTemplates>
-      </TreeView>
-    </Grid>
+        <DataTemplate DataType="models:Song">
+          <TextBlock Text="{Binding FullName}" VerticalAlignment="Center">
+            <TextBlock.ContextMenu>
+              <ContextMenu>
+                <MenuItem Header="Edit Song" Command="{Binding ElementName=Tree, Path=DataContext.EditSong}" CommandParameter="{Binding}" />
+                <MenuItem Header="Remove Song" Command="{Binding ElementName=Tree, Path=DataContext.RemoveSong}" CommandParameter="{Binding}" />
+              </ContextMenu>
+            </TextBlock.ContextMenu>
+          </TextBlock>
+        </DataTemplate>
+      </TreeView.DataTemplates>
+    </TreeView>
   </Grid>
 </UserControl>

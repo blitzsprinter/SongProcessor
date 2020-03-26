@@ -14,7 +14,7 @@
              the appropriate view for the currently selected view model. -->
     <reactiveUi:RoutedViewHost Grid.Row="0" Router="{Binding Router}">
       <reactiveUi:RoutedViewHost.DefaultContent>
-        <TextBlock Text="Welcome to this program. :)" />
+        <TextBlock Text="Default Content" />
       </reactiveUi:RoutedViewHost.DefaultContent>
     </reactiveUi:RoutedViewHost>
 

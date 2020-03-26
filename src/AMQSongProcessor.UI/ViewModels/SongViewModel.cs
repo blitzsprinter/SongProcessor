@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.Reactive.Linq;
 using System.Runtime.Serialization;
 using System.Windows.Input;
 
@@ -9,19 +10,18 @@ using AMQSongProcessor.Models;
 using Avalonia.Threading;
 
 using ReactiveUI;
-using ReactiveUI.Validation.Abstractions;
-using ReactiveUI.Validation.Contexts;
-using ReactiveUI.Validation.Extensions;
 
 using Splat;
 
 namespace AMQSongProcessor.UI.ViewModels
 {
 	[DataContract]
-	public class SongViewModel : ReactiveObject, IRoutableViewModel, IValidatableViewModel
+	public class SongViewModel : ReactiveObject, IRoutableViewModel
 	{
 		private readonly IScreen _HostScreen;
+		private readonly SongLoader _Loader;
 		private string _Directory;
+
 		public ICommand AddSong { get; }
 		public ObservableCollection<Anime> Anime { get; } = new ObservableCollection<Anime>();
 
@@ -39,49 +39,44 @@ namespace AMQSongProcessor.UI.ViewModels
 		public ICommand Load { get; }
 		public ICommand RemoveSong { get; }
 		public string UrlPathSegment => "/songs";
-		public ValidationContext ValidationContext { get; } = new ValidationContext();
 
 		public SongViewModel(IScreen screen = null)
 		{
 			_HostScreen = screen;
-
-			var loader = new SongLoader
-			{
-				RemoveIgnoredSongs = false,
-			};
-
+			_Loader = Locator.Current.GetService<SongLoader>();
 			CopyANNID = ReactiveCommand.CreateFromTask<int>(async id =>
 			{
 				await Avalonia.Application.Current.Clipboard.SetTextAsync(id.ToString()).CAF();
 			});
 
-			this.ValidationRule(
-				x => x.Directory,
-				System.IO.Directory.Exists,
-				"Directory must exist.");
+			var canLoad = this
+				.WhenAnyValue(x => x.Directory)
+				.Select(System.IO.Directory.Exists);
 			Load = ReactiveCommand.CreateFromTask(async () =>
 			{
 				await Dispatcher.UIThread.InvokeAsync(async () =>
 				{
 					Anime.Clear();
-					await foreach (var anime in loader.LoadAsync(Directory))
+					await foreach (var anime in _Loader.LoadAsync(Directory))
 					{
 						Anime.Add(anime);
 					}
 				}).CAF();
-			}, this.IsValid());
+			}, canLoad);
 
 			AddSong = ReactiveCommand.Create<Anime>(anime =>
 			{
 				var song = new Song();
 				anime.Songs.Add(song);
 
-				HostScreen.Router.Navigate.Execute(new EditViewModel(song));
+				var vm = new EditViewModel(song);
+				HostScreen.Router.Navigate.Execute(vm);
 			});
 
 			EditSong = ReactiveCommand.Create<Song>(song =>
 			{
-				HostScreen.Router.Navigate.Execute(new EditViewModel(song));
+				var vm = new EditViewModel(song);
+				HostScreen.Router.Navigate.Execute(vm);
 			});
 
 			RemoveSong = ReactiveCommand.Create<Song>(song =>

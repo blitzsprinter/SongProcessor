@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reactive.Linq;
 using System.Windows.Input;
-
+using AdvorangesUtils;
 using AMQSongProcessor.Models;
 
 using Newtonsoft.Json;
@@ -21,6 +22,7 @@ namespace AMQSongProcessor.UI.ViewModels
 	public class EditViewModel : ReactiveObject, IRoutableViewModel, IValidatableViewModel
 	{
 		private readonly IScreen _HostScreen;
+		private readonly SongLoader _Loader;
 		private readonly Song _Song;
 		private string _Artist;
 		private int _AudioTrack;
@@ -118,6 +120,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		public EditViewModel(Song song, IScreen screen = null)
 		{
 			_HostScreen = screen;
+			_Loader = Locator.Current.GetService<SongLoader>();
 			_Song = song ?? throw new ArgumentNullException(nameof(song));
 
 			Artist = _Song.Artist;
@@ -137,10 +140,6 @@ namespace AMQSongProcessor.UI.ViewModels
 				x => !string.IsNullOrWhiteSpace(x),
 				"Artist must not be null or empty.");
 			this.ValidationRule(
-				x => x.End,
-				x => TimeSpan.TryParse(x, out _),
-				"End must be a valid timespan.");
-			this.ValidationRule(
 				x => x.CleanPath,
 				x => string.IsNullOrEmpty(x) || File.Exists(Path.Combine(song.Anime.Directory, x)),
 				"Clean path must be null, empty, or lead to an existing file.");
@@ -148,12 +147,23 @@ namespace AMQSongProcessor.UI.ViewModels
 				x => x.Name,
 				x => !string.IsNullOrWhiteSpace(x),
 				"Name must not be null or empty.");
-			this.ValidationRule(
-				x => x.Start,
-				x => TimeSpan.TryParse(x, out _),
-				"Start must be a valid timespan.");
 
-			Save = ReactiveCommand.Create(() =>
+			var validTimes = this.WhenAnyValue(
+				x => x.Start,
+				x => x.End,
+				(start, end) => new
+				{
+					ValidStart = TimeSpan.TryParse(start, out var s),
+					Start = s,
+					ValidEnd = TimeSpan.TryParse(end, out var e),
+					End = e,
+				})
+				.Select(x => x.ValidStart && x.ValidEnd && x.Start <= x.End);
+			this.ValidationRule(
+				_ => validTimes,
+				(_, state) => !state ? "Invalid times supplied or start is less than end." : "");
+
+			Save = ReactiveCommand.CreateFromTask(async () =>
 			{
 				_Song.Artist = Artist;
 				_Song.OverrideAudioTrack = AudioTrack;
@@ -165,6 +175,8 @@ namespace AMQSongProcessor.UI.ViewModels
 				_Song.Start = TimeSpan.Parse(Start);
 				_Song.OverrideVideoTrack = VideoTrack;
 				_Song.VolumeModifier = GetVolumeModifer(VolumeModifier);
+
+				await _Loader.SaveAsync(_Song.Anime).CAF();
 			}, this.IsValid());
 		}
 

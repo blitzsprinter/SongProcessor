@@ -132,35 +132,20 @@ namespace AMQSongProcessor
 
 		private static async Task AddNewShowsAsync(SongLoader loader, string directory)
 		{
-			var ids = Path.Combine(directory, "new.txt");
-			if (!File.Exists(ids))
+			var idFile = Path.Combine(directory, "new.txt");
+			if (!File.Exists(idFile))
 			{
 				return;
 			}
 
-			var invalid = new HashSet<char>(Path.GetInvalidFileNameChars());
-			foreach (var id in File.ReadAllLines(ids).Select(int.Parse))
+			var ids = File.ReadAllLines(idFile).Select(int.Parse);
+			await foreach (var anime in loader.LoadFromANNAsync(directory, ids))
 			{
-				var anime = await ANNGatherer.GetAsync(id).CAF();
-				var sb = new StringBuilder($"[{anime.Year}] ");
-				foreach (var c in anime.Name)
-				{
-					if (!invalid.Contains(c))
-					{
-						sb.Append(c);
-					}
-				}
-
-				var dir = Path.Combine(directory, sb.ToString());
-				Directory.CreateDirectory(dir);
-
-				var file = Path.Combine(dir, $"info.{loader.Extension}");
-				await loader.SaveAsync(file, anime).CAF();
-
 				Console.WriteLine($"Got information from ANN for {anime.Name}.");
 			}
 
-			File.Create(ids);
+			//Clear the file after getting all the information
+			File.Create(idFile);
 		}
 	}
 }

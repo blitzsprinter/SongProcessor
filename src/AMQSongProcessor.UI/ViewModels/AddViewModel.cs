@@ -1,29 +1,44 @@
-﻿using System.Runtime.Serialization;
+﻿using System;
+using System.Collections.Generic;
+using System.Runtime.Serialization;
 using System.Windows.Input;
-
+using AdvorangesUtils;
+using AMQSongProcessor.Models;
+using Avalonia.Threading;
 using ReactiveUI;
-using ReactiveUI.Validation.Abstractions;
-using ReactiveUI.Validation.Contexts;
-using ReactiveUI.Validation.Extensions;
 
 using Splat;
 
 namespace AMQSongProcessor.UI.ViewModels
 {
 	[DataContract]
-	public class AddViewModel : ReactiveObject, IRoutableViewModel, IValidatableViewModel
+	public class AddViewModel : ReactiveObject, IRoutableViewModel
 	{
 		private readonly IScreen _HostScreen;
+		private readonly SongLoader _Loader;
+		private IEnumerable<Anime> _Anime;
 		private string _Directory;
+		private Exception _Exception;
 		private int _Id;
-
 		public ICommand Add { get; }
+
+		public IEnumerable<Anime> Anime
+		{
+			get => _Anime;
+			set => this.RaiseAndSetIfChanged(ref _Anime, value);
+		}
 
 		[DataMember]
 		public string Directory
 		{
 			get => _Directory;
 			set => this.RaiseAndSetIfChanged(ref _Directory, value);
+		}
+
+		public Exception Exception
+		{
+			get => _Exception;
+			set => this.RaiseAndSetIfChanged(ref _Exception, value);
 		}
 
 		public IScreen HostScreen => _HostScreen ?? Locator.Current.GetService<IScreen>();
@@ -36,25 +51,32 @@ namespace AMQSongProcessor.UI.ViewModels
 		}
 
 		public string UrlPathSegment => "/add";
-		public ValidationContext ValidationContext { get; } = new ValidationContext();
 
 		public AddViewModel(IScreen screen = null)
 		{
 			_HostScreen = screen;
+			_Loader = Locator.Current.GetService<SongLoader>();
 
-			this.ValidationRule(
+			var canAdd = this.WhenAnyValue(
 				x => x.Directory,
-				System.IO.Directory.Exists,
-				"Directory must exist.");
-			this.ValidationRule(
 				x => x.Id,
-				x => x > 0,
-				"Id must be greater than 0.");
-
+				(directory, id) => System.IO.Directory.Exists(directory) && id > 0);
 			Add = ReactiveCommand.CreateFromTask(async () =>
 			{
-				var result = Id;
-			}, this.IsValid());
+				await Dispatcher.UIThread.InvokeAsync(async () =>
+				{
+					try
+					{
+						Anime = new[] { await _Loader.LoadFromANNAsync(Directory, Id).CAF() };
+						Exception = null;
+					}
+					catch (Exception e)
+					{
+						Exception = e;
+						Anime = null;
+					}
+				}).CAF();
+			}, canAdd);
 		}
 	}
 }

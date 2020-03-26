@@ -18,6 +18,11 @@ namespace AMQSongProcessor.UI
 
 		public override void OnFrameworkInitializationCompleted()
 		{
+			Locator.CurrentMutable.RegisterConstant(new SongLoader
+			{
+				RemoveIgnoredSongs = false,
+			});
+
 			var suspension = new AutoSuspendHelper(ApplicationLifetime);
 			var driver = new NewtonsoftJsonSuspensionDriver("appstate.json");
 			RxApp.SuspensionHost.CreateNewAppState = () => new MainViewModel();
