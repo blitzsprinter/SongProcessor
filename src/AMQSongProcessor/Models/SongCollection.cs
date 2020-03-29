@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 
 namespace AMQSongProcessor.Models
 {
-	public sealed class SongCollection : Collection<Song>
+	public sealed class SongCollection : ObservableCollection<Song>
 	{
 		private readonly Anime _Anime;
 

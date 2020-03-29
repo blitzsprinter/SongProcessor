@@ -17,12 +17,10 @@
         <TextBox Text="{Binding CleanPath}" />
       </HeaderedContentControl>
       <HeaderedContentControl Header="Override Video Track">
-        <NumericUpDown Minimum="0" Value="{Binding VideoTrack}"
-                       Text="{Binding VideoTrackText, Mode=OneWayToSource}" />
+        <NumericUpDown Minimum="0" Value="{Binding VideoTrack}" />
       </HeaderedContentControl>
       <HeaderedContentControl Header="Episode Number">
-        <NumericUpDown Minimum="0" Value="{Binding Episode}"
-                       Text="{Binding EpisodeText, Mode=OneWayToSource}" />
+        <NumericUpDown Minimum="0" Value="{Binding Episode}" />
       </HeaderedContentControl>
     </UniformGrid>
     <UniformGrid Grid.Column="3" Grid.Row="1" Columns="1">
@@ -35,17 +33,14 @@
       <HeaderedContentControl Header="Song Type">
         <Grid ColumnDefinitions="5*,1*">
           <ComboBox Grid.Column="0" Items="{Binding SongTypes}" SelectedItem="{Binding SongType}" />
-          <NumericUpDown Grid.Column="1" Minimum="0" Value="{Binding SongPosition}"
-                         Text="{Binding SongPosition, Mode=OneWayToSource}" />
+          <NumericUpDown Grid.Column="1" Minimum="0" Value="{Binding SongPosition}" />
         </Grid>
       </HeaderedContentControl>
       <HeaderedContentControl Header="Override Audio Track">
-        <NumericUpDown Minimum="0" Value="{Binding AudioTrack}"
-                       Text="{Binding AudioTrackText, Mode=OneWayToSource}" />
+        <NumericUpDown Minimum="0" Value="{Binding AudioTrack}" />
       </HeaderedContentControl>
       <HeaderedContentControl Header="Volume Modifier">
-        <NumericUpDown Value="{Binding VolumeModifier}"
-                       Text="{Binding VolumeModifierText, Mode=OneWayToSource}" />
+        <NumericUpDown Value="{Binding VolumeModifier}" />
       </HeaderedContentControl>
     </UniformGrid>
     <UniformGrid Grid.Column="1" Grid.ColumnSpan="3" Grid.Row="2">

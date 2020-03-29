@@ -79,9 +79,13 @@ namespace AMQSongProcessor.UI.ViewModels
 				HostScreen.Router.Navigate.Execute(vm);
 			});
 
-			RemoveSong = ReactiveCommand.Create<Song>(song =>
+			RemoveSong = ReactiveCommand.CreateFromTask<Song>(async song =>
 			{
-				song.Anime.Songs.Remove(song);
+				await Dispatcher.UIThread.InvokeAsync(() =>
+				{
+					var anime = song.Anime;
+					anime.Songs.Remove(song);
+				}).CAF();
 			});
 		}
 	}
