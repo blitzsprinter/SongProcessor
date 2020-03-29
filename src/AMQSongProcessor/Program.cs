@@ -52,8 +52,8 @@ namespace AMQSongProcessor
 
 			var processor = new SongProcessor
 			{
-				Processing = new ProcessingProgress(),
-				Warnings = new ConsoleProgress(),
+				Processing = new LogProcessingToConsole(),
+				Warnings = new LogWarningsToConsole(),
 			};
 			await processor.ExportFixesAsync(dir, anime).CAF();
 			await processor.ProcessAsync(anime).CAF();

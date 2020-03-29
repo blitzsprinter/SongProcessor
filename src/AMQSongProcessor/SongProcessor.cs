@@ -15,21 +15,8 @@ namespace AMQSongProcessor
 {
 	public sealed class SongProcessor : ISongProcessor
 	{
-		private const string BITRATE = "bitrate";
 		private const int FILE_ALREADY_EXISTS = 183;
 		private const int MP3 = -1;
-		private const string SIZE = "size";
-		private const string SPEED = "speed";
-		private const string TIME = "time";
-
-		private static readonly string FfmpegProgressPattern =
-			$@"{SIZE}=\s*(?<{SIZE}>\d*)kB\s*" +
-			$@"{TIME}=(?<{TIME}>[0-9\\:\\.]+)\s*" +
-			$@"{BITRATE}=\s*(?<{BITRATE}>\d*(\.\d+)?)kbits\/s\s*" +
-			$@"{SPEED}=(?<{SPEED}>\d*(\.\d+)?)x";
-
-		private static readonly Regex FfmpegProgressRegex =
-			new Regex(FfmpegProgressPattern, RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 
 		private static readonly Resolution[] Resolutions = new[]
 		{
@@ -134,7 +121,7 @@ namespace AMQSongProcessor
 				{
 					if (res.Size > show.VideoInfo?.Height)
 					{
-						Warnings.Report($"Source is smaller than {res.Size}p: {show.Name}");
+						/*Warnings.Report($"Source is smaller than {res.Size}p: {show.Name}");*/
 					}
 					else
 					{
@@ -166,31 +153,23 @@ namespace AMQSongProcessor
 			}
 		}
 
-		private async Task<int> ProcessAsync(long ticks, string path, string args)
+		private async Task<int> ProcessAsync(string path, TimeSpan length, string args)
 		{
 			using var process = Utils.CreateProcess(Utils.FFmpeg, args);
 
-			//ffmpeg always outputs to err
-			process.ErrorDataReceived += (s, e) =>
+			//ffmpeg will output the information we want to std:out
+			var ffmpegProgress = new MutableFfmpegProgress();
+			process.OutputDataReceived += (s, e) =>
 			{
 				if (e.Data == null)
 				{
 					return;
 				}
 
-				var match = FfmpegProgressRegex.Match(e.Data);
-				if (!match.Success)
+				if (ffmpegProgress.IsNextProgressReady(e.Data, out var progress))
 				{
-					return;
+					Processing.Report(new ProcessingData(path, length, progress));
 				}
-
-				var size = int.Parse(match.Groups[SIZE].Value);
-				var time = TimeSpan.Parse(match.Groups[TIME].Value);
-				var bitrate = double.Parse(match.Groups[BITRATE].Value);
-				var speed = double.Parse(match.Groups[SPEED].Value);
-				var percentage = time.Ticks / (double)ticks;
-				var data = new ProcessingData(path, size, time, bitrate, speed, percentage);
-				Processing.Report(data);
 			};
 
 			return await process.RunAsync(false).CAF();
@@ -208,6 +187,7 @@ namespace AMQSongProcessor
 			const string ARGS =
 				" -v quiet" +
 				" -stats" +
+				" -progress pipe:1" +
 				" -vn" + //No video
 				" -f mp3" +
 				" -b:a 320k";
@@ -237,7 +217,7 @@ namespace AMQSongProcessor
 			args += $" \"{path}\"";
 			#endregion Args
 
-			return ProcessAsync(song.Length.Ticks, path, args);
+			return ProcessAsync(path, song.Length, args);
 		}
 
 		private Task<int> ProcessVideoAsync(Anime anime, Song song, int resolution)
@@ -252,6 +232,7 @@ namespace AMQSongProcessor
 			const string ARGS =
 				" -v quiet" +
 				" -stats" +
+				" -progress pipe:1" +
 				" -sn" + //No subtitles
 				" -shortest" +
 				" -c:a libopus" + //Set the audio codec to libopus
@@ -314,7 +295,7 @@ namespace AMQSongProcessor
 			args += $" \"{path}\"";
 			#endregion Args
 
-			return ProcessAsync(song.Length.Ticks, path, args);
+			return ProcessAsync(path, song.Length, args);
 		}
 
 		private readonly struct Resolution
