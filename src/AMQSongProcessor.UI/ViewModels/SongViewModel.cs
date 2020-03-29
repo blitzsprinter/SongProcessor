@@ -157,7 +157,10 @@ namespace AMQSongProcessor.UI.ViewModels
 				}).TakeUntil(CancelProcessing);
 			}, hasChildren);
 
-			CancelProcessing = ReactiveCommand.Create(() => { }, ProcessSongs.IsExecuting);
+			CancelProcessing = ReactiveCommand.Create(() =>
+			{
+				BusyProcessing = false;
+			}, ProcessSongs.IsExecuting);
 		}
 	}
 }

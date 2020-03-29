@@ -49,6 +49,12 @@ namespace AMQSongProcessor
 
 			using var process = Utils.CreateProcess(Utils.FFprobe, args);
 
+			process.WithCleanUp((s, e) =>
+			{
+				process.Kill();
+				process.Dispose();
+			}, _ => { });
+
 			var sb = new StringBuilder();
 			void OnOutputReceived(object sender, DataReceivedEventArgs args)
 				=> sb.Append(args.Data);

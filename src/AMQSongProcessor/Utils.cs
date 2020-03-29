@@ -32,30 +32,16 @@ namespace AMQSongProcessor
 					RedirectStandardOutput = true,
 					RedirectStandardError = true,
 				},
+				EnableRaisingEvents = true,
 			};
 		}
 
-		public static Task<int> RunAsync(this Process process, bool write, CancellationToken? token = null)
+		public static Task<int> RunAsync(this Process process, bool write)
 		{
-			void HandleClosing(object? source, EventArgs e)
-			{
-				process.Kill();
-				process.Dispose();
-			}
-
 			var tcs = new TaskCompletionSource<int>();
 
 			process.EnableRaisingEvents = true;
-
-			//If the program gets shut down, make sure it also shuts down the ffmpeg process
-			AppDomain.CurrentDomain.ProcessExit += HandleClosing;
-			var registration = token?.Register(() => process.Kill());
-			process.Exited += (s, e) =>
-			{
-				AppDomain.CurrentDomain.ProcessExit -= HandleClosing;
-				registration?.Dispose();
-				tcs.SetResult(process.ExitCode);
-			};
+			process.WithCleanUp((s, e) => { }, c => tcs.SetResult(c));
 
 			if (write)
 			{
@@ -118,6 +104,36 @@ namespace AMQSongProcessor
 				throw new ArgumentNullException(nameof(document));
 			}
 			return document.RootElement.ToObject<T>(options);
+		}
+
+		public static void WithCleanUp(this Process process, EventHandler cancel, Action<int> finish, CancellationToken? token = null)
+		{
+			if (!process.EnableRaisingEvents)
+			{
+				throw new ArgumentException("Must be able to raise events.", nameof(process));
+			}
+
+			var isCanceled = false;
+			void Cancel(object? sender, EventArgs args)
+			{
+				if (isCanceled)
+				{
+					return;
+				}
+
+				isCanceled = true;
+				cancel(sender, args);
+			}
+
+			//If the program gets shut down, make sure it also shuts down the ffmpeg process
+			AppDomain.CurrentDomain.ProcessExit += Cancel;
+			var registration = token?.Register(() => Cancel(null, EventArgs.Empty));
+			process.Exited += (s, e) =>
+			{
+				AppDomain.CurrentDomain.ProcessExit -= Cancel;
+				registration?.Dispose();
+				finish(process.ExitCode);
+			};
 		}
 
 		private static string FindProgram(string program)

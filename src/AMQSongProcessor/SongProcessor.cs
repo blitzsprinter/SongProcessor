@@ -174,7 +174,15 @@ namespace AMQSongProcessor
 				}
 			};
 
-			return await process.RunAsync(false, token).CAF();
+			process.WithCleanUp((s, e) =>
+			{
+				process.Kill();
+				process.Dispose();
+				Thread.Sleep(25);
+				File.Delete(path);
+			}, _ => { }, token);
+
+			return await process.RunAsync(false).CAF();
 		}
 
 		private Task<int> ProcessMp3Async(Anime anime, Song song, CancellationToken? token)

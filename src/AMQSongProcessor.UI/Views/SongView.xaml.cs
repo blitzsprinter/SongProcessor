@@ -17,10 +17,7 @@ namespace AMQSongProcessor.UI.Views
 		{
 			if (e.Key == Key.Enter || e.Key == Key.Return)
 			{
-				if (ViewModel.Load.CanExecute(null))
-				{
-					ViewModel.Load.Execute(null);
-				}
+				ViewModel.Load.Execute();
 			}
 		}
 
