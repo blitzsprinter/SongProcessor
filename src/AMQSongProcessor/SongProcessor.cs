@@ -28,8 +28,8 @@ namespace AMQSongProcessor
 		private static readonly AspectRatio SquareSAR = new AspectRatio(1, 1);
 
 		public string FixesFile { get; set; } = "fixes.txt";
-		public IProgress<ProcessingData> Processing { get; set; }
-		public IProgress<string> Warnings { get; set; }
+		public IProgress<ProcessingData>? Processing { get; set; }
+		public IProgress<string>? Warnings { get; set; }
 
 		public async Task ExportFixesAsync(string dir, IReadOnlyList<Anime> anime)
 		{
@@ -57,7 +57,7 @@ namespace AMQSongProcessor
 			var counts = new ConcurrentDictionary<string, List<Anime>>();
 			foreach (var show in anime)
 			{
-				foreach (var song in show.Songs)
+				foreach (var song in show.UnignoredSongs)
 				{
 					counts.GetOrAdd(song.FullName, _ => new List<Anime>()).Add(show);
 				}
@@ -69,7 +69,7 @@ namespace AMQSongProcessor
 
 			foreach (var show in anime)
 			{
-				foreach (var song in show.Songs)
+				foreach (var song in show.UnignoredSongs)
 				{
 					if (song.Status != Status.NotSubmitted)
 					{
@@ -108,7 +108,7 @@ namespace AMQSongProcessor
 			{
 				if (show.Source == null)
 				{
-					Warnings.Report($"Source is null: {show.Name}");
+					Warnings?.Report($"Source is null: {show.Name}");
 					continue;
 				}
 				else if (!File.Exists(show.GetSourcePath()))
@@ -129,11 +129,11 @@ namespace AMQSongProcessor
 					}
 				}
 
-				foreach (var song in show.Songs)
+				foreach (var song in show.UnignoredSongs)
 				{
 					if (!song.HasTimeStamp)
 					{
-						Warnings.Report($"Timestamp is null: {song.Name}");
+						Warnings?.Report($"Timestamp is null: {song.Name}");
 						continue;
 					}
 
@@ -168,7 +168,7 @@ namespace AMQSongProcessor
 
 				if (ffmpegProgress.IsNextProgressReady(e.Data, out var progress))
 				{
-					Processing.Report(new ProcessingData(path, length, progress));
+					Processing?.Report(new ProcessingData(path, length, progress));
 				}
 			};
 

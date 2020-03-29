@@ -13,10 +13,10 @@ namespace AMQSongProcessor.Models
 		public static readonly TimeSpan UnknownTime = TimeSpan.FromSeconds(-1);
 
 		[JsonIgnore]
-		public Anime Anime { get; set; }
+		public Anime Anime { get; set; } = null!;
 
-		public string Artist { get; set; }
-		public string CleanPath { get; set; }
+		public string Artist { get; set; } = null!;
+		public string? CleanPath { get; set; }
 		public TimeSpan End { get; set; }
 		public int? Episode { get; set; }
 		public string[] Featuring { get; set; } = Array.Empty<string>();
@@ -37,7 +37,7 @@ namespace AMQSongProcessor.Models
 		public bool HasTimeStamp => Start != UnknownTime;
 		public bool IsClean => CleanPath == null;
 		public TimeSpan Length => End - Start;
-		public string Name { get; set; }
+		public string Name { get; set; } = null!;
 		public int OverrideAudioTrack { get; set; }
 		public int OverrideVideoTrack { get; set; }
 		public bool ShouldIgnore { get; set; }

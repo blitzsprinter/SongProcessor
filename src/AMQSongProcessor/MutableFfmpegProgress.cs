@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace AMQSongProcessor
@@ -38,7 +39,7 @@ namespace AMQSongProcessor
 
 		private Dictionary<string, string> _Values = new Dictionary<string, string>();
 
-		public bool IsNextProgressReady(string kvp, out FfmpegProgress progress)
+		public bool IsNextProgressReady(string kvp, [NotNullWhen(true)] out FfmpegProgress? progress)
 		{
 			var split = kvp.Split('=');
 			var key = split[0].Trim();
@@ -52,7 +53,7 @@ namespace AMQSongProcessor
 			//progress will be the last key in the kvp collection
 			if (key != PROGRESS)
 			{
-				progress = default;
+				progress = null;
 				return false;
 			}
 

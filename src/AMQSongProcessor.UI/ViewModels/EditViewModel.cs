@@ -36,6 +36,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		private bool _HasMp3;
 		private bool _IsSubmitted;
 		private string _Name;
+		private bool _ShouldIgnore;
 		private int _SongPosition;
 		private SongType _SongType;
 		private string _Start;
@@ -113,6 +114,12 @@ namespace AMQSongProcessor.UI.ViewModels
 
 		public ICommand Save { get; }
 
+		public bool ShouldIgnore
+		{
+			get => _ShouldIgnore;
+			set => this.RaiseAndSetIfChanged(ref _ShouldIgnore, value);
+		}
+
 		public int SongPosition
 		{
 			get => _SongPosition;
@@ -155,7 +162,7 @@ namespace AMQSongProcessor.UI.ViewModels
 
 			_Artist = _Song.Artist;
 			_AudioTrack = _Song.OverrideAudioTrack;
-			_CleanPath = _Song.CleanPath;
+			_CleanPath = _Song.CleanPath!;
 			_End = _Song.End.ToString();
 			_Episode = _Song.Episode ?? 0;
 			_Has480p = !song.IsMissing(Status.Res480);
@@ -163,6 +170,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			_HasMp3 = !song.IsMissing(Status.Mp3);
 			_IsSubmitted = song.Status != Status.NotSubmitted;
 			_Name = _Song.Name;
+			_ShouldIgnore = _Song.ShouldIgnore;
 			_SongPosition = _Song.Type.Position ?? 0;
 			_SongType = _Song.Type.Type;
 			_Start = _Song.Start.ToString();
@@ -206,6 +214,7 @@ namespace AMQSongProcessor.UI.ViewModels
 				_Song.Episode = GetNullIfZero(Episode);
 				_Song.Name = Name;
 				_Song.Type = new SongTypeAndPosition(SongType, GetNullIfZero(SongPosition));
+				_Song.ShouldIgnore = ShouldIgnore;
 				_Song.Status = GetStatus();
 				_Song.Start = TimeSpan.Parse(Start);
 				_Song.OverrideVideoTrack = VideoTrack;

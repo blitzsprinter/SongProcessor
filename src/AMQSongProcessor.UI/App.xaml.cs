@@ -22,6 +22,7 @@ namespace AMQSongProcessor.UI
 			{
 				RemoveIgnoredSongs = false,
 			});
+			Locator.CurrentMutable.RegisterConstant<ISongProcessor>(new SongProcessor());
 
 			var suspension = new AutoSuspendHelper(ApplicationLifetime);
 			var driver = new NewtonsoftJsonSuspensionDriver("appstate.json");

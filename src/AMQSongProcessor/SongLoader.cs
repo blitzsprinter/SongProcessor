@@ -49,7 +49,10 @@ namespace AMQSongProcessor
 				{
 					show.Songs.RemoveAll(x => x.ShouldIgnore);
 				}
-				show.VideoInfo = await gatherer.GetVideoInfoAsync(show.GetSourcePath()).CAF();
+				if (show.GetSourcePath() is string source)
+				{
+					show.VideoInfo = await gatherer.GetVideoInfoAsync(source).CAF();
+				}
 
 				yield return show;
 			}

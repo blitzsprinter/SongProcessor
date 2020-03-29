@@ -70,7 +70,7 @@ namespace AMQSongProcessor.UI.ViewModels
 				{
 					try
 					{
-						Anime = new[] { await _Loader.LoadFromANNAsync(Directory, Id).CAF() };
+						Anime = new[] { await _Loader.LoadFromANNAsync(Directory!, Id).CAF() };
 						Exception = null;
 					}
 					catch (Exception e)

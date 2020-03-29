@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text.Json.Serialization;
 
 namespace AMQSongProcessor.Models
@@ -9,18 +11,22 @@ namespace AMQSongProcessor.Models
 	public class Anime
 	{
 		[JsonIgnore]
-		public string Directory => Path.GetDirectoryName(File);
+		public string Directory => Path.GetDirectoryName(File)
+			?? throw new InvalidOperationException("File must lead to a directory");
 
 		[JsonIgnore]
-		public string File { get; set; }
+		public string File { get; set; } = null!;
 
 		public int Id { get; set; }
-		public string Name { get; set; }
+		public string Name { get; set; } = null!;
 		public IList<Song> Songs { get; set; }
-		public string Source { get; set; }
+		public string? Source { get; set; }
 
 		[JsonIgnore]
-		public VideoInfo VideoInfo { get; set; }
+		public IEnumerable<Song> UnignoredSongs => Songs.Where(x => !x.ShouldIgnore);
+
+		[JsonIgnore]
+		public VideoInfo VideoInfo { get; set; } = null!;
 
 		public int Year { get; set; }
 
@@ -38,10 +44,10 @@ namespace AMQSongProcessor.Models
 			Name = name;
 		}
 
-		public string GetCleanSongPath(Song song)
+		public string? GetCleanSongPath(Song song)
 			=> song.CleanPath == null ? null : Path.Combine(Directory, song.CleanPath);
 
-		public string GetSourcePath()
+		public string? GetSourcePath()
 			=> Source == null ? null : Path.Combine(Directory, Source);
 	}
 }

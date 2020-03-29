@@ -22,9 +22,14 @@ namespace AMQSongProcessor.UI.ViewModels
 	[DataContract]
 	public class SongViewModel : ReactiveObject, IRoutableViewModel
 	{
+		private const string LOAD = "Load";
+		private const string UNLOAD = "Unload";
+
 		private readonly IScreen? _HostScreen;
 		private readonly SongLoader _Loader;
+		private readonly ISongProcessor _Processor;
 		private string? _Directory;
+		private string _DirectoryButtonText = LOAD;
 
 		public ICommand AddSong { get; }
 		public ObservableCollection<Anime> Anime { get; } = new ObservableCollection<Anime>();
@@ -39,10 +44,18 @@ namespace AMQSongProcessor.UI.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _Directory, value);
 		}
 
+		public string DirectoryButtonText
+		{
+			get => _DirectoryButtonText;
+			set => this.RaiseAndSetIfChanged(ref _DirectoryButtonText, value);
+		}
+
 		public ICommand EditSong { get; }
 		public ICommand ExpandAll { get; }
+		public ICommand ExportFixes { get; }
 		public IScreen HostScreen => _HostScreen ?? Locator.Current.GetService<IScreen>();
 		public ICommand Load { get; }
+		public ICommand ProcessSongs { get; }
 		public ICommand RemoveSong { get; }
 		public string UrlPathSegment => "/songs";
 
@@ -50,6 +63,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		{
 			_HostScreen = screen;
 			_Loader = Locator.Current.GetService<SongLoader>();
+			_Processor = Locator.Current.GetService<ISongProcessor>();
 			CopyANNID = ReactiveCommand.CreateFromTask<int>(async id =>
 			{
 				await Avalonia.Application.Current.Clipboard.SetTextAsync(id.ToString()).CAF();
@@ -60,11 +74,18 @@ namespace AMQSongProcessor.UI.ViewModels
 				.Select(System.IO.Directory.Exists);
 			Load = ReactiveCommand.CreateFromTask(async () =>
 			{
+				var shouldAttemptToLoad = !Anime.Any();
 				Anime.Clear();
-				await foreach (var anime in _Loader.LoadAsync(Directory))
+
+				if (shouldAttemptToLoad)
 				{
-					Anime.Add(anime);
+					await foreach (var anime in _Loader.LoadAsync(Directory!))
+					{
+						Anime.Add(anime);
+					}
 				}
+
+				DirectoryButtonText = Anime.Any() ? UNLOAD : LOAD;
 			}, canLoad);
 
 			AddSong = ReactiveCommand.Create<Anime>(anime =>
@@ -105,6 +126,16 @@ namespace AMQSongProcessor.UI.ViewModels
 				{
 					item.IsExpanded = false;
 				}
+			}, hasChildren);
+
+			ExportFixes = ReactiveCommand.CreateFromTask(async () =>
+			{
+				await _Processor.ExportFixesAsync(Directory!, Anime).CAF();
+			}, hasChildren);
+
+			ProcessSongs = ReactiveCommand.CreateFromTask(async () =>
+			{
+				await _Processor.ProcessAsync(Anime).CAF();
 			}, hasChildren);
 		}
 	}

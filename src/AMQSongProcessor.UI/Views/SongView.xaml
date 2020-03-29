@@ -4,16 +4,23 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:models="clr-namespace:AMQSongProcessor.Models;assembly=AMQSongProcessor"
              xmlns:controls="clr-namespace:AMQSongProcessor.UI.Controls;assembly=AMQSongProcessor.UI"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="800"
              x:Class="AMQSongProcessor.UI.Views.SongView">
 
   <Grid RowDefinitions="1*,19*">
     <Grid ColumnDefinitions="9*,1*">
-      <TextBox Watermark="Directory" Text="{Binding Directory}" KeyDown="OnKeyDown" />
-      <Button Grid.Column="1" Content="Load" Command="{Binding Load}" />
+      <TextBox Watermark="Directory" Text="{Binding Directory}" KeyDown="OnKeyDown" IsEnabled="{Binding !Anime.Count}" />
+      <Button Grid.Column="1" Content="{Binding DirectoryButtonText}" Command="{Binding Load}" />
     </Grid>
 
     <Grid Grid.Row="1" ColumnDefinitions="9*,1*">
+      <Grid.ContextMenu>
+        <ContextMenu>
+          <MenuItem Header="Expand All" Command="{Binding ExpandAll}" CommandParameter="{Binding ElementName=Tree}" />
+          <MenuItem Header="Close All" Command="{Binding CloseAll}" CommandParameter="{Binding ElementName=Tree}" />
+        </ContextMenu>
+      </Grid.ContextMenu>
+
       <TreeView Name="Tree" Grid.Row="1" Items="{Binding Anime}">
         <TreeView.DataTemplates>
           <TreeDataTemplate DataType="models:Anime" ItemsSource="{Binding Songs}">
@@ -47,9 +54,9 @@
         </TreeView.DataTemplates>
       </TreeView>
 
-      <Grid Grid.Column="1" RowDefinitions="1*,1*,17*">
-        <Button Grid.Row="0" Content="Expand All" Command="{Binding ExpandAll}" CommandParameter="{Binding ElementName=Tree}" />
-        <Button Grid.Row="1" Content="Close All" Command="{Binding CloseAll}" CommandParameter="{Binding ElementName=Tree}" />
+      <Grid Grid.Column="1" RowDefinitions="10*,10*,3*,10*,10*,10*,130*">
+        <Button Grid.Row="0" Content="Export Fixes" Command="{Binding ExportFixes}" />
+        <Button Grid.Row="1" Content="Process Songs" Command="{Binding ProcessSongs}" />
       </Grid>
     </Grid>
   </Grid>

@@ -5,7 +5,7 @@ namespace AMQSongProcessor
 {
 	public sealed class LogProcessingToConsole : IProgress<ProcessingData>
 	{
-		private string _Current;
+		private string? _Current;
 
 		public void Report(ProcessingData value)
 		{

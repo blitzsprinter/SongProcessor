@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -31,9 +32,9 @@ namespace AMQSongProcessor
 
 		private async Task<T> GetInfoAsync<T>(char stream, string file, int track)
 		{
-			if (file == null)
+			if (!File.Exists(file))
 			{
-				return default;
+				throw new ArgumentException($"{file} does not exist.", nameof(file));
 			}
 
 			#region Args
