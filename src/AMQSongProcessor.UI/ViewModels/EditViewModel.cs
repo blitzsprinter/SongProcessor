@@ -31,6 +31,10 @@ namespace AMQSongProcessor.UI.ViewModels
 		private string _CleanPath;
 		private string _End;
 		private int _Episode;
+		private bool _Has480p;
+		private bool _Has720p;
+		private bool _HasMp3;
+		private bool _IsSubmitted;
 		private string _Name;
 		private int _SongPosition;
 		private SongType _SongType;
@@ -75,7 +79,31 @@ namespace AMQSongProcessor.UI.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _Episode, value);
 		}
 
+		public bool Has480p
+		{
+			get => _Has480p;
+			set => this.RaiseAndSetIfChanged(ref _Has480p, value);
+		}
+
+		public bool Has720p
+		{
+			get => _Has720p;
+			set => this.RaiseAndSetIfChanged(ref _Has720p, value);
+		}
+
+		public bool HasMp3
+		{
+			get => _HasMp3;
+			set => this.RaiseAndSetIfChanged(ref _HasMp3, value);
+		}
+
 		public IScreen HostScreen => _HostScreen ?? Locator.Current.GetService<IScreen>();
+
+		public bool IsSubmitted
+		{
+			get => _IsSubmitted;
+			set => this.RaiseAndSetIfChanged(ref _IsSubmitted, value);
+		}
 
 		public string Name
 		{
@@ -130,6 +158,10 @@ namespace AMQSongProcessor.UI.ViewModels
 			_CleanPath = _Song.CleanPath;
 			_End = _Song.End.ToString();
 			_Episode = _Song.Episode ?? 0;
+			_Has480p = !song.IsMissing(Status.Res480);
+			_Has720p = !song.IsMissing(Status.Res720);
+			_HasMp3 = !song.IsMissing(Status.Mp3);
+			_IsSubmitted = song.Status != Status.NotSubmitted;
 			_Name = _Song.Name;
 			_SongPosition = _Song.Type.Position ?? 0;
 			_SongType = _Song.Type.Type;
@@ -174,6 +206,7 @@ namespace AMQSongProcessor.UI.ViewModels
 				_Song.Episode = GetNullIfZero(Episode);
 				_Song.Name = Name;
 				_Song.Type = new SongTypeAndPosition(SongType, GetNullIfZero(SongPosition));
+				_Song.Status = GetStatus();
 				_Song.Start = TimeSpan.Parse(Start);
 				_Song.OverrideVideoTrack = VideoTrack;
 				_Song.VolumeModifier = GetVolumeModifer(VolumeModifier);
@@ -190,5 +223,27 @@ namespace AMQSongProcessor.UI.ViewModels
 
 		private static VolumeModifer? GetVolumeModifer(int? num)
 			=> GetNullIfZero(num) == null ? default(VolumeModifer?) : VolumeModifer.FromDecibels(num!.Value);
+
+		private Status GetStatus()
+		{
+			var status = Status.NotSubmitted;
+			if (HasMp3)
+			{
+				status |= Status.Mp3;
+			}
+			if (Has480p)
+			{
+				status |= Status.Res480;
+			}
+			if (Has720p)
+			{
+				status |= Status.Res720;
+			}
+			if (IsSubmitted && status == Status.NotSubmitted)
+			{
+				return Status.None;
+			}
+			return status;
+		}
 	}
 }
