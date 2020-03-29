@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.Linq;
 using System.Reactive.Linq;
 using System.Runtime.Serialization;
 using System.Windows.Input;
@@ -6,9 +7,12 @@ using System.Windows.Input;
 using AdvorangesUtils;
 
 using AMQSongProcessor.Models;
-
+using Avalonia.Controls;
+using Avalonia.Controls.Templates;
+using Avalonia.LogicalTree;
 using Avalonia.Threading;
-
+using Avalonia.VisualTree;
+using DynamicData.Binding;
 using ReactiveUI;
 
 using Splat;
@@ -25,6 +29,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		public ICommand AddSong { get; }
 		public ObservableCollection<Anime> Anime { get; } = new ObservableCollection<Anime>();
 
+		public ICommand CloseAll { get; }
 		public ICommand CopyANNID { get; }
 
 		[DataMember]
@@ -35,6 +40,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		}
 
 		public ICommand EditSong { get; }
+		public ICommand ExpandAll { get; }
 		public IScreen HostScreen => _HostScreen ?? Locator.Current.GetService<IScreen>();
 		public ICommand Load { get; }
 		public ICommand RemoveSong { get; }
@@ -54,14 +60,11 @@ namespace AMQSongProcessor.UI.ViewModels
 				.Select(System.IO.Directory.Exists);
 			Load = ReactiveCommand.CreateFromTask(async () =>
 			{
-				await Dispatcher.UIThread.InvokeAsync(async () =>
+				Anime.Clear();
+				await foreach (var anime in _Loader.LoadAsync(Directory))
 				{
-					Anime.Clear();
-					await foreach (var anime in _Loader.LoadAsync(Directory))
-					{
-						Anime.Add(anime);
-					}
-				}).CAF();
+					Anime.Add(anime);
+				}
 			}, canLoad);
 
 			AddSong = ReactiveCommand.Create<Anime>(anime =>
@@ -79,14 +82,30 @@ namespace AMQSongProcessor.UI.ViewModels
 				HostScreen.Router.Navigate.Execute(vm);
 			});
 
-			RemoveSong = ReactiveCommand.CreateFromTask<Song>(async song =>
+			RemoveSong = ReactiveCommand.Create<Song>(song =>
 			{
-				await Dispatcher.UIThread.InvokeAsync(() =>
-				{
-					var anime = song.Anime;
-					anime.Songs.Remove(song);
-				}).CAF();
+				var anime = song.Anime;
+				anime.Songs.Remove(song);
 			});
+
+			var hasChildren = this
+				.WhenAnyValue(x => x.Anime.Count)
+				.Select(x => x > 0);
+			ExpandAll = ReactiveCommand.Create<TreeView>(tree =>
+			{
+				foreach (TreeViewItem item in tree.GetLogicalChildren())
+				{
+					item.IsExpanded = true;
+				}
+			}, hasChildren);
+
+			CloseAll = ReactiveCommand.Create<TreeView>(tree =>
+			{
+				foreach (TreeViewItem item in tree.GetLogicalChildren())
+				{
+					item.IsExpanded = false;
+				}
+			}, hasChildren);
 		}
 	}
 }
