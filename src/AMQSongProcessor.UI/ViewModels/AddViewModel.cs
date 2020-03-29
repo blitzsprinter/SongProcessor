@@ -1,10 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Windows.Input;
+
 using AdvorangesUtils;
+
 using AMQSongProcessor.Models;
+
 using Avalonia.Threading;
+
 using ReactiveUI;
 
 using Splat;
@@ -14,28 +17,28 @@ namespace AMQSongProcessor.UI.ViewModels
 	[DataContract]
 	public class AddViewModel : ReactiveObject, IRoutableViewModel
 	{
-		private readonly IScreen _HostScreen;
+		private readonly IScreen? _HostScreen;
 		private readonly SongLoader _Loader;
-		private Anime[] _Anime;
-		private string _Directory;
-		private Exception _Exception;
+		private Anime[]? _Anime;
+		private string? _Directory;
+		private Exception? _Exception;
 		private int _Id;
 		public ICommand Add { get; }
 
-		public Anime[] Anime
+		public Anime[]? Anime
 		{
 			get => _Anime;
 			set => this.RaiseAndSetIfChanged(ref _Anime, value);
 		}
 
 		[DataMember]
-		public string Directory
+		public string? Directory
 		{
 			get => _Directory;
 			set => this.RaiseAndSetIfChanged(ref _Directory, value);
 		}
 
-		public Exception Exception
+		public Exception? Exception
 		{
 			get => _Exception;
 			set => this.RaiseAndSetIfChanged(ref _Exception, value);
@@ -52,7 +55,7 @@ namespace AMQSongProcessor.UI.ViewModels
 
 		public string UrlPathSegment => "/add";
 
-		public AddViewModel(IScreen screen = null)
+		public AddViewModel(IScreen? screen = null)
 		{
 			_HostScreen = screen;
 			_Loader = Locator.Current.GetService<SongLoader>();

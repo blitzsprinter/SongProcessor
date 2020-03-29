@@ -34,7 +34,7 @@ namespace AMQSongProcessor.UI
 			return Observable.Return(Unit.Default);
 		}
 
-		public IObservable<object> LoadState()
+		public IObservable<object?> LoadState()
 		{
 			if (!File.Exists(_File))
 			{

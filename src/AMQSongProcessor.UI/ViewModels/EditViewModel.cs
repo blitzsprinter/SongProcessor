@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reactive.Linq;
 using System.Windows.Input;
+
 using AdvorangesUtils;
+
 using AMQSongProcessor.Models;
 
 using Newtonsoft.Json;
@@ -21,7 +23,7 @@ namespace AMQSongProcessor.UI.ViewModels
 	[JsonConverter(typeof(NewtonsoftJsonSkipThis))]
 	public class EditViewModel : ReactiveObject, IRoutableViewModel, IValidatableViewModel
 	{
-		private readonly IScreen _HostScreen;
+		private readonly IScreen? _HostScreen;
 		private readonly SongLoader _Loader;
 		private readonly Song _Song;
 		private string _Artist;
@@ -117,23 +119,23 @@ namespace AMQSongProcessor.UI.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _VolumeModifier, value);
 		}
 
-		public EditViewModel(Song song, IScreen screen = null)
+		public EditViewModel(Song song, IScreen? screen = null)
 		{
 			_HostScreen = screen;
 			_Loader = Locator.Current.GetService<SongLoader>();
 			_Song = song ?? throw new ArgumentNullException(nameof(song));
 
-			Artist = _Song.Artist;
-			AudioTrack = _Song.OverrideAudioTrack;
-			CleanPath = _Song.CleanPath;
-			End = _Song.End.ToString();
-			Episode = _Song.Episode ?? 0;
-			Name = _Song.Name;
-			SongPosition = _Song.Type.Position ?? 0;
-			SongType = _Song.Type.Type;
-			Start = _Song.Start.ToString();
-			VideoTrack = _Song.OverrideVideoTrack;
-			VolumeModifier = _Song.VolumeModifier?.Decibels ?? 0;
+			_Artist = _Song.Artist;
+			_AudioTrack = _Song.OverrideAudioTrack;
+			_CleanPath = _Song.CleanPath;
+			_End = _Song.End.ToString();
+			_Episode = _Song.Episode ?? 0;
+			_Name = _Song.Name;
+			_SongPosition = _Song.Type.Position ?? 0;
+			_SongType = _Song.Type.Type;
+			_Start = _Song.Start.ToString();
+			_VideoTrack = _Song.OverrideVideoTrack;
+			_VolumeModifier = _Song.VolumeModifier?.Decibels ?? 0;
 
 			this.ValidationRule(
 				x => x.Artist,
@@ -180,13 +182,13 @@ namespace AMQSongProcessor.UI.ViewModels
 			}, this.IsValid());
 		}
 
-		private static string GetNullIfEmpty(string str)
+		private static string? GetNullIfEmpty(string str)
 			=> string.IsNullOrEmpty(str) ? null : str;
 
 		private static int? GetNullIfZero(int? num)
 			=> num == 0 ? null : num;
 
 		private static VolumeModifer? GetVolumeModifer(int? num)
-			=> GetNullIfZero(num) == null ? default(VolumeModifer?) : VolumeModifer.FromDecibels(num.Value);
+			=> GetNullIfZero(num) == null ? default(VolumeModifer?) : VolumeModifer.FromDecibels(num!.Value);
 	}
 }

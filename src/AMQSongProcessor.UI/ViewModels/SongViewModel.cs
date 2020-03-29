@@ -18,9 +18,9 @@ namespace AMQSongProcessor.UI.ViewModels
 	[DataContract]
 	public class SongViewModel : ReactiveObject, IRoutableViewModel
 	{
-		private readonly IScreen _HostScreen;
+		private readonly IScreen? _HostScreen;
 		private readonly SongLoader _Loader;
-		private string _Directory;
+		private string? _Directory;
 
 		public ICommand AddSong { get; }
 		public ObservableCollection<Anime> Anime { get; } = new ObservableCollection<Anime>();
@@ -28,7 +28,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		public ICommand CopyANNID { get; }
 
 		[DataMember]
-		public string Directory
+		public string? Directory
 		{
 			get => _Directory;
 			set => this.RaiseAndSetIfChanged(ref _Directory, value);
@@ -40,7 +40,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		public ICommand RemoveSong { get; }
 		public string UrlPathSegment => "/songs";
 
-		public SongViewModel(IScreen screen = null)
+		public SongViewModel(IScreen? screen = null)
 		{
 			_HostScreen = screen;
 			_Loader = Locator.Current.GetService<SongLoader>();
