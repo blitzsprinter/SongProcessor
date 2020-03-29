@@ -1,6 +1,6 @@
-﻿using System.Reactive.Linq;
+﻿using System.Reactive;
+using System.Reactive.Linq;
 using System.Runtime.Serialization;
-using System.Windows.Input;
 
 using ReactiveUI;
 
@@ -11,8 +11,8 @@ namespace AMQSongProcessor.UI.ViewModels
 	{
 		private RoutingState _Router = new RoutingState();
 
-		public ICommand Add { get; }
-		public ICommand Load { get; }
+		public ReactiveCommand<Unit, Unit> Add { get; }
+		public ReactiveCommand<Unit, Unit> Load { get; }
 
 		[DataMember]
 		public RoutingState Router

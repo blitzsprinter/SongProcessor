@@ -27,7 +27,7 @@ namespace AMQSongProcessor.Models
 		public int CompareTo(AspectRatio other)
 			=> Ratio.CompareTo(other.Ratio);
 
-		public override bool Equals(object obj)
+		public override bool Equals(object? obj)
 			=> Equals(obj as AspectRatio?);
 
 		public bool Equals(AspectRatio? other)

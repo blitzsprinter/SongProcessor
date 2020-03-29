@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Runtime.Serialization;
 using System.Windows.Input;
@@ -24,18 +25,25 @@ namespace AMQSongProcessor.UI.ViewModels
 	{
 		private const string LOAD = "Load";
 		private const string UNLOAD = "Unload";
-
 		private readonly IScreen? _HostScreen;
 		private readonly SongLoader _Loader;
 		private readonly ISongProcessor _Processor;
+		private bool _BusyProcessing;
 		private string? _Directory;
 		private string _DirectoryButtonText = LOAD;
 
-		public ICommand AddSong { get; }
+		public ReactiveCommand<Anime, Unit> AddSong { get; }
 		public ObservableCollection<Anime> Anime { get; } = new ObservableCollection<Anime>();
 
-		public ICommand CloseAll { get; }
-		public ICommand CopyANNID { get; }
+		public bool BusyProcessing
+		{
+			get => _BusyProcessing;
+			set => this.RaiseAndSetIfChanged(ref _BusyProcessing, value);
+		}
+
+		public ReactiveCommand<Unit, Unit> CancelProcessing { get; }
+		public ReactiveCommand<TreeView, Unit> CloseAll { get; }
+		public ReactiveCommand<int, Unit> CopyANNID { get; }
 
 		[DataMember]
 		public string? Directory
@@ -50,13 +58,18 @@ namespace AMQSongProcessor.UI.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _DirectoryButtonText, value);
 		}
 
-		public ICommand EditSong { get; }
-		public ICommand ExpandAll { get; }
-		public ICommand ExportFixes { get; }
+		public ReactiveCommand<Song, Unit> EditSong { get; }
+
+		public ReactiveCommand<TreeView, Unit> ExpandAll { get; }
+
+		public ReactiveCommand<Unit, Unit> ExportFixes { get; }
+
 		public IScreen HostScreen => _HostScreen ?? Locator.Current.GetService<IScreen>();
-		public ICommand Load { get; }
-		public ICommand ProcessSongs { get; }
-		public ICommand RemoveSong { get; }
+
+		public ReactiveCommand<Unit, Unit> Load { get; }
+
+		public ReactiveCommand<Unit, Unit> ProcessSongs { get; }
+		public ReactiveCommand<Song, Unit> RemoveSong { get; }
 		public string UrlPathSegment => "/songs";
 
 		public SongViewModel(IScreen? screen = null)
@@ -133,10 +146,18 @@ namespace AMQSongProcessor.UI.ViewModels
 				await _Processor.ExportFixesAsync(Directory!, Anime).CAF();
 			}, hasChildren);
 
-			ProcessSongs = ReactiveCommand.CreateFromTask(async () =>
+			ProcessSongs = ReactiveCommand.CreateFromObservable(() =>
 			{
-				await _Processor.ProcessAsync(Anime).CAF();
+				//start processing, but if the cancel button is clicked, stop
+				return Observable.StartAsync(async token =>
+				{
+					BusyProcessing = true;
+					await _Processor.ProcessAsync(Anime, token).CAF();
+					BusyProcessing = false;
+				}).TakeUntil(CancelProcessing);
 			}, hasChildren);
+
+			CancelProcessing = ReactiveCommand.Create(() => { }, ProcessSongs.IsExecuting);
 		}
 	}
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 using AMQSongProcessor.Models;
@@ -13,6 +14,6 @@ namespace AMQSongProcessor
 
 		Task ExportFixesAsync(string dir, IReadOnlyList<Anime> anime);
 
-		Task ProcessAsync(IReadOnlyList<Anime> anime);
+		Task ProcessAsync(IReadOnlyList<Anime> anime, CancellationToken? token = null);
 	}
 }

@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 using AdvorangesUtils;
@@ -33,15 +35,9 @@ namespace AMQSongProcessor
 			};
 		}
 
-		public static T Max<T>(T x, T y, Func<T, T, int> cmp)
-			=> (cmp(x, y) > 0) ? x : y;
-
-		public static T Max<T>(T x, T y) where T : IComparable<T>
-			=> Max(x, y, (a, b) => a.CompareTo(b));
-
-		public static Task<int> RunAsync(this Process process, bool write)
+		public static Task<int> RunAsync(this Process process, bool write, CancellationToken? token = null)
 		{
-			void HandleClosing(object source, EventArgs e)
+			void HandleClosing(object? source, EventArgs e)
 			{
 				process.Kill();
 				process.Dispose();
@@ -53,9 +49,11 @@ namespace AMQSongProcessor
 
 			//If the program gets shut down, make sure it also shuts down the ffmpeg process
 			AppDomain.CurrentDomain.ProcessExit += HandleClosing;
+			var registration = token?.Register(() => process.Kill());
 			process.Exited += (s, e) =>
 			{
 				AppDomain.CurrentDomain.ProcessExit -= HandleClosing;
+				registration?.Dispose();
 				tcs.SetResult(process.ExitCode);
 			};
 
@@ -107,13 +105,13 @@ namespace AMQSongProcessor
 			return list;
 		}
 
-		public static T ToObject<T>(this JsonElement element, JsonSerializerOptions options = null)
+		public static T ToObject<T>(this JsonElement element, JsonSerializerOptions? options = null)
 		{
 			var json = element.GetRawText();
 			return JsonSerializer.Deserialize<T>(json, options);
 		}
 
-		public static T ToObject<T>(this JsonDocument document, JsonSerializerOptions options = null)
+		public static T ToObject<T>(this JsonDocument document, JsonSerializerOptions? options = null)
 		{
 			if (document == null)
 			{
@@ -137,7 +135,7 @@ namespace AMQSongProcessor
 					return path;
 				}
 			}
-			return null;
+			throw new InvalidOperationException($"Unable to find {program}.");
 		}
 
 		private static IEnumerable<string> GetDirectories(string program)
@@ -148,7 +146,7 @@ namespace AMQSongProcessor
 				var cast = new T[uncast.Length];
 				for (var i = 0; i < uncast.Length; ++i)
 				{
-					cast[i] = (T)uncast.GetValue(i);
+					cast[i] = (T)uncast.GetValue(i)!;
 				}
 				return cast;
 			}
@@ -156,7 +154,7 @@ namespace AMQSongProcessor
 			//Check where the program is stored
 			if (Assembly.GetExecutingAssembly().Location is string assembly)
 			{
-				yield return Path.GetDirectoryName(assembly);
+				yield return Path.GetDirectoryName(assembly)!;
 			}
 			//Check path variables
 			if (Environment.GetEnvironmentVariable("PATH") is string path)
@@ -173,7 +171,10 @@ namespace AMQSongProcessor
 			}
 		}
 
-		private static bool TryGetProgram(string directory, string program, out string path)
+		private static bool TryGetProgram(
+			string directory,
+			string program,
+			[NotNullWhen(true)] out string? path)
 		{
 			if (!Directory.Exists(directory))
 			{

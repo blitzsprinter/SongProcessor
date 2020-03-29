@@ -7,10 +7,18 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="800"
              x:Class="AMQSongProcessor.UI.Views.SongView">
 
+  <UserControl.Styles>
+    <Style Selector=":is(InputElement).disableWhenProcessing">
+      <Setter Property="IsEnabled" Value="{Binding ElementName=Tree, Path=!DataContext.BusyProcessing}" />
+    </Style>
+  </UserControl.Styles>
+
   <Grid RowDefinitions="1*,19*">
     <Grid ColumnDefinitions="9*,1*">
-      <TextBox Watermark="Directory" Text="{Binding Directory}" KeyDown="OnKeyDown" IsEnabled="{Binding !Anime.Count}" />
-      <Button Grid.Column="1" Content="{Binding DirectoryButtonText}" Command="{Binding Load}" />
+      <TextBox Watermark="Directory" Text="{Binding Directory}" KeyDown="OnKeyDown"
+               IsEnabled="{Binding !Anime.Count}" />
+      <Button Classes="disableWhenProcessing" Grid.Column="1" Content="{Binding DirectoryButtonText}"
+              Command="{Binding Load}" />
     </Grid>
 
     <Grid Grid.Row="1" ColumnDefinitions="9*,1*">
@@ -27,9 +35,11 @@
             <TextBlock>
               <TextBlock.ContextMenu>
                 <ContextMenu>
-                  <MenuItem Header="Copy ANNID" Command="{Binding ElementName=Tree, Path=DataContext.CopyANNID}" CommandParameter="{Binding Id}" />
+                  <MenuItem Header="Copy ANNID" CommandParameter="{Binding Id}"
+                            Command="{Binding ElementName=Tree, Path=DataContext.CopyANNID}" />
                   <MenuItem Header="-" />
-                  <MenuItem Header="Add Song" Command="{Binding ElementName=Tree, Path=DataContext.AddSong}" CommandParameter="{Binding}" />
+                  <MenuItem Classes="disableWhenProcessing" Header="Add Song" CommandParameter="{Binding}"
+                            Command="{Binding ElementName=Tree, Path=DataContext.AddSong}" />
                 </ContextMenu>
               </TextBlock.ContextMenu>
               <TextBlock.Text>
@@ -45,8 +55,10 @@
             <TextBlock Text="{Binding FullName}" VerticalAlignment="Center">
               <TextBlock.ContextMenu>
                 <ContextMenu>
-                  <MenuItem Header="Edit Song" Command="{Binding ElementName=Tree, Path=DataContext.EditSong}" CommandParameter="{Binding}" />
-                  <MenuItem Header="Remove Song" Command="{Binding ElementName=Tree, Path=DataContext.RemoveSong}" CommandParameter="{Binding}" />
+                  <MenuItem Classes="disableWhenProcessing" Header="Edit Song" CommandParameter="{Binding}"
+                            Command="{Binding ElementName=Tree, Path=DataContext.EditSong}" />
+                  <MenuItem Classes="disableWhenProcessing" Header="Remove Song" CommandParameter="{Binding}"
+                            Command="{Binding ElementName=Tree, Path=DataContext.RemoveSong}" />
                 </ContextMenu>
               </TextBlock.ContextMenu>
             </TextBlock>
@@ -56,7 +68,10 @@
 
       <Grid Grid.Column="1" RowDefinitions="10*,10*,3*,10*,10*,10*,130*">
         <Button Grid.Row="0" Content="Export Fixes" Command="{Binding ExportFixes}" />
-        <Button Grid.Row="1" Content="Process Songs" Command="{Binding ProcessSongs}" />
+        <Button Grid.Row="1" Content="Process Songs" Command="{Binding ProcessSongs}"
+                IsVisible="{Binding !BusyProcessing}" />
+        <Button Grid.Row="1" Content="Cancel" Command="{Binding CancelProcessing}"
+                IsVisible="{Binding BusyProcessing}" />
       </Grid>
     </Grid>
   </Grid>

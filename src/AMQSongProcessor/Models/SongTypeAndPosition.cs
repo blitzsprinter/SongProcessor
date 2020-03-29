@@ -95,7 +95,7 @@ namespace AMQSongProcessor.Models
 			return Nullable.Compare(Position, other.Position);
 		}
 
-		public override bool Equals(object obj)
+		public override bool Equals(object? obj)
 			=> Equals(obj as SongTypeAndPosition?);
 
 		public bool Equals(SongTypeAndPosition? other)

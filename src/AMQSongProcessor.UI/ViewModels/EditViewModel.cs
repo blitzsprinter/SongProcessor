@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Windows.Input;
 
 using AdvorangesUtils;
 
 using AMQSongProcessor.Models;
-
+using Avalonia.Controls;
 using Newtonsoft.Json;
 
 using ReactiveUI;
@@ -112,7 +113,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _Name, value);
 		}
 
-		public ICommand Save { get; }
+		public ReactiveCommand<Unit, Unit> Save { get; }
 
 		public bool ShouldIgnore
 		{

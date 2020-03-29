@@ -62,7 +62,7 @@ namespace AMQSongProcessor.Models
 			{
 				return Decibels + DB;
 			}
-			return Percentage.ToString();
+			return (Percentage ?? 1).ToString();
 		}
 	}
 }

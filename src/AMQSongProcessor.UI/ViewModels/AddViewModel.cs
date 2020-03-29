@@ -1,12 +1,10 @@
 ﻿using System;
+using System.Reactive;
 using System.Runtime.Serialization;
-using System.Windows.Input;
 
 using AdvorangesUtils;
 
 using AMQSongProcessor.Models;
-
-using Avalonia.Threading;
 
 using ReactiveUI;
 
@@ -23,7 +21,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		private string? _Directory;
 		private Exception? _Exception;
 		private int _Id;
-		public ICommand Add { get; }
+		public ReactiveCommand<Unit, Unit> Add { get; }
 
 		public Anime[]? Anime
 		{
@@ -66,19 +64,16 @@ namespace AMQSongProcessor.UI.ViewModels
 				(directory, id) => System.IO.Directory.Exists(directory) && id > 0);
 			Add = ReactiveCommand.CreateFromTask(async () =>
 			{
-				await Dispatcher.UIThread.InvokeAsync(async () =>
+				try
 				{
-					try
-					{
-						Anime = new[] { await _Loader.LoadFromANNAsync(Directory!, Id).CAF() };
-						Exception = null;
-					}
-					catch (Exception e)
-					{
-						Exception = e;
-						Anime = null;
-					}
-				}).CAF();
+					Anime = new[] { await _Loader.LoadFromANNAsync(Directory!, Id).CAF() };
+					Exception = null;
+				}
+				catch (Exception e)
+				{
+					Exception = e;
+					Anime = null;
+				}
 			}, canAdd);
 		}
 	}

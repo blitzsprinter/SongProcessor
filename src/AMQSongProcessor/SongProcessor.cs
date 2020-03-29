@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 using AdvorangesUtils;
@@ -102,7 +103,7 @@ namespace AMQSongProcessor
 			}
 		}
 
-		public async Task ProcessAsync(IReadOnlyList<Anime> anime)
+		public async Task ProcessAsync(IReadOnlyList<Anime> anime, CancellationToken? token = null)
 		{
 			foreach (var show in anime)
 			{
@@ -139,21 +140,22 @@ namespace AMQSongProcessor
 
 					foreach (var res in validResolutions)
 					{
+						token?.ThrowIfCancellationRequested();
 						if (!song.IsMissing(res.Status))
 						{
 							continue;
 						}
 
 						var t = res.IsMp3
-							? ProcessMp3Async(show, song)
-							: ProcessVideoAsync(show, song, res.Size);
+							? ProcessMp3Async(show, song, token)
+							: ProcessVideoAsync(show, song, res.Size, token);
 						await t.CAF();
 					}
 				}
 			}
 		}
 
-		private async Task<int> ProcessAsync(string path, TimeSpan length, string args)
+		private async Task<int> ProcessAsync(string path, TimeSpan length, string args, CancellationToken? token)
 		{
 			using var process = Utils.CreateProcess(Utils.FFmpeg, args);
 
@@ -172,10 +174,10 @@ namespace AMQSongProcessor
 				}
 			};
 
-			return await process.RunAsync(false).CAF();
+			return await process.RunAsync(false, token).CAF();
 		}
 
-		private Task<int> ProcessMp3Async(Anime anime, Song song)
+		private Task<int> ProcessMp3Async(Anime anime, Song song, CancellationToken? token)
 		{
 			var path = song.GetMp3Path(anime);
 			if (File.Exists(path))
@@ -217,10 +219,10 @@ namespace AMQSongProcessor
 			args += $" \"{path}\"";
 			#endregion Args
 
-			return ProcessAsync(path, song.Length, args);
+			return ProcessAsync(path, song.Length, args, token);
 		}
 
-		private Task<int> ProcessVideoAsync(Anime anime, Song song, int resolution)
+		private Task<int> ProcessVideoAsync(Anime anime, Song song, int resolution, CancellationToken? token)
 		{
 			var path = song.GetVideoPath(anime, resolution);
 			if (File.Exists(path))
@@ -295,7 +297,7 @@ namespace AMQSongProcessor
 			args += $" \"{path}\"";
 			#endregion Args
 
-			return ProcessAsync(path, song.Length, args);
+			return ProcessAsync(path, song.Length, args, token);
 		}
 
 		private readonly struct Resolution
