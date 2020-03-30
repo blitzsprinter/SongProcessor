@@ -4,17 +4,14 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Runtime.Serialization;
-using System.Windows.Input;
 
 using AdvorangesUtils;
 
 using AMQSongProcessor.Models;
+
 using Avalonia.Controls;
-using Avalonia.Controls.Templates;
 using Avalonia.LogicalTree;
-using Avalonia.Threading;
-using Avalonia.VisualTree;
-using DynamicData.Binding;
+
 using ReactiveUI;
 
 using Splat;

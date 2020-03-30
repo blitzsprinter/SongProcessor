@@ -2,7 +2,7 @@
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Runtime.Serialization;
-using System.Threading.Tasks;
+
 using ReactiveUI;
 
 namespace AMQSongProcessor.UI.ViewModels

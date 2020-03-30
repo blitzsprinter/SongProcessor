@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reactive;
 using System.Reactive.Linq;
-using System.Windows.Input;
 
 using AdvorangesUtils;
 
 using AMQSongProcessor.Models;
-using Avalonia.Controls;
+
 using Newtonsoft.Json;
 
 using ReactiveUI;
