@@ -178,6 +178,7 @@ namespace AMQSongProcessor
 			{
 				process.Kill();
 				process.Dispose();
+				//Without this sleep the file is not released in time and an exception happens
 				Thread.Sleep(25);
 				File.Delete(path);
 			}, _ => { }, token);

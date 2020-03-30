@@ -20,7 +20,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		private Anime[]? _Anime;
 		private string? _Directory;
 		private Exception? _Exception;
-		private int _Id;
+		private int _Id = 1;
 		public ReactiveCommand<Unit, Unit> Add { get; }
 
 		public Anime[]? Anime

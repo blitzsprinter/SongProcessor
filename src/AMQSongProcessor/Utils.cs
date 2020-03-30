@@ -125,12 +125,16 @@ namespace AMQSongProcessor
 				cancel(sender, args);
 			}
 
-			//If the program gets shut down, make sure it also shuts down the ffmpeg process
+			//If the program gets shut down, make sure it also shuts down the process
 			AppDomain.CurrentDomain.ProcessExit += Cancel;
-			var registration = token?.Register(() => Cancel(null, EventArgs.Empty));
+			//If an unhandled exception occurs, also attempt to shut down the process
+			AppDomain.CurrentDomain.UnhandledException += Cancel;
+			//Same if a cancellation token is canceled
+			var registration = token?.Register(() => Cancel(token, EventArgs.Empty));
 			process.Exited += (s, e) =>
 			{
 				AppDomain.CurrentDomain.ProcessExit -= Cancel;
+				AppDomain.CurrentDomain.UnhandledException -= Cancel;
 				registration?.Dispose();
 				finish(process.ExitCode);
 			};

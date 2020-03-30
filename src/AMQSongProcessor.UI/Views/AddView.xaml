@@ -46,7 +46,8 @@
       <TextBox Grid.Row="0" Watermark="Directory" Text="{Binding Directory}" />
       <NumericUpDown Grid.Row="1" Watermark="ANN Id" Minimum="1" Value="{Binding Id}" />
 
-      <Button Grid.Column="1" Grid.RowSpan="2" Content="Add" Command="{Binding Add}" />
+      <Button Grid.Column="1" Grid.RowSpan="2" Content="Add"
+              Command="{Binding Add}" HotKey="Enter" />
     </Grid>
   </Grid>
 </UserControl>

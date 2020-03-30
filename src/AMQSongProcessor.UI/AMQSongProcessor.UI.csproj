@@ -15,11 +15,13 @@
   <ItemGroup>
     <AvaloniaResource Remove="Views\AddView.xaml" />
     <AvaloniaResource Remove="Views\EditView.xaml" />
+    <AvaloniaResource Remove="Views\MessageBox.xaml" />
     <AvaloniaResource Remove="Views\SongView.xaml" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="Views\AddView.xaml" />
     <None Remove="Views\EditView.xaml" />
+    <None Remove="Views\MessageBox.xaml" />
     <None Remove="Views\SongView.xaml" />
   </ItemGroup>
   <ItemGroup>
@@ -41,6 +43,11 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Views\EditView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Views\MessageBox.xaml">
       <Generator>MSBuild:Compile</Generator>
     </EmbeddedResource>
   </ItemGroup>

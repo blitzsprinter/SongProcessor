@@ -45,6 +45,8 @@ namespace AMQSongProcessor.UI.ViewModels
 		public ReactiveCommand<TreeView, Unit> CloseAll { get; }
 		public ReactiveCommand<int, Unit> CopyANNID { get; }
 
+		public ReactiveCommand<Song, Unit> DeleteSong { get; }
+
 		[DataMember]
 		public string? Directory
 		{
@@ -69,7 +71,6 @@ namespace AMQSongProcessor.UI.ViewModels
 		public ReactiveCommand<Unit, Unit> Load { get; }
 
 		public ReactiveCommand<Unit, Unit> ProcessSongs { get; }
-		public ReactiveCommand<Song, Unit> RemoveSong { get; }
 		public string UrlPathSegment => "/songs";
 
 		public SongViewModel(IScreen? screen = null)
@@ -82,7 +83,7 @@ namespace AMQSongProcessor.UI.ViewModels
 				await Avalonia.Application.Current.Clipboard.SetTextAsync(id.ToString()).CAF();
 			});
 
-			var canLoad = this
+			var validDirectory = this
 				.WhenAnyValue(x => x.Directory)
 				.Select(System.IO.Directory.Exists);
 			Load = ReactiveCommand.CreateFromTask(async () =>
@@ -99,7 +100,7 @@ namespace AMQSongProcessor.UI.ViewModels
 				}
 
 				DirectoryButtonText = Anime.Any() ? UNLOAD : LOAD;
-			}, canLoad);
+			}, validDirectory);
 
 			AddSong = ReactiveCommand.Create<Anime>(anime =>
 			{
@@ -116,10 +117,24 @@ namespace AMQSongProcessor.UI.ViewModels
 				HostScreen.Router.Navigate.Execute(vm);
 			});
 
-			RemoveSong = ReactiveCommand.Create<Song>(song =>
+			DeleteSong = ReactiveCommand.CreateFromTask<Song>(async song =>
 			{
 				var anime = song.Anime;
-				anime.Songs.Remove(song);
+				var text = $"Are you sure you want to delete \"{song.Name}\" from {anime.Name}?";
+
+				const string TITLE = "Song Deletion";
+				const string YES = "Yes";
+				const string NO = "No";
+
+				var manager = Locator.Current.GetService<IMessageBoxManager>();
+				var result = await manager.ShowAsync(text, TITLE, new[] { YES, NO }).CAF();
+				if (result == YES)
+				{
+					await Dispatcher.UIThread.InvokeAsync(() =>
+					{
+						anime.Songs.Remove(song);
+					}).CAF();
+				}
 			});
 
 			var hasChildren = this

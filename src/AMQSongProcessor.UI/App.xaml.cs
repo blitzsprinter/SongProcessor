@@ -36,7 +36,13 @@ namespace AMQSongProcessor.UI
 			Locator.CurrentMutable.Register<IViewFor<AddViewModel>>(() => new AddView());
 			Locator.CurrentMutable.Register<IViewFor<EditViewModel>>(() => new EditView());
 
-			new MainWindow { DataContext = Locator.Current.GetService<IScreen>() }.Show();
+			var window = new MainWindow
+			{
+				DataContext = Locator.Current.GetService<IScreen>()
+			};
+			Locator.CurrentMutable.RegisterConstant<IMessageBoxManager>(new MessageBoxManager(window));
+
+			window.Show();
 			base.OnFrameworkInitializationCompleted();
 		}
 	}

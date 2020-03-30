@@ -57,8 +57,8 @@
                 <ContextMenu>
                   <MenuItem Classes="disableWhenProcessing" Header="Edit Song" CommandParameter="{Binding}"
                             Command="{Binding ElementName=Tree, Path=DataContext.EditSong}" />
-                  <MenuItem Classes="disableWhenProcessing" Header="Remove Song" CommandParameter="{Binding}"
-                            Command="{Binding ElementName=Tree, Path=DataContext.RemoveSong}" />
+                  <MenuItem Classes="disableWhenProcessing" Header="Delete Song" CommandParameter="{Binding}"
+                            Command="{Binding ElementName=Tree, Path=DataContext.DeleteSong}" />
                 </ContextMenu>
               </TextBlock.ContextMenu>
             </TextBlock>

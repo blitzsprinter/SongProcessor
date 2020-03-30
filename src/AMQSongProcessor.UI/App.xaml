@@ -5,8 +5,11 @@
   <Application.Styles>
     <StyleInclude Source="resm:Avalonia.Themes.Default.DefaultTheme.xaml?assembly=Avalonia.Themes.Default" />
     <StyleInclude Source="resm:Avalonia.Themes.Default.Accents.BaseDark.xaml?assembly=Avalonia.Themes.Default" />
-    <Style Selector="TextBox">
+    <Style Selector=":is(TextBox)">
       <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button">
+      <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderMidBrush}" />
     </Style>
     <Style Selector="Button.round/template/ContentPresenter">
       <Setter Property="CornerRadius" Value="10" />
