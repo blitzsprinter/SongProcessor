@@ -15,7 +15,11 @@ namespace AMQSongProcessor.UI.Views
 			InitializeComponent();
 		}
 
-		public static Task<T> ShowAsync<T>(Window window, string text, string title, IEnumerable<T>? options)
+		public static Task<T> ShowAsync<T>(
+			Window window,
+			string text,
+			string title,
+			IEnumerable<T>? options)
 		{
 			return new MessageBox
 			{

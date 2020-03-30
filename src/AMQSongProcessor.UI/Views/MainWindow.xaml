@@ -26,7 +26,7 @@
               Command="{Binding Add}"
               Content="Add" />
       <Button Grid.Column="2"
-              Command="{Binding Router.NavigateBack}"
+              Command="{Binding GoBack}"
               Content="Back" />
     </UniformGrid>
   </Grid>

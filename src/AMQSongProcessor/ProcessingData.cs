@@ -1,11 +1,11 @@
 ﻿using System;
-using AMQSongProcessor.Models;
 
 namespace AMQSongProcessor
 {
 	public readonly struct ProcessingData
 	{
 		public TimeSpan CompletionETA { get; }
+		public string File => System.IO.Path.GetFileName(Path);
 		public TimeSpan Length { get; }
 		public string Path { get; }
 		public double Percentage { get; }
@@ -20,7 +20,8 @@ namespace AMQSongProcessor
 
 			Percentage = Progress.OutTime.Ticks / (double)Length.Ticks;
 			Remaining = TimeSpan.FromTicks(Length.Ticks - Progress.OutTime.Ticks);
-			CompletionETA = TimeSpan.FromTicks((long)(Remaining.Ticks / Progress.Speed));
+			var compTicks = Math.Max(0, (long)(Remaining.Ticks / Progress.Speed));
+			CompletionETA = TimeSpan.FromTicks(compTicks);
 		}
 	}
 }

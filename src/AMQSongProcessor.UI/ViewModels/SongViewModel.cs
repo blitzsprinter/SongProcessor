@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -21,7 +22,7 @@ using Splat;
 namespace AMQSongProcessor.UI.ViewModels
 {
 	[DataContract]
-	public class SongViewModel : ReactiveObject, IRoutableViewModel
+	public class SongViewModel : ReactiveObject, IRoutableViewModel, INavigationController
 	{
 		private const string LOAD = "Load";
 		private const string UNLOAD = "Unload";
@@ -31,6 +32,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		private bool _BusyProcessing;
 		private string? _Directory;
 		private string _DirectoryButtonText = LOAD;
+		private ProcessingData? _ProcessingData;
 
 		public ReactiveCommand<Anime, Unit> AddSong { get; }
 		public ObservableCollection<Anime> Anime { get; } = new ObservableCollection<Anime>();
@@ -42,6 +44,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		}
 
 		public ReactiveCommand<Unit, Unit> CancelProcessing { get; }
+		public IObservable<bool> CanNavigate { get; }
 		public ReactiveCommand<TreeView, Unit> CloseAll { get; }
 		public ReactiveCommand<int, Unit> CopyANNID { get; }
 
@@ -67,8 +70,13 @@ namespace AMQSongProcessor.UI.ViewModels
 		public ReactiveCommand<Unit, Unit> ExportFixes { get; }
 
 		public IScreen HostScreen => _HostScreen ?? Locator.Current.GetService<IScreen>();
-
 		public ReactiveCommand<Unit, Unit> Load { get; }
+
+		public ProcessingData? ProcessingData
+		{
+			get => _ProcessingData;
+			set => this.RaiseAndSetIfChanged(ref _ProcessingData, value);
+		}
 
 		public ReactiveCommand<Unit, Unit> ProcessSongs { get; }
 		public string UrlPathSegment => "/songs";
@@ -78,6 +86,12 @@ namespace AMQSongProcessor.UI.ViewModels
 			_HostScreen = screen;
 			_Loader = Locator.Current.GetService<SongLoader>();
 			_Processor = Locator.Current.GetService<ISongProcessor>();
+			_Processor.Processing = new LogProcessingToViewModel(x => ProcessingData = x);
+
+			CanNavigate = this
+				.ObservableForProperty(x => x.BusyProcessing)
+				.Select(x => !x.Value);
+
 			CopyANNID = ReactiveCommand.CreateFromTask<int>(async id =>
 			{
 				await Avalonia.Application.Current.Clipboard.SetTextAsync(id.ToString()).CAF();
@@ -127,13 +141,10 @@ namespace AMQSongProcessor.UI.ViewModels
 				const string NO = "No";
 
 				var manager = Locator.Current.GetService<IMessageBoxManager>();
-				var result = await manager.ShowAsync(text, TITLE, new[] { YES, NO }).CAF();
+				var result = await manager.ShowAsync(text, TITLE, new[] { YES, NO }).ConfigureAwait(true);
 				if (result == YES)
 				{
-					await Dispatcher.UIThread.InvokeAsync(() =>
-					{
-						anime.Songs.Remove(song);
-					}).CAF();
+					anime.Songs.Remove(song);
 				}
 			});
 
@@ -158,7 +169,7 @@ namespace AMQSongProcessor.UI.ViewModels
 
 			ExportFixes = ReactiveCommand.CreateFromTask(async () =>
 			{
-				await _Processor.ExportFixesAsync(Directory!, Anime).CAF();
+				await _Processor.ExportFixesAsync(Directory!, Anime).ConfigureAwait(true);
 			}, hasChildren);
 
 			ProcessSongs = ReactiveCommand.CreateFromObservable(() =>
@@ -167,8 +178,9 @@ namespace AMQSongProcessor.UI.ViewModels
 				return Observable.StartAsync(async token =>
 				{
 					BusyProcessing = true;
-					await _Processor.ProcessAsync(Anime, token).CAF();
+					await _Processor.ProcessAsync(Anime, token).ConfigureAwait(true);
 					BusyProcessing = false;
+					ProcessingData = null;
 				}).TakeUntil(CancelProcessing);
 			}, hasChildren);
 

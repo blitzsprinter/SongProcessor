@@ -66,12 +66,65 @@
         </TreeView.DataTemplates>
       </TreeView>
 
-      <Grid Grid.Column="1" RowDefinitions="10*,10*,3*,10*,10*,10*,130*">
+      <Grid Grid.Column="1" RowDefinitions="1*,1*,1*,12*,6*">
         <Button Grid.Row="0" Content="Export Fixes" Command="{Binding ExportFixes}" />
         <Button Grid.Row="1" Content="Process Songs" Command="{Binding ProcessSongs}"
                 IsVisible="{Binding !BusyProcessing}" />
         <Button Grid.Row="1" Content="Cancel" Command="{Binding CancelProcessing}"
                 IsVisible="{Binding BusyProcessing}" />
+
+        <UniformGrid Grid.Row="3" Columns="1" IsVisible="{Binding !!ProcessingData}">
+          <UniformGrid.Styles>
+            <Style Selector=":is(TextBlock)">
+              <Setter Property="TextWrapping" Value="Wrap" />
+            </Style>
+          </UniformGrid.Styles>
+
+          <!-- Zero width spaces are used in the start of the StringFormats -->
+          <HeaderedContentControl Header="File">
+            <TextBlock Text="{Binding ProcessingData.File}" />
+          </HeaderedContentControl>
+          <HeaderedContentControl Header="Percentage Complete">
+            <TextBlock>
+              <TextBlock.Text>
+                <Binding Path="ProcessingData.Percentage" StringFormat="​{0:P2}" />
+              </TextBlock.Text>
+            </TextBlock>
+          </HeaderedContentControl>
+          <HeaderedContentControl Header="Completion ETA">
+            <TextBlock Text="{Binding ProcessingData.CompletionETA}" />
+          </HeaderedContentControl>
+          <HeaderedContentControl Header="Bitrate">
+            <TextBlock>
+              <TextBlock.Text>
+                <Binding Path="ProcessingData.Progress.Bitrate" StringFormat="​{0}Kbp/s" />
+              </TextBlock.Text>
+            </TextBlock>
+          </HeaderedContentControl>
+          <HeaderedContentControl Header="Fps">
+            <TextBlock Text="{Binding ProcessingData.Progress.Fps}" />
+          </HeaderedContentControl>
+          <HeaderedContentControl Header="Dropped Frames">
+            <TextBlock Text="{Binding ProcessingData.Progress.DroppedFrames}" />
+          </HeaderedContentControl>
+          <HeaderedContentControl Header="Duplicate Frames">
+            <TextBlock Text="{Binding ProcessingData.Progress.DuplicateFrames}" />
+          </HeaderedContentControl>
+          <HeaderedContentControl Header="Speed">
+            <TextBlock>
+              <TextBlock.Text>
+                <Binding Path="ProcessingData.Progress.Speed" StringFormat="​{0}x" />
+              </TextBlock.Text>
+            </TextBlock>
+          </HeaderedContentControl>
+          <HeaderedContentControl Header="Total Size">
+            <TextBlock>
+              <TextBlock.Text>
+                <Binding Path="ProcessingData.Progress.TotalSize" StringFormat="​{0:n0} bytes" />
+              </TextBlock.Text>
+            </TextBlock>
+          </HeaderedContentControl>
+        </UniformGrid>
       </Grid>
     </Grid>
   </Grid>
