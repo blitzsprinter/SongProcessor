@@ -97,6 +97,15 @@
               </MultiBinding>
             </Setter>
           </Style>
+
+          <Style Selector="TreeViewItem /template/ ToggleButton#expander">
+            <Setter Property="IsVisible">
+              <MultiBinding Converter="{x:Static converters:BoolConverters.Or}">
+                <Binding ElementName="Tree" Path="DataContext.ShowIgnoredSongs" />
+                <Binding Path="Songs" Converter="{x:Static converters:MiscConverters.IgnoredSongs}" />
+              </MultiBinding>
+            </Setter>
+          </Style>
         </TreeView.Styles>
       </TreeView>
 
