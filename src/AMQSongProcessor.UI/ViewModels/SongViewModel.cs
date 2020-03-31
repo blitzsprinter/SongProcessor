@@ -31,8 +31,10 @@ namespace AMQSongProcessor.UI.ViewModels
 		private int _CurrentJob;
 		private string? _Directory;
 		private string _DirectoryButtonText = LOAD;
+		private bool _IsExpanded;
 		private ProcessingData? _ProcessingData;
 		private int _QueuedJobs;
+		private bool _ShowIgnoredSongs;
 		public ReactiveCommand<Anime, Unit> AddSong { get; }
 		public ObservableCollection<Anime> Anime { get; } = new ObservableCollection<Anime>();
 
@@ -46,7 +48,6 @@ namespace AMQSongProcessor.UI.ViewModels
 		public IObservable<bool> CanNavigate { get; }
 		public ReactiveCommand<Anime, Unit> ChangeSource { get; }
 		public ReactiveCommand<Anime, Unit> ClearSource { get; }
-		public ReactiveCommand<TreeView, Unit> CloseAll { get; }
 		public ReactiveCommand<int, Unit> CopyANNID { get; }
 
 		public int CurrentJob
@@ -71,9 +72,15 @@ namespace AMQSongProcessor.UI.ViewModels
 		}
 
 		public ReactiveCommand<Song, Unit> EditSong { get; }
-		public ReactiveCommand<TreeView, Unit> ExpandAll { get; }
 		public ReactiveCommand<Unit, Unit> ExportFixes { get; }
 		public IScreen HostScreen => _HostScreen ?? Locator.Current.GetService<IScreen>();
+
+		[DataMember]
+		public bool IsExpanded
+		{
+			get => _IsExpanded;
+			set => this.RaiseAndSetIfChanged(ref _IsExpanded, value);
+		}
 
 		public ReactiveCommand<Unit, Unit> Load { get; }
 
@@ -89,6 +96,13 @@ namespace AMQSongProcessor.UI.ViewModels
 		{
 			get => _QueuedJobs;
 			set => this.RaiseAndSetIfChanged(ref _QueuedJobs, value);
+		}
+
+		[DataMember]
+		public bool ShowIgnoredSongs
+		{
+			get => _ShowIgnoredSongs;
+			set => this.RaiseAndSetIfChanged(ref _ShowIgnoredSongs, value);
 		}
 
 		public string UrlPathSegment => "/songs";
@@ -156,9 +170,7 @@ namespace AMQSongProcessor.UI.ViewModels
 
 			AddSong = ReactiveCommand.Create<Anime>(anime =>
 			{
-				var song = new Song();
-				anime.Songs.Add(song);
-
+				var song = new Song(anime);
 				var vm = new EditViewModel(song);
 				HostScreen.Router.Navigate.Execute(vm);
 			});
@@ -190,21 +202,6 @@ namespace AMQSongProcessor.UI.ViewModels
 			var hasChildren = this
 				.WhenAnyValue(x => x.Anime.Count)
 				.Select(x => x > 0);
-			ExpandAll = ReactiveCommand.Create<TreeView>(tree =>
-			{
-				foreach (TreeViewItem item in tree.GetLogicalChildren())
-				{
-					item.IsExpanded = true;
-				}
-			}, hasChildren);
-
-			CloseAll = ReactiveCommand.Create<TreeView>(tree =>
-			{
-				foreach (TreeViewItem item in tree.GetLogicalChildren())
-				{
-					item.IsExpanded = false;
-				}
-			}, hasChildren);
 
 			ExportFixes = ReactiveCommand.CreateFromTask(async () =>
 			{

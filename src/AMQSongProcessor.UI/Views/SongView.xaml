@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:models="clr-namespace:AMQSongProcessor.Models;assembly=AMQSongProcessor"
              xmlns:controls="clr-namespace:AMQSongProcessor.UI.Controls;assembly=AMQSongProcessor.UI"
+             xmlns:converters="clr-namespace:AMQSongProcessor.UI.Converters;assembly=AMQSongProcessor.UI"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="800"
              x:Class="AMQSongProcessor.UI.Views.SongView">
 
@@ -24,8 +25,13 @@
     <Grid Grid.Row="1" ColumnDefinitions="9*,1*">
       <Grid.ContextMenu>
         <ContextMenu>
-          <MenuItem Header="Expand All" Command="{Binding ExpandAll}" CommandParameter="{Binding ElementName=Tree}" />
-          <MenuItem Header="Close All" Command="{Binding CloseAll}" CommandParameter="{Binding ElementName=Tree}" />
+          <HeaderedContentControl Header="Expand All">
+            <CheckBox IsChecked="{Binding IsExpanded}" />
+          </HeaderedContentControl>
+          <MenuItem Header="-" />
+          <HeaderedContentControl Header="Show Ignored Songs">
+            <CheckBox IsChecked="{Binding ShowIgnoredSongs}" />
+          </HeaderedContentControl>
         </ContextMenu>
       </Grid.ContextMenu>
 
@@ -69,6 +75,7 @@
                             Command="{Binding ElementName=Tree, Path=DataContext.DeleteSong}" />
                 </ContextMenu>
               </TextBlock.ContextMenu>
+
               <TextBlock.Text>
                 <MultiBinding StringFormat="[{0}] {1}">
                   <Binding Path="Type" />
@@ -78,6 +85,19 @@
             </TextBlock>
           </DataTemplate>
         </TreeView.DataTemplates>
+
+        <TreeView.Styles>
+          <Style Selector=":is(TreeViewItem)">
+            <Setter Property="IsExpanded"
+                    Value="{Binding ElementName=Tree, Path=DataContext.IsExpanded}" />
+            <Setter Property="IsVisible">
+              <MultiBinding Converter="{x:Static converters:BoolConverters.Or}">
+                <Binding Path="!ShouldIgnore" />
+                <Binding ElementName="Tree" Path="DataContext.ShowIgnoredSongs" />
+              </MultiBinding>
+            </Setter>
+          </Style>
+        </TreeView.Styles>
       </TreeView>
 
       <Grid Grid.Column="1" RowDefinitions="1*,1*,1*,12*,6*">

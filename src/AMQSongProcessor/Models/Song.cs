@@ -51,6 +51,11 @@ namespace AMQSongProcessor.Models
 		{
 		}
 
+		public Song(Anime anime)
+		{
+			anime.Songs.Add(this);
+		}
+
 		public Song(string name, string artist, TimeSpan start, TimeSpan end, SongTypeAndPosition type, Status status)
 		{
 			Artist = artist;
