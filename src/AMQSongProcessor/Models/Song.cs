@@ -61,11 +61,14 @@ namespace AMQSongProcessor.Models
 			Status = status;
 		}
 
-		public string GetMp3Path(Anime anime)
-			=> GetPath(anime, $"[{anime.Id}] {Name}.mp3");
+		public string? GetCleanSongPath()
+			=> CleanPath == null ? null : GetPath(CleanPath);
 
-		public string GetVideoPath(Anime anime, int res)
-			=> GetPath(anime, $"[{anime.Id}] {Name} [{res}p].webm");
+		public string GetMp3Path()
+			=> GetPath($"[{Anime.Id}] {Name}.mp3");
+
+		public string GetVideoPath(int resolution)
+			=> GetPath($"[{Anime.Id}] {Name} [{resolution}p].webm");
 
 		public bool IsMissing(Status status)
 			=> (Status & status) == 0;
@@ -83,7 +86,7 @@ namespace AMQSongProcessor.Models
 
 		public override string ToString() => ToString(0, 0);
 
-		private string GetPath(Anime anime, string file)
-			=> Path.Combine(anime.Directory, file);
+		private string GetPath(string file)
+			=> Path.Combine(Anime.Directory, file);
 	}
 }

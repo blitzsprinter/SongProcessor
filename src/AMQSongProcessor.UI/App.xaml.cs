@@ -18,7 +18,7 @@ namespace AMQSongProcessor.UI
 
 		public override void OnFrameworkInitializationCompleted()
 		{
-			Locator.CurrentMutable.RegisterConstant(new SongLoader
+			Locator.CurrentMutable.RegisterConstant<ISongLoader>(new SongLoader
 			{
 				RemoveIgnoredSongs = false,
 			});

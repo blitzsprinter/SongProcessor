@@ -54,7 +54,8 @@ namespace AMQSongProcessor
 				Warnings = new LogWarningsToConsole(),
 			};
 			await processor.ExportFixesAsync(dir, anime).CAF();
-			await processor.ProcessAsync(anime).CAF();
+			var jobs = processor.CreateJobs(anime);
+			await processor.ProcessAsync(jobs).CAF();
 		}
 
 		private static void Display(IReadOnlyList<Anime> anime)
@@ -134,10 +135,11 @@ namespace AMQSongProcessor
 				return;
 			}
 
-			var ids = File.ReadAllLines(idFile).Select(int.Parse);
-			await foreach (var anime in loader.LoadFromANNAsync(directory, ids))
+			foreach (var id in File.ReadAllLines(idFile).Select(int.Parse))
 			{
+				var anime = await loader.LoadFromANNAsync(id).CAF();
 				Console.WriteLine($"Got information from ANN for {anime.Name}.");
+				await loader.SaveAsync(anime, directory).CAF();
 			}
 
 			//Clear the file after getting all the information

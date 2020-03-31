@@ -13,11 +13,31 @@ using AMQSongProcessor.Models;
 
 namespace AMQSongProcessor
 {
-	public sealed class SongLoader
+	public static class SongLoaderUtils
 	{
 		private static readonly HashSet<char> _InvalidChars
 			= new HashSet<char>(Path.GetInvalidFileNameChars());
 
+		public static Task SaveAsync(this ISongLoader loader, Anime anime, string dir)
+		{
+			var sb = new StringBuilder($"[{anime.Year}] ");
+			foreach (var c in anime.Name)
+			{
+				if (!_InvalidChars.Contains(c))
+				{
+					sb.Append(c);
+				}
+			}
+
+			var animeDir = Path.Combine(dir, sb.ToString());
+			Directory.CreateDirectory(animeDir);
+			anime.File = Path.Combine(animeDir, $"info.{loader.Extension}");
+			return loader.SaveAsync(anime);
+		}
+	}
+
+	public sealed class SongLoader : ISongLoader
+	{
 		private readonly JsonSerializerOptions _Options = new JsonSerializerOptions
 		{
 			WriteIndented = true,
@@ -58,33 +78,8 @@ namespace AMQSongProcessor
 			}
 		}
 
-		public async IAsyncEnumerable<Anime> LoadFromANNAsync(string dir, IEnumerable<int> ids)
-		{
-			foreach (var id in ids)
-			{
-				yield return await LoadFromANNAsync(dir, id).CAF();
-			}
-		}
-
-		public async Task<Anime> LoadFromANNAsync(string dir, int id)
-		{
-			var anime = await ANNGatherer.GetAsync(id).CAF();
-			var sb = new StringBuilder($"[{anime.Year}] ");
-			foreach (var c in anime.Name)
-			{
-				if (!_InvalidChars.Contains(c))
-				{
-					sb.Append(c);
-				}
-			}
-
-			var animeDir = Path.Combine(dir, sb.ToString());
-			Directory.CreateDirectory(animeDir);
-
-			anime.File = Path.Combine(animeDir, $"info.{Extension}");
-			await SaveAsync(anime).CAF();
-			return anime;
-		}
+		public async Task<Anime> LoadFromANNAsync(int id)
+			=> await ANNGatherer.GetAsync(id).CAF();
 
 		public async Task SaveAsync(Anime anime)
 		{

@@ -24,7 +24,7 @@ namespace AMQSongProcessor.UI.ViewModels
 	public class EditViewModel : ReactiveObject, IRoutableViewModel, IValidatableViewModel
 	{
 		private readonly IScreen? _HostScreen;
-		private readonly SongLoader _Loader;
+		private readonly ISongLoader _Loader;
 		private readonly Song _Song;
 		private string _Artist;
 		private int _AudioTrack;
@@ -157,7 +157,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		public EditViewModel(Song song, IScreen? screen = null)
 		{
 			_HostScreen = screen;
-			_Loader = Locator.Current.GetService<SongLoader>();
+			_Loader = Locator.Current.GetService<ISongLoader>();
 			_Song = song ?? throw new ArgumentNullException(nameof(song));
 
 			_Artist = _Song.Artist;

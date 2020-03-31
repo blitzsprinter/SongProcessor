@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
+using AMQSongProcessor.Jobs;
 using AMQSongProcessor.Models;
 
 namespace AMQSongProcessor
@@ -12,8 +13,10 @@ namespace AMQSongProcessor
 		IProgress<ProcessingData>? Processing { get; set; }
 		IProgress<string>? Warnings { get; set; }
 
+		IReadOnlyList<ISongJob> CreateJobs(IReadOnlyList<Anime> anime);
+
 		Task ExportFixesAsync(string dir, IReadOnlyList<Anime> anime);
 
-		Task ProcessAsync(IReadOnlyList<Anime> anime, CancellationToken? token = null);
+		Task ProcessAsync(IReadOnlyList<ISongJob> jobs, CancellationToken? token = null);
 	}
 }

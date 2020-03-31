@@ -16,7 +16,7 @@ namespace AMQSongProcessor.UI.ViewModels
 	public class AddViewModel : ReactiveObject, IRoutableViewModel
 	{
 		private readonly IScreen? _HostScreen;
-		private readonly SongLoader _Loader;
+		private readonly ISongLoader _Loader;
 		private Anime[]? _Anime;
 		private string? _Directory;
 		private Exception? _Exception;
@@ -56,7 +56,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		public AddViewModel(IScreen? screen = null)
 		{
 			_HostScreen = screen;
-			_Loader = Locator.Current.GetService<SongLoader>();
+			_Loader = Locator.Current.GetService<ISongLoader>();
 
 			var canAdd = this.WhenAnyValue(
 				x => x.Directory,
@@ -66,7 +66,9 @@ namespace AMQSongProcessor.UI.ViewModels
 			{
 				try
 				{
-					Anime = new[] { await _Loader.LoadFromANNAsync(Directory!, Id).CAF() };
+					var anime = await _Loader.LoadFromANNAsync(Id).CAF();
+					await _Loader.SaveAsync(anime, Directory!).CAF();
+					Anime = new[] { anime };
 					Exception = null;
 				}
 				catch (Exception e)

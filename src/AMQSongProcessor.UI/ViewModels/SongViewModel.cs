@@ -24,13 +24,14 @@ namespace AMQSongProcessor.UI.ViewModels
 		private const string LOAD = "Load";
 		private const string UNLOAD = "Unload";
 		private readonly IScreen? _HostScreen;
-		private readonly SongLoader _Loader;
+		private readonly ISongLoader _Loader;
 		private readonly ISongProcessor _Processor;
 		private bool _BusyProcessing;
+		private int _CurrentJob;
 		private string? _Directory;
 		private string _DirectoryButtonText = LOAD;
 		private ProcessingData? _ProcessingData;
-
+		private int _QueuedJobs;
 		public ReactiveCommand<Anime, Unit> AddSong { get; }
 		public ObservableCollection<Anime> Anime { get; } = new ObservableCollection<Anime>();
 
@@ -44,6 +45,12 @@ namespace AMQSongProcessor.UI.ViewModels
 		public IObservable<bool> CanNavigate { get; }
 		public ReactiveCommand<TreeView, Unit> CloseAll { get; }
 		public ReactiveCommand<int, Unit> CopyANNID { get; }
+
+		public int CurrentJob
+		{
+			get => _CurrentJob;
+			set => this.RaiseAndSetIfChanged(ref _CurrentJob, value);
+		}
 
 		public ReactiveCommand<Song, Unit> DeleteSong { get; }
 
@@ -61,12 +68,10 @@ namespace AMQSongProcessor.UI.ViewModels
 		}
 
 		public ReactiveCommand<Song, Unit> EditSong { get; }
-
 		public ReactiveCommand<TreeView, Unit> ExpandAll { get; }
-
 		public ReactiveCommand<Unit, Unit> ExportFixes { get; }
-
 		public IScreen HostScreen => _HostScreen ?? Locator.Current.GetService<IScreen>();
+
 		public ReactiveCommand<Unit, Unit> Load { get; }
 
 		public ProcessingData? ProcessingData
@@ -76,14 +81,28 @@ namespace AMQSongProcessor.UI.ViewModels
 		}
 
 		public ReactiveCommand<Unit, Unit> ProcessSongs { get; }
+
+		public int QueuedJobs
+		{
+			get => _QueuedJobs;
+			set => this.RaiseAndSetIfChanged(ref _QueuedJobs, value);
+		}
+
 		public string UrlPathSegment => "/songs";
 
 		public SongViewModel(IScreen? screen = null)
 		{
 			_HostScreen = screen;
-			_Loader = Locator.Current.GetService<SongLoader>();
+			_Loader = Locator.Current.GetService<ISongLoader>();
 			_Processor = Locator.Current.GetService<ISongProcessor>();
-			_Processor.Processing = new LogProcessingToViewModel(x => ProcessingData = x);
+			_Processor.Processing = new LogProcessingToViewModel(x =>
+			{
+				ProcessingData = x;
+				if (x.Progress.IsEnd)
+				{
+					++CurrentJob;
+				}
+			});
 
 			CanNavigate = this
 				.ObservableForProperty(x => x.BusyProcessing)
@@ -171,11 +190,17 @@ namespace AMQSongProcessor.UI.ViewModels
 
 			ProcessSongs = ReactiveCommand.CreateFromObservable(() =>
 			{
-				//start processing, but if the cancel button is clicked, stop
+				//start processing, but cancel if the cancel button is clicked
 				return Observable.StartAsync(async token =>
 				{
 					BusyProcessing = true;
-					await _Processor.ProcessAsync(Anime, token).ConfigureAwait(true);
+
+					var jobs = _Processor.CreateJobs(Anime);
+					CurrentJob = 1;
+					QueuedJobs = jobs.Count;
+
+					await _Processor.ProcessAsync(jobs, token).ConfigureAwait(true);
+
 					BusyProcessing = false;
 					ProcessingData = null;
 				}).TakeUntil(CancelProcessing);

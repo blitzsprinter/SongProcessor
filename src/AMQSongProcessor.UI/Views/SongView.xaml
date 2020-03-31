@@ -81,6 +81,16 @@
           </UniformGrid.Styles>
 
           <!-- Zero width spaces are used in the start of the StringFormats -->
+          <HeaderedContentControl Header="Current Item">
+            <TextBlock>
+              <TextBlock.Text>
+                <MultiBinding StringFormat="​{0}/{1}">
+                  <Binding Path="CurrentJob" />
+                  <Binding Path="QueuedJobs" />
+                </MultiBinding>
+              </TextBlock.Text>
+            </TextBlock>
+          </HeaderedContentControl>
           <HeaderedContentControl Header="File">
             <TextBlock Text="{Binding ProcessingData.File}" />
           </HeaderedContentControl>
