@@ -52,7 +52,7 @@
           </TreeDataTemplate>
 
           <DataTemplate DataType="models:Song">
-            <TextBlock Text="{Binding FullName}" VerticalAlignment="Center">
+            <TextBlock VerticalAlignment="Center">
               <TextBlock.ContextMenu>
                 <ContextMenu>
                   <MenuItem Classes="disableWhenProcessing" Header="Edit Song" CommandParameter="{Binding}"
@@ -61,6 +61,12 @@
                             Command="{Binding ElementName=Tree, Path=DataContext.DeleteSong}" />
                 </ContextMenu>
               </TextBlock.ContextMenu>
+              <TextBlock.Text>
+                <MultiBinding StringFormat="[{0}] {1}">
+                  <Binding Path="Type" />
+                  <Binding Path="FullName" />
+                </MultiBinding>
+              </TextBlock.Text>
             </TextBlock>
           </DataTemplate>
         </TreeView.DataTemplates>
@@ -84,7 +90,7 @@
           <HeaderedContentControl Header="Current Item">
             <TextBlock>
               <TextBlock.Text>
-                <MultiBinding StringFormat="​{0}/{1}">
+                <MultiBinding StringFormat="#{0} out of {1}">
                   <Binding Path="CurrentJob" />
                   <Binding Path="QueuedJobs" />
                 </MultiBinding>

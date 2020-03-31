@@ -38,7 +38,7 @@ namespace AMQSongProcessor.UI
 
 			var window = new MainWindow
 			{
-				DataContext = Locator.Current.GetService<IScreen>()
+				DataContext = state
 			};
 			Locator.CurrentMutable.RegisterConstant<IMessageBoxManager>(new MessageBoxManager(window));
 
