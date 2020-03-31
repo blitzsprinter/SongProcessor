@@ -11,13 +11,14 @@ namespace AMQSongProcessor.Models
 	public class Anime
 	{
 		[JsonIgnore]
-		public string Directory => Path.GetDirectoryName(File)
+		public string Directory => Path.GetDirectoryName(InfoFile)
 			?? throw new InvalidOperationException("File must lead to a directory");
 
-		[JsonIgnore]
-		public string File { get; set; } = null!;
-
 		public int Id { get; set; }
+
+		[JsonIgnore]
+		public string InfoFile { get; set; } = null!;
+
 		public string Name { get; set; } = null!;
 		public IList<Song> Songs { get; set; }
 		public string? Source { get; set; }

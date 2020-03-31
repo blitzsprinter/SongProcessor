@@ -38,7 +38,15 @@
                   <MenuItem Header="Copy ANNID" CommandParameter="{Binding Id}"
                             Command="{Binding ElementName=Tree, Path=DataContext.CopyANNID}" />
                   <MenuItem Header="-" />
-                  <MenuItem Classes="disableWhenProcessing" Header="Add Song" CommandParameter="{Binding}"
+                  <MenuItem Classes="disableWhenProcessing" Header="Change Source"
+                            CommandParameter="{Binding}"
+                            Command="{Binding ElementName=Tree, Path=DataContext.ChangeSource}" />
+                  <MenuItem Classes="disableWhenProcessing" Header="Clear Source"
+                            CommandParameter="{Binding}"
+                            Command="{Binding ElementName=Tree, Path=DataContext.ClearSource}" />
+                  <MenuItem Header="-" />
+                  <MenuItem Classes="disableWhenProcessing" Header="Add Song"
+                            CommandParameter="{Binding}"
                             Command="{Binding ElementName=Tree, Path=DataContext.AddSong}" />
                 </ContextMenu>
               </TextBlock.ContextMenu>

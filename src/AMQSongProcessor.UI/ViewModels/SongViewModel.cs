@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -43,6 +44,8 @@ namespace AMQSongProcessor.UI.ViewModels
 
 		public ReactiveCommand<Unit, Unit> CancelProcessing { get; }
 		public IObservable<bool> CanNavigate { get; }
+		public ReactiveCommand<Anime, Unit> ChangeSource { get; }
+		public ReactiveCommand<Anime, Unit> ClearSource { get; }
 		public ReactiveCommand<TreeView, Unit> CloseAll { get; }
 		public ReactiveCommand<int, Unit> CopyANNID { get; }
 
@@ -108,11 +111,6 @@ namespace AMQSongProcessor.UI.ViewModels
 				.ObservableForProperty(x => x.BusyProcessing)
 				.Select(x => !x.Value);
 
-			CopyANNID = ReactiveCommand.CreateFromTask<int>(async id =>
-			{
-				await Avalonia.Application.Current.Clipboard.SetTextAsync(id.ToString()).CAF();
-			});
-
 			var validDirectory = this
 				.WhenAnyValue(x => x.Directory)
 				.Select(System.IO.Directory.Exists);
@@ -131,6 +129,30 @@ namespace AMQSongProcessor.UI.ViewModels
 
 				DirectoryButtonText = Anime.Any() ? UNLOAD : LOAD;
 			}, validDirectory);
+
+			CopyANNID = ReactiveCommand.CreateFromTask<int>(async id =>
+			{
+				await Avalonia.Application.Current.Clipboard.SetTextAsync(id.ToString()).CAF();
+			});
+
+			ChangeSource = ReactiveCommand.CreateFromTask<Anime>(async anime =>
+			{
+				var directory = anime.Directory;
+				var manager = Locator.Current.GetService<IMessageBoxManager>();
+				var result = await manager.GetFilesAsync(directory, "Source", false).ConfigureAwait(false);
+				var path = result.SingleOrDefault();
+				if (path != null)
+				{
+					anime.Source = Path.GetFileName(path);
+					await _Loader.SaveAsync(anime).ConfigureAwait(true);
+				}
+			});
+
+			ClearSource = ReactiveCommand.CreateFromTask<Anime>(async anime =>
+			{
+				anime.Source = null;
+				await _Loader.SaveAsync(anime).ConfigureAwait(true);
+			});
 
 			AddSong = ReactiveCommand.Create<Anime>(anime =>
 			{
@@ -161,6 +183,7 @@ namespace AMQSongProcessor.UI.ViewModels
 				if (result == YES)
 				{
 					anime.Songs.Remove(song);
+					await _Loader.SaveAsync(anime).ConfigureAwait(true);
 				}
 			});
 

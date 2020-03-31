@@ -31,7 +31,7 @@ namespace AMQSongProcessor
 
 			var animeDir = Path.Combine(dir, sb.ToString());
 			Directory.CreateDirectory(animeDir);
-			anime.File = Path.Combine(animeDir, $"info.{loader.Extension}");
+			anime.InfoFile = Path.Combine(animeDir, $"info.{loader.Extension}");
 			return loader.SaveAsync(anime);
 		}
 	}
@@ -63,7 +63,7 @@ namespace AMQSongProcessor
 				using var fs = new FileStream(file, FileMode.Open);
 
 				var show = await JsonSerializer.DeserializeAsync<Anime>(fs, _Options).CAF();
-				show.File = file;
+				show.InfoFile = file;
 				show.Songs = new SongCollection(show, show.Songs);
 				if (RemoveIgnoredSongs)
 				{
@@ -83,20 +83,20 @@ namespace AMQSongProcessor
 
 		public async Task SaveAsync(Anime anime)
 		{
-			if (string.IsNullOrWhiteSpace(anime.File))
+			if (string.IsNullOrWhiteSpace(anime.InfoFile))
 			{
-				throw new ArgumentNullException(nameof(anime.File));
+				throw new ArgumentNullException(nameof(anime.InfoFile));
 			}
 
 			try
 			{
-				using var fs = new FileStream(anime.File, FileMode.Create);
+				using var fs = new FileStream(anime.InfoFile, FileMode.Create);
 
 				await JsonSerializer.SerializeAsync(fs, anime, _Options).CAF();
 			}
 			catch (Exception e)
 			{
-				throw new InvalidOperationException($"Unable to save {anime.Name} to {anime.File}.", e);
+				throw new InvalidOperationException($"Unable to save {anime.Name} to {anime.InfoFile}.", e);
 			}
 		}
 	}
