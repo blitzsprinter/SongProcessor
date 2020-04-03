@@ -40,19 +40,21 @@
           <TreeDataTemplate DataType="models:Anime" ItemsSource="{Binding Songs}">
             <TextBlock>
               <TextBlock.ContextMenu>
-                <ContextMenu>
+                <ContextMenu Classes="disableWhenProcessing">
                   <MenuItem Header="Copy ANNID" CommandParameter="{Binding Id}"
                             Command="{Binding ElementName=Tree, Path=DataContext.CopyANNID}" />
                   <MenuItem Header="-" />
-                  <MenuItem Classes="disableWhenProcessing" Header="Change Source"
-                            CommandParameter="{Binding}"
+                  <MenuItem Header="Duplicate Anime" CommandParameter="{Binding}"
+                            Command="{Binding ElementName=Tree, Path=DataContext.DuplicateAnime}" />
+                  <MenuItem Header="Delete Anime" CommandParameter="{Binding}"
+                            Command="{Binding ElementName=Tree, Path=DataContext.DeleteAnime}" />
+                  <MenuItem Header="-" />
+                  <MenuItem Header="Change Source" CommandParameter="{Binding}"
                             Command="{Binding ElementName=Tree, Path=DataContext.ChangeSource}" />
-                  <MenuItem Classes="disableWhenProcessing" Header="Clear Source"
-                            CommandParameter="{Binding}"
+                  <MenuItem Header="Clear Source" CommandParameter="{Binding}"
                             Command="{Binding ElementName=Tree, Path=DataContext.ClearSource}" />
                   <MenuItem Header="-" />
-                  <MenuItem Classes="disableWhenProcessing" Header="Add Song"
-                            CommandParameter="{Binding}"
+                  <MenuItem Header="Add Song" CommandParameter="{Binding}"
                             Command="{Binding ElementName=Tree, Path=DataContext.AddSong}" />
                 </ContextMenu>
               </TextBlock.ContextMenu>
@@ -98,11 +100,12 @@
             </Setter>
           </Style>
 
+          <!-- Don't show the expand button if all songs are ignored and ignored songs are blocked -->
           <Style Selector="TreeViewItem /template/ ToggleButton#expander">
             <Setter Property="IsVisible">
               <MultiBinding Converter="{x:Static converters:BoolConverters.Or}">
                 <Binding ElementName="Tree" Path="DataContext.ShowIgnoredSongs" />
-                <Binding Path="Songs" Converter="{x:Static converters:MiscConverters.IgnoredSongs}" />
+                <Binding Path="Songs" Converter="{x:Static converters:MiscConverters.AnyUnignoredSongs}" />
               </MultiBinding>
             </Setter>
           </Style>

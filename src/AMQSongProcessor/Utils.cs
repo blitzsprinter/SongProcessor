@@ -15,6 +15,7 @@ namespace AMQSongProcessor
 {
 	public static class Utils
 	{
+		private const string NUMBER_PATTERN = "_({0})";
 		private static readonly bool IsWindows = Environment.OSVersion.Platform.ToString().CaseInsContains("win");
 		public static string FFmpeg { get; } = FindProgram("ffmpeg");
 		public static string FFprobe { get; } = FindProgram("ffprobe");
@@ -34,6 +35,73 @@ namespace AMQSongProcessor
 				},
 				EnableRaisingEvents = true,
 			};
+		}
+
+		public static string? GetFile(string directory, string? path)
+		{
+			if (path == null)
+			{
+				return null;
+			}
+			else if (Path.IsPathRooted(path))
+			{
+				return path;
+			}
+			return Path.Combine(directory, path);
+		}
+
+		public static string NextAvailableFilename(string path)
+		{
+			static string GetNextFilename(string pattern)
+			{
+				var tmp = string.Format(pattern, 1);
+				if (tmp == pattern)
+				{
+					throw new ArgumentException("The pattern must include an index place-holder", nameof(pattern));
+				}
+
+				if (!File.Exists(tmp))
+				{
+					return tmp; // short-circuit if no matches
+				}
+
+				int min = 1, max = 2; // min is inclusive, max is exclusive/untested
+				while (File.Exists(string.Format(pattern, max)))
+				{
+					min = max;
+					max *= 2;
+				}
+
+				while (max != min + 1)
+				{
+					var pivot = (max + min) / 2;
+					if (File.Exists(string.Format(pattern, pivot)))
+					{
+						min = pivot;
+					}
+					else
+					{
+						max = pivot;
+					}
+				}
+				return string.Format(pattern, max);
+			}
+
+			// Short-cut if already available
+			if (!File.Exists(path))
+			{
+				return path;
+			}
+
+			// If path has extension then insert the number pattern just before the extension and return next filename
+			if (Path.HasExtension(path))
+			{
+				var extStart = path.LastIndexOf(Path.GetExtension(path));
+				return GetNextFilename(path.Insert(extStart, NUMBER_PATTERN));
+			}
+
+			// Otherwise just append the pattern to the path and return next filename
+			return GetNextFilename(path + NUMBER_PATTERN);
 		}
 
 		public static Task<int> RunAsync(this Process process, bool write)

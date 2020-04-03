@@ -9,7 +9,7 @@ namespace AMQSongProcessor.UI.Converters
 {
 	public static class MiscConverters
 	{
-		public static readonly IValueConverter IgnoredSongs =
+		public static readonly IValueConverter AnyUnignoredSongs =
 			new FuncValueConverter<IEnumerable<Song>, bool>(x => x.Any(y => !y.ShouldIgnore));
 	}
 }

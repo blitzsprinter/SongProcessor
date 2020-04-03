@@ -44,44 +44,24 @@ namespace AMQSongProcessor
 					throw new ArgumentException($"{show.Name} {show.Source} does not exist.", nameof(show.Source));
 				}
 
-				var validResolutions = new List<Resolution>(Resolutions.Length);
-				foreach (var res in Resolutions)
+				var resolutions = GetValidResolutions(show);
+				var songs = show.UnignoredSongs.Where(x =>
 				{
-					if (res.Size > show.VideoInfo?.Height)
+					if (!x.HasTimeStamp)
 					{
-						/*Warnings.Report($"Source is smaller than {res.Size}p: {show.Name}");*/
+						Warnings?.Report($"Timestamp is null: {x.Name}");
 					}
-					else
-					{
-						validResolutions.Add(res);
-					}
-				}
-
-				foreach (var song in show.UnignoredSongs)
+					return x.HasTimeStamp;
+				});
+				var validJobs = GetJobs(resolutions, songs).Where(x =>
 				{
-					if (!song.HasTimeStamp)
+					if (!x.AlreadyExists)
 					{
-						Warnings?.Report($"Timestamp is null: {song.Name}");
-						continue;
+						x.Processing = Processing;
 					}
-
-					foreach (var res in validResolutions)
-					{
-						if (!song.IsMissing(res.Status))
-						{
-							continue;
-						}
-
-						var job = res.IsMp3
-							? (SongJob)new Mp3SongJob(song)
-							: new VideoSongJob(song, res.Size);
-						if (!job.AlreadyExists)
-						{
-							job.Processing = Processing;
-							jobs.Add(job);
-						}
-					}
-				}
+					return !x.AlreadyExists;
+				});
+				jobs.AddRange(validJobs);
 			}
 			return jobs;
 		}
@@ -164,6 +144,46 @@ namespace AMQSongProcessor
 				token?.ThrowIfCancellationRequested();
 				await job.ProcessAsync(token).CAF();
 			}
+		}
+
+		private IEnumerable<SongJob> GetJobs(IEnumerable<Resolution> resolutions, IEnumerable<Song> songs)
+		{
+			foreach (var song in songs)
+			{
+				foreach (var resolution in resolutions)
+				{
+					if (!song.IsMissing(resolution.Status))
+					{
+						continue;
+					}
+
+					if (resolution.IsMp3)
+					{
+						yield return new Mp3SongJob(song);
+					}
+					else
+					{
+						yield return new VideoSongJob(song, resolution.Size);
+					}
+				}
+			}
+		}
+
+		private IReadOnlyList<Resolution> GetValidResolutions(Anime anime)
+		{
+			var valid = new List<Resolution>(Resolutions.Length);
+			foreach (var res in Resolutions)
+			{
+				if (res.Size > anime.VideoInfo?.Height)
+				{
+					/*Warnings.Report($"Source is smaller than {res.Size}p: {show.Name}");*/
+				}
+				else
+				{
+					valid.Add(res);
+				}
+			}
+			return valid;
 		}
 
 		private readonly struct Resolution

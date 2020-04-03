@@ -67,7 +67,11 @@ namespace AMQSongProcessor.UI.ViewModels
 				try
 				{
 					var anime = await _Loader.LoadFromANNAsync(Id).CAF();
-					await _Loader.SaveAsync(anime, Directory!).CAF();
+					await _Loader.SaveNewAsync(anime, new SaveNewOptions(Directory!)
+					{
+						AllowOverwrite = false,
+						CreateDuplicateFile = false,
+					}).ConfigureAwait(true);
 					Anime = new[] { anime };
 					Exception = null;
 				}

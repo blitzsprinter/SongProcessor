@@ -23,6 +23,7 @@ namespace AMQSongProcessor.UI.ViewModels
 	[JsonConverter(typeof(NewtonsoftJsonSkipThis))]
 	public class EditViewModel : ReactiveObject, IRoutableViewModel, IValidatableViewModel
 	{
+		private readonly Anime _Anime;
 		private readonly IScreen? _HostScreen;
 		private readonly ISongLoader _Loader;
 		private readonly Song _Song;
@@ -154,11 +155,12 @@ namespace AMQSongProcessor.UI.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _VolumeModifier, value);
 		}
 
-		public EditViewModel(Song song, IScreen? screen = null)
+		public EditViewModel(Anime anime, Song song, IScreen? screen = null)
 		{
 			_HostScreen = screen;
 			_Loader = Locator.Current.GetService<ISongLoader>();
 			_Song = song ?? throw new ArgumentNullException(nameof(song));
+			_Anime = anime ?? throw new ArgumentNullException(nameof(anime));
 
 			_Artist = _Song.Artist;
 			_AudioTrack = _Song.OverrideAudioTrack;
@@ -183,7 +185,7 @@ namespace AMQSongProcessor.UI.ViewModels
 				"Artist must not be null or empty.");
 			this.ValidationRule(
 				x => x.CleanPath,
-				x => string.IsNullOrEmpty(x) || File.Exists(Path.Combine(song.Anime.Directory, x)),
+				x => string.IsNullOrEmpty(x) || File.Exists(Path.Combine(_Anime.Directory, x)),
 				"Clean path must be null, empty, or lead to an existing file.");
 			this.ValidationRule(
 				x => x.Name,
@@ -220,7 +222,12 @@ namespace AMQSongProcessor.UI.ViewModels
 				_Song.OverrideVideoTrack = VideoTrack;
 				_Song.VolumeModifier = GetVolumeModifer(VolumeModifier);
 
-				await _Loader.SaveAsync(_Song.Anime).CAF();
+				if (_Song.Anime == null)
+				{
+					_Anime.Songs.Add(_Song);
+				}
+
+				await _Loader.SaveAsync(_Song.Anime!).CAF();
 			}, this.IsValid());
 		}
 

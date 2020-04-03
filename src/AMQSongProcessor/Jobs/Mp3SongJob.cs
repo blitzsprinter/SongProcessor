@@ -20,7 +20,7 @@ namespace AMQSongProcessor.Jobs
 				" -b:a 320k";
 
 			string args;
-			if (Song.IsClean)
+			if (Song.CleanPath == null)
 			{
 				args =
 					$" -ss {Song.Start}" + //Starting time

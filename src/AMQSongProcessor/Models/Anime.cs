@@ -30,7 +30,6 @@ namespace AMQSongProcessor.Models
 		public VideoInfo VideoInfo { get; set; } = null!;
 
 		public int Year { get; set; }
-
 		private string DebuggerDisplay => Name;
 
 		public Anime()
@@ -45,7 +44,11 @@ namespace AMQSongProcessor.Models
 			Name = name;
 		}
 
+		public Anime(Anime other) : this(other.Year, other.Id, other.Name)
+		{
+		}
+
 		public string? GetSourcePath()
-			=> Source == null ? null : Path.Combine(Directory, Source);
+			=> Utils.GetFile(Directory, Source);
 	}
 }

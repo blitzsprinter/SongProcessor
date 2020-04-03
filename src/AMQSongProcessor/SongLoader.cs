@@ -18,7 +18,7 @@ namespace AMQSongProcessor
 		private static readonly HashSet<char> _InvalidChars
 			= new HashSet<char>(Path.GetInvalidFileNameChars());
 
-		public static Task SaveAsync(this ISongLoader loader, Anime anime, string dir)
+		public static Task SaveNewAsync(this ISongLoader loader, Anime anime, SaveNewOptions options)
 		{
 			var sb = new StringBuilder($"[{anime.Year}] ");
 			foreach (var c in anime.Name)
@@ -29,9 +29,22 @@ namespace AMQSongProcessor
 				}
 			}
 
-			var animeDir = Path.Combine(dir, sb.ToString());
-			Directory.CreateDirectory(animeDir);
-			anime.InfoFile = Path.Combine(animeDir, $"info.{loader.Extension}");
+			var dir = Path.Combine(options.Directory, sb.ToString());
+			Directory.CreateDirectory(dir);
+
+			var file = Path.Combine(dir, $"info.{loader.Extension}");
+			var fileExists = File.Exists(file);
+			if (fileExists && options.CreateDuplicateFile)
+			{
+				file = Utils.NextAvailableFilename(file);
+				fileExists = false;
+			}
+			anime.InfoFile = file;
+
+			if (fileExists && !options.AllowOverwrite)
+			{
+				return Task.CompletedTask;
+			}
 			return loader.SaveAsync(anime);
 		}
 	}
@@ -78,8 +91,8 @@ namespace AMQSongProcessor
 			}
 		}
 
-		public async Task<Anime> LoadFromANNAsync(int id)
-			=> await ANNGatherer.GetAsync(id).CAF();
+		public Task<Anime> LoadFromANNAsync(int id)
+			=> ANNGatherer.GetAsync(id);
 
 		public async Task SaveAsync(Anime anime)
 		{

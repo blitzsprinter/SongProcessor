@@ -40,7 +40,7 @@
         </DataTemplate>
       </TreeView.DataTemplates>
     </TreeView>
-    <TextBlock Text="{Binding Exception, Mode=OneWay}" IsVisible="{Binding !!Exception}" />
+    <TextBlock Text="{Binding Exception}" IsVisible="{Binding !!Exception}" />
 
     <Grid Grid.Row="1" RowDefinitions="1*,1*" ColumnDefinitions="9*,1*">
       <TextBox Grid.Row="0" Watermark="Directory" Text="{Binding Directory}" />

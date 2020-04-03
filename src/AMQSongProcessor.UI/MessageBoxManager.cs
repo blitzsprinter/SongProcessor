@@ -16,15 +16,23 @@ namespace AMQSongProcessor.UI
 			_Window = window;
 		}
 
+		public Task<string> GetDirectoryAsync(string directory, string title)
+		{
+			return new OpenFolderDialog
+			{
+				Directory = directory,
+				Title = title,
+			}.ShowAsync(_Window);
+		}
+
 		public Task<string[]> GetFilesAsync(string directory, string title, bool allowMultiple = true)
 		{
-			var dialog = new OpenFileDialog
+			return new OpenFileDialog
 			{
 				Directory = directory,
 				Title = title,
 				AllowMultiple = allowMultiple,
-			};
-			return dialog.ShowAsync(_Window);
+			}.ShowAsync(_Window);
 		}
 
 		public Task<T> ShowAsync<T>(string text, string title, IEnumerable<T>? options)

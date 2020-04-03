@@ -119,7 +119,16 @@ namespace AMQSongProcessor
 					var has720 = (song.Status & Status.Res720) != 0;
 
 					Console.BackgroundColor = GetBackground(submitted, hasMp3, has480, has720);
-					Console.Write("\t" + song.ToString(nameLen, artLen));
+
+					const string UNKNOWN = "Unknown ";
+					var songStr = new[]
+					{
+						song.Name?.PadRight(nameLen) ?? UNKNOWN,
+						song.FullArtist?.PadRight(artLen) ?? UNKNOWN,
+						song.HasTimeStamp ? song.Start.ToString("hh\\:mm\\:ss") : UNKNOWN,
+						song.HasTimeStamp ? song.Length.ToString("mm\\:ss") : UNKNOWN,
+					}.Join(" | ");
+					Console.Write("\t" + songStr);
 					DisplayStatusItems(submitted, hasMp3, has480, has720);
 					Console.BackgroundColor = originalBackground;
 					Console.WriteLine();
@@ -139,7 +148,11 @@ namespace AMQSongProcessor
 			{
 				var anime = await loader.LoadFromANNAsync(id).CAF();
 				Console.WriteLine($"Got information from ANN for {anime.Name}.");
-				await loader.SaveAsync(anime, directory).CAF();
+				await loader.SaveNewAsync(anime, new SaveNewOptions(directory)
+				{
+					AllowOverwrite = false,
+					CreateDuplicateFile = false,
+				}).CAF();
 			}
 
 			//Clear the file after getting all the information

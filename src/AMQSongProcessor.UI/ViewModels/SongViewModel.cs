@@ -23,7 +23,9 @@ namespace AMQSongProcessor.UI.ViewModels
 	public class SongViewModel : ReactiveObject, IRoutableViewModel, INavigationController
 	{
 		private const string LOAD = "Load";
+		private const string NO = "No";
 		private const string UNLOAD = "Unload";
+		private const string YES = "Yes";
 		private readonly IScreen? _HostScreen;
 		private readonly ISongLoader _Loader;
 		private readonly ISongProcessor _Processor;
@@ -56,6 +58,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _CurrentJob, value);
 		}
 
+		public ReactiveCommand<Anime, Unit> DeleteAnime { get; }
 		public ReactiveCommand<Song, Unit> DeleteSong { get; }
 
 		[DataMember]
@@ -71,6 +74,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _DirectoryButtonText, value);
 		}
 
+		public ReactiveCommand<Anime, Unit> DuplicateAnime { get; }
 		public ReactiveCommand<Song, Unit> EditSong { get; }
 		public ReactiveCommand<Unit, Unit> ExportFixes { get; }
 		public IScreen HostScreen => _HostScreen ?? Locator.Current.GetService<IScreen>();
@@ -144,9 +148,52 @@ namespace AMQSongProcessor.UI.ViewModels
 				DirectoryButtonText = Anime.Any() ? UNLOAD : LOAD;
 			}, validDirectory);
 
-			CopyANNID = ReactiveCommand.CreateFromTask<int>(async id =>
+			CopyANNID = ReactiveCommand.CreateFromTask<int>(id =>
 			{
-				await Avalonia.Application.Current.Clipboard.SetTextAsync(id.ToString()).CAF();
+				return Avalonia.Application.Current.Clipboard.SetTextAsync(id.ToString());
+			});
+
+			DuplicateAnime = ReactiveCommand.CreateFromTask<Anime>(async anime =>
+			{
+				var duplicate = new Anime(anime);
+				var directory = System.IO.Directory.GetParent(anime.Directory).FullName;
+				await _Loader.SaveNewAsync(duplicate, new SaveNewOptions(directory)
+				{
+					AllowOverwrite = false,
+					CreateDuplicateFile = true,
+				}).ConfigureAwait(true);
+
+				for (var i = Anime.Count - 1; i >= 0; --i)
+				{
+					if (Anime[i].Id != duplicate.Id)
+					{
+						continue;
+					}
+
+					if (i == Anime.Count - 1)
+					{
+						Anime.Add(duplicate);
+					}
+					else
+					{
+						Anime.Insert(i + 1, duplicate);
+					}
+					break;
+				}
+			});
+
+			DeleteAnime = ReactiveCommand.CreateFromTask<Anime>(async anime =>
+			{
+				var text = $"Are you sure you want to delete {anime.Name}?";
+				const string TITLE = "Anime Deletion";
+
+				var manager = Locator.Current.GetService<IMessageBoxManager>();
+				var result = await manager.ShowAsync(text, TITLE, new[] { YES, NO }).ConfigureAwait(true);
+				if (result == YES)
+				{
+					Anime.Remove(anime);
+					File.Delete(anime.InfoFile);
+				}
 			});
 
 			ChangeSource = ReactiveCommand.CreateFromTask<Anime>(async anime =>
@@ -170,14 +217,14 @@ namespace AMQSongProcessor.UI.ViewModels
 
 			AddSong = ReactiveCommand.Create<Anime>(anime =>
 			{
-				var song = new Song(anime);
-				var vm = new EditViewModel(song);
+				var song = new Song();
+				var vm = new EditViewModel(anime, song);
 				HostScreen.Router.Navigate.Execute(vm);
 			});
 
 			EditSong = ReactiveCommand.Create<Song>(song =>
 			{
-				var vm = new EditViewModel(song);
+				var vm = new EditViewModel(song.Anime, song);
 				HostScreen.Router.Navigate.Execute(vm);
 			});
 
@@ -185,10 +232,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			{
 				var anime = song.Anime;
 				var text = $"Are you sure you want to delete \"{song.Name}\" from {anime.Name}?";
-
 				const string TITLE = "Song Deletion";
-				const string YES = "Yes";
-				const string NO = "No";
 
 				var manager = Locator.Current.GetService<IMessageBoxManager>();
 				var result = await manager.ShowAsync(text, TITLE, new[] { YES, NO }).ConfigureAwait(true);

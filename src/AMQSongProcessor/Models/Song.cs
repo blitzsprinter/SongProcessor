@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
-using System.IO;
 using System.Text.Json.Serialization;
-
-using AdvorangesUtils;
 
 namespace AMQSongProcessor.Models
 {
@@ -35,7 +32,6 @@ namespace AMQSongProcessor.Models
 
 		public string FullName => $"{Name} ({FullArtist})";
 		public bool HasTimeStamp => Start != UnknownTime;
-		public bool IsClean => CleanPath == null;
 		public TimeSpan Length => End - Start;
 		public string Name { get; set; } = null!;
 		public int OverrideAudioTrack { get; set; }
@@ -51,11 +47,6 @@ namespace AMQSongProcessor.Models
 		{
 		}
 
-		public Song(Anime anime)
-		{
-			anime.Songs.Add(this);
-		}
-
 		public Song(string name, string artist, TimeSpan start, TimeSpan end, SongTypeAndPosition type, Status status)
 		{
 			Artist = artist;
@@ -67,31 +58,15 @@ namespace AMQSongProcessor.Models
 		}
 
 		public string? GetCleanSongPath()
-			=> CleanPath == null ? null : GetPath(CleanPath);
+			=> Utils.GetFile(Anime.Directory, CleanPath);
 
 		public string GetMp3Path()
-			=> GetPath($"[{Anime.Id}] {Name}.mp3");
+			=> Utils.GetFile(Anime.Directory, $"[{Anime.Id}] {Name}.mp3")!;
 
 		public string GetVideoPath(int resolution)
-			=> GetPath($"[{Anime.Id}] {Name} [{resolution}p].webm");
+			=> Utils.GetFile(Anime.Directory, $"[{Anime.Id}] {Name} [{resolution}p].webm")!;
 
 		public bool IsMissing(Status status)
 			=> (Status & status) == 0;
-
-		public string ToString(int nameLen, int artLen)
-		{
-			return new[]
-			{
-				Name.PadRight(nameLen),
-				FullArtist.PadRight(artLen),
-				HasTimeStamp ? Start.ToString("hh\\:mm\\:ss") : "Unknown ",
-				HasTimeStamp ? Length.ToString("mm\\:ss") : "Unknown ",
-			}.Join(" | ");
-		}
-
-		public override string ToString() => ToString(0, 0);
-
-		private string GetPath(string file)
-			=> Path.Combine(Anime.Directory, file);
 	}
 }
