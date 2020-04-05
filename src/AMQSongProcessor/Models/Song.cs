@@ -32,6 +32,9 @@ namespace AMQSongProcessor.Models
 
 		public string FullName => $"{Name} ({FullArtist})";
 		public bool HasTimeStamp => Start != UnknownTime;
+		public bool IsCompleted => !IsMissing(Status.Res480 | Status.Res720);
+		public bool IsIncompleted => !(IsCompleted || IsUnsubmitted);
+		public bool IsUnsubmitted => Status == Status.NotSubmitted;
 		public TimeSpan Length => End - Start;
 		public string Name { get; set; } = null!;
 		public int OverrideAudioTrack { get; set; }

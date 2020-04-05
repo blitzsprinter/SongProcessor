@@ -34,7 +34,10 @@ namespace AMQSongProcessor.UI.ViewModels
 		private bool _IsExpanded;
 		private ProcessingData? _ProcessingData;
 		private int _QueuedJobs;
-		private bool _ShowIgnoredSongs;
+		private bool _ShowCompletedSongs = true;
+		private bool _ShowIgnoredSongs = true;
+		private bool _ShowIncompletedSongs = true;
+		private bool _ShowUnsubmittedSongs = true;
 
 		public ReactiveCommand<Anime, Unit> AddSong { get; }
 		public ObservableCollection<Anime> Anime { get; } = new ObservableCollection<Anime>();
@@ -97,10 +100,28 @@ namespace AMQSongProcessor.UI.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _QueuedJobs, value);
 		}
 		[DataMember]
+		public bool ShowCompletedSongs
+		{
+			get => _ShowCompletedSongs;
+			set => this.RaiseAndSetIfChanged(ref _ShowCompletedSongs, value);
+		}
+		[DataMember]
 		public bool ShowIgnoredSongs
 		{
 			get => _ShowIgnoredSongs;
 			set => this.RaiseAndSetIfChanged(ref _ShowIgnoredSongs, value);
+		}
+		[DataMember]
+		public bool ShowIncompletedSongs
+		{
+			get => _ShowIncompletedSongs;
+			set => this.RaiseAndSetIfChanged(ref _ShowIncompletedSongs, value);
+		}
+		[DataMember]
+		public bool ShowUnsubmittedSongs
+		{
+			get => _ShowUnsubmittedSongs;
+			set => this.RaiseAndSetIfChanged(ref _ShowUnsubmittedSongs, value);
 		}
 		public string UrlPathSegment => "/songs";
 

@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-using AMQSongProcessor.Models;
+﻿using AMQSongProcessor.Models;
 
 using Avalonia.Data.Converters;
 using Avalonia.Media;
@@ -10,9 +7,6 @@ namespace AMQSongProcessor.UI.Converters
 {
 	public static class MiscConverters
 	{
-		public static readonly IValueConverter AnyUnignoredSongs =
-			new FuncValueConverter<IEnumerable<Song>, bool>(x => x.Any(y => !y.ShouldIgnore));
-
 		public static readonly IValueConverter StatusColor =
 			new FuncValueConverter<Status, IBrush>(x =>
 			{
@@ -20,18 +14,21 @@ namespace AMQSongProcessor.UI.Converters
 
 				if ((x & ANY_VIDEO) != 0)
 				{
-					return Green;
+					return _Green;
 				}
 				if ((x & Status.None) != 0)
 				{
-					return Yellow;
+					return _Yellow;
 				}
-				return Red;
+				return _Red;
 			});
 
-		private static readonly SolidColorBrush Green = GetBrush(Brushes.Green);
-		private static readonly SolidColorBrush Red = GetBrush(Brushes.Red);
-		private static readonly SolidColorBrush Yellow = GetBrush(Brushes.Yellow);
+		public static readonly IMultiValueConverter TreeViewItemExpander =
+			new TreeViewItemExpanderConverter();
+
+		private static readonly SolidColorBrush _Green = GetBrush(Brushes.Green);
+		private static readonly SolidColorBrush _Red = GetBrush(Brushes.Red);
+		private static readonly SolidColorBrush _Yellow = GetBrush(Brushes.Yellow);
 
 		private static SolidColorBrush GetBrush(ISolidColorBrush brush)
 			=> new SolidColorBrush(brush.Color, .25);
