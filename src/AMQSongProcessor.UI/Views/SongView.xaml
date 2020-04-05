@@ -30,17 +30,17 @@
           </HeaderedContentControl>
           <MenuItem Header="-" />
           <HeaderedContentControl Header="Show Ignored Songs">
-            <CheckBox IsChecked="{Binding ShowIgnoredSongs}" />
+            <CheckBox IsChecked="{Binding SongVisibility.ShowIgnoredSongs}" />
           </HeaderedContentControl>
           <MenuItem Header="-" />
           <HeaderedContentControl Header="Show Unsubmitted Songs">
-            <CheckBox IsChecked="{Binding ShowUnsubmittedSongs}" />
+            <CheckBox IsChecked="{Binding SongVisibility.ShowUnsubmittedSongs}" />
           </HeaderedContentControl>
           <HeaderedContentControl Header="Show Incompleted Songs">
-            <CheckBox IsChecked="{Binding ShowIncompletedSongs}" />
+            <CheckBox IsChecked="{Binding SongVisibility.ShowIncompletedSongs}" />
           </HeaderedContentControl>
           <HeaderedContentControl Header="Show Completed Songs">
-            <CheckBox IsChecked="{Binding ShowCompletedSongs}" />
+            <CheckBox IsChecked="{Binding SongVisibility.ShowCompletedSongs}" />
           </HeaderedContentControl>
         </ContextMenu>
       </Grid.ContextMenu>
@@ -118,24 +118,10 @@
           <!-- Hide the songs if they are ignored and we don't want to see ignored songs -->
           <Style Selector="TreeView > TreeViewItem > TreeViewItem">
             <Setter Property="IsVisible">
-              <MultiBinding Converter="{x:Static BoolConverters.And}">
-                <MultiBinding Converter="{x:Static converters:BoolConverters.Or}">
-                  <Binding Path="!ShouldIgnore" />
-                  <Binding ElementName="Tree" Path="DataContext.ShowIgnoredSongs" />
-                </MultiBinding>
-
-                <MultiBinding Converter="{x:Static converters:BoolConverters.Or}">
-                  <Binding Path="!IsCompleted" />
-                  <Binding ElementName="Tree" Path="DataContext.ShowCompletedSongs" />
-                </MultiBinding>
-                <MultiBinding Converter="{x:Static converters:BoolConverters.Or}">
-                  <Binding Path="!IsIncompleted" />
-                  <Binding ElementName="Tree" Path="DataContext.ShowIncompletedSongs" />
-                </MultiBinding>
-                <MultiBinding Converter="{x:Static converters:BoolConverters.Or}">
-                  <Binding Path="!IsUnsubmitted" />
-                  <Binding ElementName="Tree" Path="DataContext.ShowUnsubmittedSongs" />
-                </MultiBinding>
+              <!-- SongVisibility must go first, Song(s) must go second. No other values. -->
+              <MultiBinding Converter="{x:Static converters:MiscConverters.SongVisibility}">
+                <Binding ElementName="Tree" Path="DataContext.SongVisibility.Self" />
+                <Binding />
               </MultiBinding>
             </Setter>
           </Style>
@@ -143,13 +129,10 @@
           <!-- Don't show the expand button if all songs are ignored and ignored songs are blocked -->
           <Style Selector="TreeView > TreeViewItem /template/ ToggleButton#expander">
             <Setter Property="IsVisible">
-              <MultiBinding Converter="{x:Static converters:MiscConverters.TreeViewItemExpander}">
-                <Binding ElementName="Tree" Path="DataContext" />
+              <!-- SongVisibility must go first, Song(s) must go second. No other values. -->
+              <MultiBinding Converter="{x:Static converters:MiscConverters.SongVisibility}">
+                <Binding ElementName="Tree" Path="DataContext.SongVisibility.Self" />
                 <Binding Path="Songs.Items" />
-                <Binding ElementName="Tree" Path="DataContext.ShowIgnoredSongs" />
-                <Binding ElementName="Tree" Path="DataContext.ShowCompletedSongs" />
-                <Binding ElementName="Tree" Path="DataContext.ShowIncompletedSongs" />
-                <Binding ElementName="Tree" Path="DataContext.ShowUnsubmittedSongs" />
               </MultiBinding>
             </Setter>
           </Style>

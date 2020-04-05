@@ -7,6 +7,8 @@ namespace AMQSongProcessor.UI.Converters
 {
 	public static class MiscConverters
 	{
+		public static readonly IMultiValueConverter SongVisibility =
+			new SongVisibilityConverter();
 		public static readonly IValueConverter StatusColor =
 			new FuncValueConverter<Status, IBrush>(x =>
 			{
@@ -22,9 +24,6 @@ namespace AMQSongProcessor.UI.Converters
 				}
 				return _Red;
 			});
-
-		public static readonly IMultiValueConverter TreeViewItemExpander =
-			new TreeViewItemExpanderConverter();
 
 		private static readonly SolidColorBrush _Green = GetBrush(Brushes.Green);
 		private static readonly SolidColorBrush _Red = GetBrush(Brushes.Red);
