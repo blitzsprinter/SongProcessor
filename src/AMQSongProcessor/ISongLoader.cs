@@ -1,14 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using AdvorangesUtils;
-
-using AMQSongProcessor.Converters;
 using AMQSongProcessor.Models;
 
 namespace AMQSongProcessor
@@ -17,6 +9,8 @@ namespace AMQSongProcessor
 	{
 		string Extension { get; set; }
 		bool RemoveIgnoredSongs { get; set; }
+
+		Task<Song> DuplicateSongAsync(Song song);
 
 		IAsyncEnumerable<Anime> LoadAsync(string dir);
 

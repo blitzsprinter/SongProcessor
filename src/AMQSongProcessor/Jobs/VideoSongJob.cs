@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 using AdvorangesUtils;
 
@@ -81,9 +82,10 @@ namespace AMQSongProcessor.Jobs
 				args += $" -filter:a \"volume={Song.VolumeModifier}\"";
 			}
 
-			return args + $" \"{GetPath()}\"";
+			return args + $" \"{GetValidPath()}\"";
 		}
 
+		[Obsolete]
 		protected override string GetPath()
 			=> Song.GetVideoPath(Resolution);
 	}

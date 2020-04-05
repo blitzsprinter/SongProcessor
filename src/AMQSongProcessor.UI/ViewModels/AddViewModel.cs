@@ -71,6 +71,7 @@ namespace AMQSongProcessor.UI.ViewModels
 					{
 						AllowOverwrite = false,
 						CreateDuplicateFile = false,
+						AddShowNameDirectory = true,
 					}).ConfigureAwait(true);
 					Anime = new[] { anime };
 					Exception = null;

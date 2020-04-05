@@ -18,10 +18,16 @@ namespace AMQSongProcessor.UI
 
 		public override void OnFrameworkInitializationCompleted()
 		{
-			Locator.CurrentMutable.RegisterConstant<ISongLoader>(new SongLoader
+			var gatherer = new SourceInfoGatherer
+			{
+				RetryUntilSuccess = true,
+			};
+			var loader = new SongLoader(gatherer)
 			{
 				RemoveIgnoredSongs = false,
-			});
+			};
+			Locator.CurrentMutable.RegisterConstant<ISourceInfoGatherer>(gatherer);
+			Locator.CurrentMutable.RegisterConstant<ISongLoader>(loader);
 			Locator.CurrentMutable.Register<ISongProcessor>(() => new SongProcessor());
 
 			var suspension = new AutoSuspendHelper(ApplicationLifetime);

@@ -18,8 +18,8 @@
     <Grid ColumnDefinitions="9*,1*">
       <TextBox Watermark="Directory" Text="{Binding Directory}" KeyDown="OnKeyDown"
                IsEnabled="{Binding !Anime.Count}" />
-      <Button Classes="disableWhenProcessing" Grid.Column="1" Content="{Binding DirectoryButtonText}"
-              Command="{Binding Load}" />
+      <Button Classes="disableWhenProcessing" Grid.Column="1"
+              Content="{Binding DirectoryButtonText}" Command="{Binding Load}" />
     </Grid>
 
     <Grid Grid.Row="1" ColumnDefinitions="9*,1*">
@@ -56,8 +56,12 @@
                   <MenuItem Header="-" />
                   <MenuItem Header="Add Song" CommandParameter="{Binding}"
                             Command="{Binding ElementName=Tree, Path=DataContext.AddSong}" />
+                  <MenuItem Header="Paste Song" CommandParameter="{Binding}"
+                            Command="{Binding ElementName=Tree, Path=DataContext.PasteSong}"
+                            IsEnabled="{Binding ElementName=Tree, Path=DataContext.ClipboardSong, Converter={x:Static ObjectConverters.IsNotNull}}" />
                 </ContextMenu>
               </TextBlock.ContextMenu>
+
               <TextBlock.Text>
                 <MultiBinding StringFormat="[{0}] {1}">
                   <Binding Path="Year" />
@@ -68,12 +72,18 @@
           </TreeDataTemplate>
 
           <DataTemplate DataType="models:Song">
-            <TextBlock VerticalAlignment="Center">
+            <TextBlock VerticalAlignment="Center"
+                       Background="{Binding Status, Converter={x:Static converters:MiscConverters.StatusColor}}">
               <TextBlock.ContextMenu>
-                <ContextMenu>
-                  <MenuItem Classes="disableWhenProcessing" Header="Edit Song" CommandParameter="{Binding}"
+                <ContextMenu Classes="disableWhenProcessing">
+                  <MenuItem Header="Edit Song" CommandParameter="{Binding}"
                             Command="{Binding ElementName=Tree, Path=DataContext.EditSong}" />
-                  <MenuItem Classes="disableWhenProcessing" Header="Delete Song" CommandParameter="{Binding}"
+                  <MenuItem Header="-" />
+                  <MenuItem Header="Copy Song" CommandParameter="{Binding}"
+                            Command="{Binding ElementName=Tree, Path=DataContext.CopySong}" />
+                  <MenuItem Header="Cut Song" CommandParameter="{Binding}"
+                            Command="{Binding ElementName=Tree, Path=DataContext.CutSong}" />
+                  <MenuItem Header="Delete Song" CommandParameter="{Binding}"
                             Command="{Binding ElementName=Tree, Path=DataContext.DeleteSong}" />
                 </ContextMenu>
               </TextBlock.ContextMenu>
@@ -89,9 +99,14 @@
         </TreeView.DataTemplates>
 
         <TreeView.Styles>
-          <Style Selector=":is(TreeViewItem)">
+          <!-- Expand all the anime items to show all the songs -->
+          <Style Selector="TreeView > TreeViewItem">
             <Setter Property="IsExpanded"
                     Value="{Binding ElementName=Tree, Path=DataContext.IsExpanded}" />
+          </Style>
+
+          <!-- Hide the songs if they are ignored and we don't want to see ignored songs -->
+          <Style Selector="TreeView > TreeViewItem > TreeViewItem">
             <Setter Property="IsVisible">
               <MultiBinding Converter="{x:Static converters:BoolConverters.Or}">
                 <Binding Path="!ShouldIgnore" />
@@ -101,18 +116,18 @@
           </Style>
 
           <!-- Don't show the expand button if all songs are ignored and ignored songs are blocked -->
-          <Style Selector="TreeViewItem /template/ ToggleButton#expander">
+          <Style Selector="TreeView > TreeViewItem /template/ ToggleButton#expander">
             <Setter Property="IsVisible">
               <MultiBinding Converter="{x:Static converters:BoolConverters.Or}">
                 <Binding ElementName="Tree" Path="DataContext.ShowIgnoredSongs" />
-                <Binding Path="Songs" Converter="{x:Static converters:MiscConverters.AnyUnignoredSongs}" />
+                <Binding Path="Songs.Items" Converter="{x:Static converters:MiscConverters.AnyUnignoredSongs}" />
               </MultiBinding>
             </Setter>
           </Style>
         </TreeView.Styles>
       </TreeView>
 
-      <Grid Grid.Column="1" RowDefinitions="1*,1*,1*,12*,6*">
+      <Grid Grid.Column="1" RowDefinitions="1*,1*,1*,12*,6*" IsEnabled="{Binding Anime.Count}">
         <Button Grid.Row="0" Content="Export Fixes" Command="{Binding ExportFixes}" />
         <Button Grid.Row="1" Content="Process Songs" Command="{Binding ProcessSongs}"
                 IsVisible="{Binding !BusyProcessing}" />

@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace AMQSongProcessor.Models
 {
@@ -27,10 +30,19 @@ namespace AMQSongProcessor.Models
 			base.InsertItem(index, item);
 		}
 
+		protected override void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
+		{
+			OnPropertyChanged(nameof(Items));
+			base.OnCollectionChanged(e);
+		}
+
 		protected override void SetItem(int index, Song item)
 		{
 			item.Anime = _Anime;
 			base.SetItem(index, item);
 		}
+
+		private void OnPropertyChanged([CallerMemberName] string name = "")
+			=> OnPropertyChanged(new PropertyChangedEventArgs(name));
 	}
 }

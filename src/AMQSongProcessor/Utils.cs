@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,7 +17,13 @@ namespace AMQSongProcessor
 	public static class Utils
 	{
 		private const string NUMBER_PATTERN = "_({0})";
-		private static readonly bool IsWindows = Environment.OSVersion.Platform.ToString().CaseInsContains("win");
+
+		private static readonly HashSet<char> InvalidChars
+			= new HashSet<char>(Path.GetInvalidFileNameChars().Concat(Path.GetInvalidPathChars()));
+
+		private static readonly bool IsWindows
+			= Environment.OSVersion.Platform.ToString().CaseInsContains("win");
+
 		public static string FFmpeg { get; } = FindProgram("ffmpeg");
 		public static string FFprobe { get; } = FindProgram("ffprobe");
 
@@ -102,6 +109,19 @@ namespace AMQSongProcessor
 
 			// Otherwise just append the pattern to the path and return next filename
 			return GetNextFilename(path + NUMBER_PATTERN);
+		}
+
+		public static string RemoveInvalidPathChars(string input)
+		{
+			var sb = new StringBuilder();
+			foreach (var c in input)
+			{
+				if (!InvalidChars.Contains(c))
+				{
+					sb.Append(c);
+				}
+			}
+			return sb.ToString();
 		}
 
 		public static Task<int> RunAsync(this Process process, bool write)

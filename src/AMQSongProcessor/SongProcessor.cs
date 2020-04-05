@@ -41,7 +41,7 @@ namespace AMQSongProcessor
 				}
 				else if (!File.Exists(show.GetSourcePath()))
 				{
-					throw new ArgumentException($"{show.Name} {show.Source} does not exist.", nameof(show.Source));
+					throw new ArgumentException($"{show.Name} '{show.Source}' does not exist.", nameof(show.Source));
 				}
 
 				var resolutions = GetValidResolutions(show);

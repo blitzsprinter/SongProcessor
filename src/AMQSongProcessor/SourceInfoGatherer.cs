@@ -16,6 +16,8 @@ namespace AMQSongProcessor
 	{
 		private static readonly JsonSerializerOptions _Options = new JsonSerializerOptions();
 
+		public bool RetryUntilSuccess { get; set; }
+
 		static SourceInfoGatherer()
 		{
 			_Options.Converters.Add(new AspectRatioJsonConverter());
@@ -72,6 +74,10 @@ namespace AMQSongProcessor
 			}
 			catch (Exception e)
 			{
+				if (RetryUntilSuccess)
+				{
+					return await GetInfoAsync<T>(stream, file, track).CAF();
+				}
 				throw new JsonException($"Unable to parse {stream} info for {file}.", e);
 			}
 		}

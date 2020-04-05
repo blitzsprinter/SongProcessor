@@ -1,4 +1,5 @@
-﻿using AMQSongProcessor.Models;
+﻿using System;
+using AMQSongProcessor.Models;
 
 namespace AMQSongProcessor.Jobs
 {
@@ -41,9 +42,10 @@ namespace AMQSongProcessor.Jobs
 			}
 
 			args += ARGS;
-			return args + $" \"{GetPath()}\"";
+			return args + $" \"{GetValidPath()}\"";
 		}
 
+		[Obsolete]
 		protected override string GetPath()
 			=> Song.GetMp3Path();
 	}

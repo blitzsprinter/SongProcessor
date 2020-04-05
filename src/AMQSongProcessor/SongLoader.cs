@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -15,24 +14,17 @@ namespace AMQSongProcessor
 {
 	public static class SongLoaderUtils
 	{
-		private static readonly HashSet<char> _InvalidChars
-			= new HashSet<char>(Path.GetInvalidFileNameChars());
-
 		public static Task SaveNewAsync(this ISongLoader loader, Anime anime, SaveNewOptions options)
 		{
-			var sb = new StringBuilder($"[{anime.Year}] ");
-			foreach (var c in anime.Name)
+			var fullDir = options.Directory;
+			if (options.AddShowNameDirectory)
 			{
-				if (!_InvalidChars.Contains(c))
-				{
-					sb.Append(c);
-				}
+				var showDir = Utils.RemoveInvalidPathChars($"[{anime.Year}] {anime.Name}");
+				fullDir = Path.Combine(options.Directory, showDir);
 			}
+			Directory.CreateDirectory(fullDir);
 
-			var dir = Path.Combine(options.Directory, sb.ToString());
-			Directory.CreateDirectory(dir);
-
-			var file = Path.Combine(dir, $"info.{loader.Extension}");
+			var file = Path.Combine(fullDir, $"info.{loader.Extension}");
 			var fileExists = File.Exists(file);
 			if (fileExists && options.CreateDuplicateFile)
 			{
@@ -51,26 +43,35 @@ namespace AMQSongProcessor
 
 	public sealed class SongLoader : ISongLoader
 	{
+		private readonly ISourceInfoGatherer _Gatherer;
 		private readonly JsonSerializerOptions _Options = new JsonSerializerOptions
 		{
 			WriteIndented = true,
 			IgnoreReadOnlyProperties = true,
 		};
-
 		public string Extension { get; set; } = "amq";
 		public bool RemoveIgnoredSongs { get; set; } = true;
 
-		public SongLoader()
+		public SongLoader(ISourceInfoGatherer gatherer)
 		{
+			_Gatherer = gatherer;
 			_Options.Converters.Add(new JsonStringEnumConverter());
 			_Options.Converters.Add(new SongTypeAndPositionJsonConverter());
 			_Options.Converters.Add(new TimeSpanJsonConverter());
 			_Options.Converters.Add(new VolumeModifierConverter());
 		}
 
+		public async Task<Song> DuplicateSongAsync(Song song)
+		{
+			using var ms = new MemoryStream();
+
+			await JsonSerializer.SerializeAsync(ms, song, _Options).CAF();
+			ms.Position = 0;
+			return await JsonSerializer.DeserializeAsync<Song>(ms, _Options).CAF();
+		}
+
 		public async IAsyncEnumerable<Anime> LoadAsync(string dir)
 		{
-			var gatherer = new SourceInfoGatherer();
 			foreach (var file in Directory.EnumerateFiles(dir, $"*.{Extension}", SearchOption.AllDirectories))
 			{
 				using var fs = new FileStream(file, FileMode.Open);
@@ -84,7 +85,7 @@ namespace AMQSongProcessor
 				}
 				if (show.GetSourcePath() is string source)
 				{
-					show.VideoInfo = await gatherer.GetVideoInfoAsync(source).CAF();
+					show.VideoInfo = await _Gatherer.GetVideoInfoAsync(source).CAF();
 				}
 
 				yield return show;

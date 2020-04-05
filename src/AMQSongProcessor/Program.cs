@@ -42,7 +42,7 @@ namespace AMQSongProcessor
 				Console.WriteLine("Invalid directory provided; enter a valid one: ");
 			}
 #endif
-			var loader = new SongLoader();
+			var loader = new SongLoader(new SourceInfoGatherer());
 			await AddNewShowsAsync(loader, dir).CAF();
 			var anime = await loader.LoadAsync(dir).ToListAsync().CAF();
 
@@ -144,15 +144,17 @@ namespace AMQSongProcessor
 				return;
 			}
 
+			var options = new SaveNewOptions(directory)
+			{
+				AllowOverwrite = false,
+				CreateDuplicateFile = false,
+				AddShowNameDirectory = true,
+			};
 			foreach (var id in File.ReadAllLines(idFile).Select(int.Parse))
 			{
 				var anime = await loader.LoadFromANNAsync(id).CAF();
 				Console.WriteLine($"Got information from ANN for {anime.Name}.");
-				await loader.SaveNewAsync(anime, new SaveNewOptions(directory)
-				{
-					AllowOverwrite = false,
-					CreateDuplicateFile = false,
-				}).CAF();
+				await loader.SaveNewAsync(anime, options).CAF();
 			}
 
 			//Clear the file after getting all the information
