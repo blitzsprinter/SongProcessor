@@ -8,17 +8,17 @@ namespace AMQSongProcessor.Models
 	{
 		private const string DB = "dB";
 
-		public int? Decibels { get; }
+		public double? Decibels { get; }
 		public double? Percentage { get; }
 		private string DebuggerDisplay => ToString();
 
-		private VolumeModifer(double? percentage, int? dbs)
+		private VolumeModifer(double? percentage, double? dbs)
 		{
 			Percentage = percentage;
 			Decibels = dbs;
 		}
 
-		public static VolumeModifer FromDecibels(int dbs)
+		public static VolumeModifer FromDecibels(double dbs)
 			=> new VolumeModifer(null, dbs);
 
 		public static VolumeModifer FromPercentage(double percentage)
@@ -46,7 +46,7 @@ namespace AMQSongProcessor.Models
 				result = FromPercentage(percentage);
 				return true;
 			}
-			else if (int.TryParse(s.Replace(DB, null), out var dbs))
+			else if (double.TryParse(s.Replace(DB, null), out var dbs))
 			{
 				result = FromDecibels(dbs);
 				return true;

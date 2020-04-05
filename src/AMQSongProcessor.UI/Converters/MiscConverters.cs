@@ -2,7 +2,7 @@
 using System.Linq;
 
 using AMQSongProcessor.Models;
-using Avalonia.Controls;
+
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 

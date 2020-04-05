@@ -76,7 +76,16 @@ namespace AMQSongProcessor
 			{
 				using var fs = new FileStream(file, FileMode.Open);
 
-				var show = await JsonSerializer.DeserializeAsync<Anime>(fs, _Options).CAF();
+				Anime show;
+				try
+				{
+					show = await JsonSerializer.DeserializeAsync<Anime>(fs, _Options).CAF();
+				}
+				catch (Exception e)
+				{
+					throw new JsonException($"Unable to parse {file}", e);
+				}
+
 				show.InfoFile = file;
 				show.Songs = new SongCollection(show, show.Songs);
 				if (RemoveIgnoredSongs)
