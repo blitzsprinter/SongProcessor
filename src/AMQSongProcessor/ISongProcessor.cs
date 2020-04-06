@@ -13,10 +13,10 @@ namespace AMQSongProcessor
 		IProgress<ProcessingData>? Processing { get; set; }
 		IProgress<string>? Warnings { get; set; }
 
-		IReadOnlyList<ISongJob> CreateJobs(IReadOnlyList<Anime> anime);
+		IReadOnlyList<ISongJob> CreateJobs(IEnumerable<Anime> anime);
 
-		Task ExportFixesAsync(string dir, IReadOnlyList<Anime> anime);
+		Task ExportFixesAsync(string dir, IEnumerable<Anime> anime);
 
-		Task ProcessAsync(IReadOnlyList<ISongJob> jobs, CancellationToken? token = null);
+		Task ProcessAsync(IEnumerable<ISongJob> jobs, CancellationToken? token = null);
 	}
 }

@@ -48,7 +48,8 @@
       <TreeView Name="Tree" Grid.Row="1" Items="{Binding Anime}">
         <TreeView.DataTemplates>
           <TreeDataTemplate DataType="models:Anime" ItemsSource="{Binding Songs}">
-            <TextBlock>
+            <TextBlock VerticalAlignment="Center"
+                       Background="{Binding Converter={x:Static converters:MiscConverters.SourceColor}}">
               <TextBlock.ContextMenu>
                 <ContextMenu Classes="disableWhenProcessing">
                   <MenuItem Header="Copy ANNID" CommandParameter="{Binding Id}"
@@ -62,6 +63,8 @@
                             Command="{Binding ElementName=Tree, Path=DataContext.DuplicateAnime}" />
                   <MenuItem Header="Delete Anime" CommandParameter="{Binding}"
                             Command="{Binding ElementName=Tree, Path=DataContext.DeleteAnime}" />
+                  <MenuItem Header="Clear Songs" CommandParameter="{Binding}"
+                            Command="{Binding ElementName=Tree, Path=DataContext.ClearSongs}" />
                   <MenuItem Header="-" />
                   <MenuItem Header="Change Source" CommandParameter="{Binding}"
                             Command="{Binding ElementName=Tree, Path=DataContext.ChangeSource}" />

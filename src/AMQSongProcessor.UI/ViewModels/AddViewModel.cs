@@ -2,8 +2,6 @@
 using System.Reactive;
 using System.Runtime.Serialization;
 
-using AdvorangesUtils;
-
 using AMQSongProcessor.Models;
 
 using ReactiveUI;
@@ -66,8 +64,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			{
 				try
 				{
-					var anime = await _Loader.LoadFromANNAsync(Id).CAF();
-					await _Loader.SaveNewAsync(anime, new SaveNewOptions(Directory!)
+					var anime = await _Loader.LoadFromANNAsync(Id, new SaveNewOptions(Directory!)
 					{
 						AllowOverwrite = false,
 						CreateDuplicateFile = false,

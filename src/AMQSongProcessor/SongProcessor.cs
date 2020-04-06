@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -9,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using AdvorangesUtils;
+
 using AMQSongProcessor.Jobs;
 using AMQSongProcessor.Models;
 
@@ -29,7 +29,7 @@ namespace AMQSongProcessor
 		public IProgress<ProcessingData>? Processing { get; set; }
 		public IProgress<string>? Warnings { get; set; }
 
-		public IReadOnlyList<ISongJob> CreateJobs(IReadOnlyList<Anime> anime)
+		public IReadOnlyList<ISongJob> CreateJobs(IEnumerable<Anime> anime)
 		{
 			var jobs = new List<ISongJob>();
 			foreach (var show in anime)
@@ -72,13 +72,8 @@ namespace AMQSongProcessor
 			return jobs;
 		}
 
-		public async Task ExportFixesAsync(string dir, IReadOnlyList<Anime> anime)
+		public async Task ExportFixesAsync(string dir, IEnumerable<Anime> anime)
 		{
-			if (anime.Count == 0)
-			{
-				return;
-			}
-
 			static string FormatTimeSpan(TimeSpan ts)
 			{
 				var format = ts.TotalHours < 1 ? @"mm\:ss" : @"hh\:mm\:ss";
@@ -102,6 +97,11 @@ namespace AMQSongProcessor
 				{
 					counts.GetOrAdd(song.FullName, _ => new List<Anime>()).Add(show);
 				}
+			}
+
+			if (counts.Count == 0)
+			{
+				return;
 			}
 
 			var file = Path.Combine(dir, FixesFile);
@@ -143,7 +143,7 @@ namespace AMQSongProcessor
 			}
 		}
 
-		public async Task ProcessAsync(IReadOnlyList<ISongJob> jobs, CancellationToken? token = null)
+		public async Task ProcessAsync(IEnumerable<ISongJob> jobs, CancellationToken? token = null)
 		{
 			foreach (var job in jobs)
 			{

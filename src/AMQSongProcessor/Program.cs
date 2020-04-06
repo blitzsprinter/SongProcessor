@@ -59,7 +59,7 @@ namespace AMQSongProcessor
 			await processor.ProcessAsync(jobs).CAF();
 		}
 
-		private static void Display(IReadOnlyList<Anime> anime)
+		private static void Display(IEnumerable<Anime> anime)
 		{
 			static void DisplayStatusItems(params bool[] items)
 			{
@@ -153,9 +153,8 @@ namespace AMQSongProcessor
 			};
 			foreach (var id in File.ReadAllLines(idFile).Select(int.Parse))
 			{
-				var anime = await loader.LoadFromANNAsync(id).CAF();
+				var anime = await loader.LoadFromANNAsync(id, options).CAF();
 				Console.WriteLine($"Got information from ANN for {anime.Name}.");
-				await loader.SaveNewAsync(anime, options).CAF();
 			}
 
 			//Clear the file after getting all the information

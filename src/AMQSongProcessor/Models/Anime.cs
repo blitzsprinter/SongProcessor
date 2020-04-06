@@ -21,7 +21,7 @@ namespace AMQSongProcessor.Models
 		public IList<Song> Songs { get; set; }
 		public string? Source { get; set; }
 		[JsonIgnore]
-		public VideoInfo VideoInfo { get; set; } = null!;
+		public VideoInfo? VideoInfo { get; set; } = null!;
 		public int Year { get; set; }
 		private string DebuggerDisplay => Name;
 

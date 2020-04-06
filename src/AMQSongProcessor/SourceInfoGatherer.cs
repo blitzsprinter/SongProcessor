@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -31,7 +32,7 @@ namespace AMQSongProcessor
 		{
 			if (!File.Exists(file))
 			{
-				throw new ArgumentException($"{file} does not exist.", nameof(file));
+				throw new FileDoesNotExistException(file);
 			}
 
 			#region Args
@@ -56,20 +57,20 @@ namespace AMQSongProcessor
 			}, _ => { });
 
 			var info = new VolumeInfo();
-			void OnErrorReceived(object sender, DataReceivedEventArgs args)
+			void OnErrorReceived(object sender, DataReceivedEventArgs e)
 			{
-				if (args.Data == null)
+				if (e.Data == null)
 				{
 					return;
 				}
 
 				const string LINE_START = "[Parsed_volumedetect_0 @";
-				if (!args.Data.StartsWith(LINE_START))
+				if (!e.Data.StartsWith(LINE_START))
 				{
 					return;
 				}
 
-				var cut = args.Data.Split(']')[1].Trim();
+				var cut = e.Data.Split(']')[1].Trim();
 				var kvp = cut.Split(':');
 				string key = kvp[0], value = kvp[1];
 
@@ -101,7 +102,7 @@ namespace AMQSongProcessor
 		{
 			if (!File.Exists(file))
 			{
-				throw new ArgumentException($"{file} does not exist.", nameof(file));
+				throw new FileDoesNotExistException(file);
 			}
 
 			#region Args
@@ -123,8 +124,8 @@ namespace AMQSongProcessor
 			}, _ => { });
 
 			var sb = new StringBuilder();
-			void OnOutputReceived(object sender, DataReceivedEventArgs args)
-				=> sb.Append(args.Data);
+			void OnOutputReceived(object sender, DataReceivedEventArgs e)
+				=> sb.Append(e.Data);
 
 			process.OutputDataReceived += OnOutputReceived;
 			await process.RunAsync(false).CAF();
@@ -136,6 +137,10 @@ namespace AMQSongProcessor
 
 				var infoJson = doc.RootElement.GetProperty("streams")[0];
 				return infoJson.ToObject<T>(_Options);
+			}
+			catch (KeyNotFoundException knfe) when (sb.Length == 2)
+			{
+				throw new InvalidFileTypeException(file, knfe);
 			}
 			catch (Exception e)
 			{

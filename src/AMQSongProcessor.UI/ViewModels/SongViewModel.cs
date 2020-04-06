@@ -9,7 +9,9 @@ using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
 using AMQSongProcessor.Models;
+
 using Avalonia.Threading;
+using DynamicData;
 using ReactiveUI;
 
 using Splat;
@@ -46,6 +48,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		public ReactiveCommand<Unit, Unit> CancelProcessing { get; }
 		public IObservable<bool> CanNavigate { get; }
 		public ReactiveCommand<Anime, Unit> ChangeSource { get; }
+		public ReactiveCommand<Anime, Unit> ClearSongs { get; }
 		public ReactiveCommand<Anime, Unit> ClearSource { get; }
 		public Clipboard<Song>? ClipboardSong
 		{
@@ -127,6 +130,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			GetVolumeInfo = ReactiveCommand.CreateFromTask<Anime>(PrivateGetVolumeInfo);
 			DuplicateAnime = ReactiveCommand.CreateFromTask<Anime>(PrivateDuplicateAnime);
 			DeleteAnime = ReactiveCommand.CreateFromTask<Anime>(PrivateDeleteAnime);
+			ClearSongs = ReactiveCommand.CreateFromTask<Anime>(PrivateClearSongs);
 			ChangeSource = ReactiveCommand.CreateFromTask<Anime>(PrivateChangeSource);
 			ClearSource = ReactiveCommand.CreateFromTask<Anime>(PrivateClearSource);
 			AddSong = ReactiveCommand.Create<Anime>(PrivateAddSong);
@@ -153,23 +157,48 @@ namespace AMQSongProcessor.UI.ViewModels
 		private async Task PrivateChangeSource(Anime anime)
 		{
 			var dir = anime.Directory;
+			var defFile = Path.GetFileName(anime.GetSourcePath());
 			var manager = Locator.Current.GetService<IMessageBoxManager>();
-			var result = await manager.GetFilesAsync(dir, "Source", false).ConfigureAwait(false);
+			var result = await manager.GetFilesAsync(dir, "Source", false, defFile).ConfigureAwait(false);
 			if (!(result.SingleOrDefault() is string filePath))
 			{
 				return;
 			}
 
+			try
+			{
+				anime.VideoInfo = await _Gatherer.GetVideoInfoAsync(filePath).ConfigureAwait(true);
+			}
+			catch (GatheringException)
+			{
+				var text = $"\"{filePath}\" is an invalid file for a video source.";
+				await Dispatcher.UIThread.InvokeAsync(() => manager.ShowAsync(text, "Invalid File")).ConfigureAwait(true);
+				return;
+			}
+
 			anime.SetSourceFile(filePath);
 			await _Loader.SaveAsync(anime).ConfigureAwait(true);
-			anime.VideoInfo = await _Gatherer.GetVideoInfoAsync(filePath).ConfigureAwait(true);
+		}
+
+		private async Task PrivateClearSongs(Anime anime)
+		{
+			var text = $"Are you sure you want to delete all songs {anime.Name}?";
+			const string TITLE = "Song Clearing";
+
+			var manager = Locator.Current.GetService<IMessageBoxManager>();
+			var result = await manager.ShowAsync(text, TITLE, new[] { YES, NO }).ConfigureAwait(true);
+			if (result == YES)
+			{
+				anime.Songs.Clear();
+				await _Loader.SaveAsync(anime).ConfigureAwait(true);
+			}
 		}
 
 		private async Task PrivateClearSource(Anime anime)
 		{
 			anime.Source = null;
 			await _Loader.SaveAsync(anime).ConfigureAwait(true);
-			anime.VideoInfo = null!;
+			anime.VideoInfo = null;
 		}
 
 		private Task PrivateCopyANNID(int id)
@@ -200,7 +229,8 @@ namespace AMQSongProcessor.UI.ViewModels
 			var result = await manager.ShowAsync(text, TITLE, new[] { YES, NO }).ConfigureAwait(true);
 			if (result == YES)
 			{
-				Anime.Remove(anime);
+				var item = Anime.First(x => x.Id == anime.Id);
+				Anime.Remove(item);
 				File.Delete(anime.InfoFile);
 			}
 		}
@@ -222,8 +252,7 @@ namespace AMQSongProcessor.UI.ViewModels
 
 		private async Task PrivateDuplicateAnime(Anime anime)
 		{
-			var duplicate = new Anime(anime);
-			await _Loader.SaveNewAsync(duplicate, new SaveNewOptions(anime.Directory)
+			var duplicate = await _Loader.LoadFromANNAsync(anime.Id, new SaveNewOptions(anime.Directory)
 			{
 				AllowOverwrite = false,
 				CreateDuplicateFile = true,

@@ -13,35 +13,6 @@ using AMQSongProcessor.Utils;
 
 namespace AMQSongProcessor
 {
-	public static class SongLoaderUtils
-	{
-		public static Task SaveNewAsync(this ISongLoader loader, Anime anime, SaveNewOptions options)
-		{
-			var fullDir = options.Directory;
-			if (options.AddShowNameDirectory)
-			{
-				var showDir = FileUtils.RemoveInvalidPathChars($"[{anime.Year}] {anime.Name}");
-				fullDir = Path.Combine(options.Directory, showDir);
-			}
-			Directory.CreateDirectory(fullDir);
-
-			var file = Path.Combine(fullDir, $"info.{loader.Extension}");
-			var fileExists = File.Exists(file);
-			if (fileExists && options.CreateDuplicateFile)
-			{
-				file = FileUtils.NextAvailableFilename(file);
-				fileExists = false;
-			}
-			anime.InfoFile = file;
-
-			if (fileExists && !options.AllowOverwrite)
-			{
-				return Task.CompletedTask;
-			}
-			return loader.SaveAsync(anime);
-		}
-	}
-
 	public sealed class SongLoader : ISongLoader
 	{
 		private readonly ISourceInfoGatherer _Gatherer;
@@ -50,6 +21,7 @@ namespace AMQSongProcessor
 			WriteIndented = true,
 			IgnoreReadOnlyProperties = true,
 		};
+		public bool DontThrowVideoExceptions { get; set; } = true;
 		public string Extension { get; set; } = "amq";
 		public bool RemoveIgnoredSongs { get; set; } = true;
 
@@ -95,15 +67,50 @@ namespace AMQSongProcessor
 				}
 				if (show.GetSourcePath() is string source)
 				{
-					show.VideoInfo = await _Gatherer.GetVideoInfoAsync(source).CAF();
+					try
+					{
+						show.VideoInfo = await _Gatherer.GetVideoInfoAsync(source).CAF();
+					}
+					catch (GatheringException) when (DontThrowVideoExceptions)
+					{
+					}
 				}
 
 				yield return show;
 			}
 		}
 
-		public Task<Anime> LoadFromANNAsync(int id)
-			=> ANNGatherer.GetAsync(id);
+		public async Task<Anime> LoadFromANNAsync(int id, SaveNewOptions? options = null)
+		{
+			var anime = await ANNGatherer.GetAsync(id).CAF();
+			if (options == null)
+			{
+				return anime;
+			}
+
+			var fullDir = options.Directory;
+			if (options.AddShowNameDirectory)
+			{
+				var showDir = FileUtils.RemoveInvalidPathChars($"[{anime.Year}] {anime.Name}");
+				fullDir = Path.Combine(options.Directory, showDir);
+			}
+			Directory.CreateDirectory(fullDir);
+
+			var file = Path.Combine(fullDir, $"info.{Extension}");
+			var fileExists = File.Exists(file);
+			if (fileExists && options.CreateDuplicateFile)
+			{
+				file = FileUtils.NextAvailableFilename(file);
+				fileExists = false;
+			}
+			anime.InfoFile = file;
+
+			if (!fileExists || options.AllowOverwrite)
+			{
+				await SaveAsync(anime).CAF();
+			}
+			return anime;
+		}
 
 		public async Task SaveAsync(Anime anime)
 		{

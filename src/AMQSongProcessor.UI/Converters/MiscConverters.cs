@@ -1,4 +1,5 @@
-﻿using AMQSongProcessor.Models;
+﻿using System.IO;
+using AMQSongProcessor.Models;
 
 using Avalonia.Data.Converters;
 using Avalonia.Media;
@@ -9,6 +10,20 @@ namespace AMQSongProcessor.UI.Converters
 	{
 		public static readonly IMultiValueConverter SongVisibility =
 			new SongVisibilityConverter();
+		public static readonly IValueConverter SourceColor =
+			new FuncValueConverter<Anime, IBrush>(x =>
+			{
+				var path = x.GetSourcePath();
+				if (File.Exists(path))
+				{
+					return Brushes.Transparent;
+				}
+				if (string.IsNullOrWhiteSpace(path))
+				{
+					return _Yellow;
+				}
+				return _Red;
+			});
 		public static readonly IValueConverter StatusColor =
 			new FuncValueConverter<Status, IBrush>(x =>
 			{

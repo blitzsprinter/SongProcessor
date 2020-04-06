@@ -14,7 +14,7 @@ namespace AMQSongProcessor
 
 		IAsyncEnumerable<Anime> LoadAsync(string dir);
 
-		Task<Anime> LoadFromANNAsync(int id);
+		Task<Anime> LoadFromANNAsync(int id, SaveNewOptions? options = null);
 
 		Task SaveAsync(Anime anime);
 	}

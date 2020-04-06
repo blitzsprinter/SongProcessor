@@ -59,22 +59,25 @@ namespace AMQSongProcessor.Jobs
 
 			args += ARGS; //Add in the constant args, like quality + cpu usage
 
-			var width = -1;
-			var videoFilterParts = new List<string>();
-			//Resize video if needed
-			if (anime.VideoInfo.SAR != SquareSAR)
+			if (anime.VideoInfo != null)
 			{
-				videoFilterParts.Add($"setsar={SquareSAR.ToString('/')}");
-				videoFilterParts.Add($"setdar={anime.VideoInfo.DAR.ToString('/')}");
-				width = (int)(Resolution * anime.VideoInfo.DAR.Ratio);
-			}
-			if (anime.VideoInfo.Height != Resolution || width != -1)
-			{
-				videoFilterParts.Add($"scale={width}:{Resolution}");
-			}
-			if (videoFilterParts.Count > 0)
-			{
-				args += $" -filter:v \"{videoFilterParts.Join(",")}\"";
+				var width = -1;
+				var videoFilterParts = new List<string>();
+				//Resize video if needed
+				if (anime.VideoInfo.SAR != SquareSAR)
+				{
+					videoFilterParts.Add($"setsar={SquareSAR.ToString('/')}");
+					videoFilterParts.Add($"setdar={anime.VideoInfo.DAR.ToString('/')}");
+					width = (int)(Resolution * anime.VideoInfo.DAR.Ratio);
+				}
+				if (anime.VideoInfo.Height != Resolution || width != -1)
+				{
+					videoFilterParts.Add($"scale={width}:{Resolution}");
+				}
+				if (videoFilterParts.Count > 0)
+				{
+					args += $" -filter:v \"{videoFilterParts.Join(",")}\"";
+				}
 			}
 
 			if (Song.VolumeModifier != null)

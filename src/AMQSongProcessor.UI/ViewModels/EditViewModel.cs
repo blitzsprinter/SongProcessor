@@ -56,99 +56,80 @@ namespace AMQSongProcessor.UI.ViewModels
 			get => _Artist;
 			set => this.RaiseAndSetIfChanged(ref _Artist, value);
 		}
-
 		public int AudioTrack
 		{
 			get => _AudioTrack;
 			set => this.RaiseAndSetIfChanged(ref _AudioTrack, value);
 		}
-
 		public string CleanPath
 		{
 			get => _CleanPath;
 			set => this.RaiseAndSetIfChanged(ref _CleanPath, value);
 		}
-
 		public string End
 		{
 			get => _End;
 			set => this.RaiseAndSetIfChanged(ref _End, value);
 		}
-
 		public int Episode
 		{
 			get => _Episode;
 			set => this.RaiseAndSetIfChanged(ref _Episode, value);
 		}
-
 		public bool Has480p
 		{
 			get => _Has480p;
 			set => this.RaiseAndSetIfChanged(ref _Has480p, value);
 		}
-
 		public bool Has720p
 		{
 			get => _Has720p;
 			set => this.RaiseAndSetIfChanged(ref _Has720p, value);
 		}
-
 		public bool HasMp3
 		{
 			get => _HasMp3;
 			set => this.RaiseAndSetIfChanged(ref _HasMp3, value);
 		}
-
 		public IScreen HostScreen => _HostScreen ?? Locator.Current.GetService<IScreen>();
-
 		public bool IsSubmitted
 		{
 			get => _IsSubmitted;
 			set => this.RaiseAndSetIfChanged(ref _IsSubmitted, value);
 		}
-
 		public string Name
 		{
 			get => _Name;
 			set => this.RaiseAndSetIfChanged(ref _Name, value);
 		}
-
 		public ReactiveCommand<Unit, Unit> Save { get; }
-
 		public bool ShouldIgnore
 		{
 			get => _ShouldIgnore;
 			set => this.RaiseAndSetIfChanged(ref _ShouldIgnore, value);
 		}
-
 		public int SongPosition
 		{
 			get => _SongPosition;
 			set => this.RaiseAndSetIfChanged(ref _SongPosition, value);
 		}
-
 		public SongType SongType
 		{
 			get => _SongType;
 			set => this.RaiseAndSetIfChanged(ref _SongType, value);
 		}
-
 		public string Start
 		{
 			get => _Start;
 			set => this.RaiseAndSetIfChanged(ref _Start, value);
 		}
-
 		public string UrlPathSegment => "/edit";
-
 		public ValidationContext ValidationContext { get; } = new ValidationContext();
-
 		public int VideoTrack
 		{
 			get => _VideoTrack;
 			set => this.RaiseAndSetIfChanged(ref _VideoTrack, value);
 		}
-
 		public int VolumeModifier
 		{
 			get => _VolumeModifier;
