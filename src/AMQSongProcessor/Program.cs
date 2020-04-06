@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AdvorangesUtils;
 
 using AMQSongProcessor.Models;
+using AMQSongProcessor.Utils;
 
 namespace AMQSongProcessor
 {
@@ -97,7 +98,7 @@ namespace AMQSongProcessor
 				foreach (var song in show.Songs)
 				{
 					nameLen = Math.Max(nameLen, song.Name.Length);
-					artLen = Math.Max(artLen, song.FullArtist.Length);
+					artLen = Math.Max(artLen, song.Artist.Length);
 				}
 			}
 
@@ -124,7 +125,7 @@ namespace AMQSongProcessor
 					var songStr = new[]
 					{
 						song.Name?.PadRight(nameLen) ?? UNKNOWN,
-						song.FullArtist?.PadRight(artLen) ?? UNKNOWN,
+						song.Artist?.PadRight(artLen) ?? UNKNOWN,
 						song.HasTimeStamp ? song.Start.ToString("hh\\:mm\\:ss") : UNKNOWN,
 						song.HasTimeStamp ? song.Length.ToString("mm\\:ss") : UNKNOWN,
 					}.Join(" | ");

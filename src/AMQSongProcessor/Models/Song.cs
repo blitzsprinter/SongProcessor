@@ -2,6 +2,8 @@
 using System.Diagnostics;
 using System.Text.Json.Serialization;
 
+using AMQSongProcessor.Utils;
+
 namespace AMQSongProcessor.Models
 {
 	[DebuggerDisplay("{DebuggerDisplay,nq}")]
@@ -11,26 +13,11 @@ namespace AMQSongProcessor.Models
 
 		[JsonIgnore]
 		public Anime Anime { get; set; } = null!;
-
 		public string Artist { get; set; } = null!;
 		public string? CleanPath { get; set; }
 		public TimeSpan End { get; set; }
 		public int? Episode { get; set; }
-		public string[] Featuring { get; set; } = Array.Empty<string>();
-
-		public string FullArtist
-		{
-			get
-			{
-				if (Featuring?.Length > 0)
-				{
-					return Artist + " featuring " + string.Join(", ", Featuring);
-				}
-				return Artist;
-			}
-		}
-
-		public string FullName => $"{Name} ({FullArtist})";
+		public string FullName => $"{Name} ({Artist})";
 		public bool HasTimeStamp => Start != UnknownTime;
 		public bool IsCompleted => !IsMissing(Status.Res480 | Status.Res720);
 		public bool IsIncompleted => !(IsCompleted || IsUnsubmitted);
@@ -44,7 +31,7 @@ namespace AMQSongProcessor.Models
 		public Status Status { get; set; }
 		public SongTypeAndPosition Type { get; set; }
 		public VolumeModifer? VolumeModifier { get; set; }
-		private string DebuggerDisplay => $"{Name} ({FullArtist})";
+		private string DebuggerDisplay => FullName;
 
 		public Song()
 		{
@@ -61,15 +48,18 @@ namespace AMQSongProcessor.Models
 		}
 
 		public string? GetCleanSongPath()
-			=> Utils.GetFile(Anime.Directory, CleanPath);
+			=> FileUtils.GetFile(Anime.Directory, CleanPath);
 
 		public string GetMp3Path()
-			=> Utils.GetFile(Anime.Directory, $"[{Anime.Id}] {Name}.mp3")!;
+			=> FileUtils.GetFile(Anime.Directory, $"[{Anime.Id}] {Name}.mp3")!;
 
 		public string GetVideoPath(int resolution)
-			=> Utils.GetFile(Anime.Directory, $"[{Anime.Id}] {Name} [{resolution}p].webm")!;
+			=> FileUtils.GetFile(Anime.Directory, $"[{Anime.Id}] {Name} [{resolution}p].webm")!;
 
 		public bool IsMissing(Status status)
 			=> (Status & status) == 0;
+
+		public void SetCleanPath(string? path)
+			=> CleanPath = FileUtils.StoreRelativeOrAbsolute(Anime.Directory, path);
 	}
 }

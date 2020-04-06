@@ -41,12 +41,12 @@ namespace AMQSongProcessor.Models
 				return false;
 			}
 
-			if (double.TryParse(s, out var percentage))
+			if (double.TryParse(s.Trim(), out var percentage))
 			{
 				result = FromPercentage(percentage);
 				return true;
 			}
-			else if (double.TryParse(s.Replace(DB, null), out var dbs))
+			else if (double.TryParse(s.Replace(DB, null).Trim(), out var dbs))
 			{
 				result = FromDecibels(dbs);
 				return true;

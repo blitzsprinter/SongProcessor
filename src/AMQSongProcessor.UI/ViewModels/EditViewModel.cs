@@ -211,7 +211,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			{
 				_Song.Artist = Artist;
 				_Song.OverrideAudioTrack = AudioTrack;
-				_Song.CleanPath = GetNullIfEmpty(CleanPath);
+				_Song.SetCleanPath(GetNullIfEmpty(CleanPath));
 				_Song.End = TimeSpan.Parse(End);
 				_Song.Episode = GetNullIfZero(Episode);
 				_Song.Name = Name;

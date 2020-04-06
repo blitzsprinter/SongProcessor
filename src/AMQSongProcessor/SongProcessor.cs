@@ -45,13 +45,19 @@ namespace AMQSongProcessor
 				}
 
 				var resolutions = GetValidResolutions(show);
-				var songs = show.UnignoredSongs.Where(x =>
+				var songs = show.Songs.Where(x =>
 				{
+					if (x.ShouldIgnore)
+					{
+						Warnings?.Report($"Is ignored: {x.Name}");
+						return false;
+					}
 					if (!x.HasTimeStamp)
 					{
 						Warnings?.Report($"Timestamp is null: {x.Name}");
+						return false;
 					}
-					return x.HasTimeStamp;
+					return true;
 				});
 				var validJobs = GetJobs(resolutions, songs).Where(x =>
 				{
@@ -92,7 +98,7 @@ namespace AMQSongProcessor
 			var counts = new ConcurrentDictionary<string, List<Anime>>();
 			foreach (var show in anime)
 			{
-				foreach (var song in show.UnignoredSongs)
+				foreach (var song in show.Songs.Where(x => !x.ShouldIgnore))
 				{
 					counts.GetOrAdd(song.FullName, _ => new List<Anime>()).Add(show);
 				}
@@ -104,7 +110,7 @@ namespace AMQSongProcessor
 
 			foreach (var show in anime)
 			{
-				foreach (var song in show.UnignoredSongs)
+				foreach (var song in show.Songs.Where(x => !x.ShouldIgnore))
 				{
 					if (song.Status != Status.NotSubmitted)
 					{

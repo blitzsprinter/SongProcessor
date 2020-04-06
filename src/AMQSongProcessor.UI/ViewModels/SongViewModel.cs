@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reactive;
@@ -8,7 +9,7 @@ using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
 using AMQSongProcessor.Models;
-
+using Avalonia.Threading;
 using ReactiveUI;
 
 using Splat;
@@ -31,7 +32,6 @@ namespace AMQSongProcessor.UI.ViewModels
 		private int _CurrentJob;
 		private string? _Directory;
 		private string _DirectoryButtonText = LOAD;
-		private bool _IsExpanded;
 		private ProcessingData? _ProcessingData;
 		private int _QueuedJobs;
 		private SongVisibility _SongVisibility = new SongVisibility();
@@ -76,14 +76,10 @@ namespace AMQSongProcessor.UI.ViewModels
 		public ReactiveCommand<Anime, Unit> DuplicateAnime { get; }
 		public ReactiveCommand<Song, Unit> EditSong { get; }
 		public ReactiveCommand<Unit, Unit> ExportFixes { get; }
+		public ReactiveCommand<Anime, Unit> GetVolumeInfo { get; }
 		public IScreen HostScreen => _HostScreen ?? Locator.Current.GetService<IScreen>();
-		[DataMember]
-		public bool IsExpanded
-		{
-			get => _IsExpanded;
-			set => this.RaiseAndSetIfChanged(ref _IsExpanded, value);
-		}
 		public ReactiveCommand<Unit, Unit> Load { get; }
+		public ReactiveCommand<Anime, Unit> OpenInfoFile { get; }
 		public ReactiveCommand<Anime, Unit> PasteSong { get; }
 		public ProcessingData? ProcessingData
 		{
@@ -112,11 +108,11 @@ namespace AMQSongProcessor.UI.ViewModels
 			_Gatherer = Locator.Current.GetService<ISourceInfoGatherer>();
 			_Processor.Processing = new LogProcessingToViewModel(x =>
 			{
-				ProcessingData = x;
 				if (x.Progress.IsEnd)
 				{
 					++CurrentJob;
 				}
+				ProcessingData = x;
 			});
 			CanNavigate = this
 				.ObservableForProperty(x => x.BusyProcessing)
@@ -127,6 +123,8 @@ namespace AMQSongProcessor.UI.ViewModels
 				.Select(System.IO.Directory.Exists);
 			Load = ReactiveCommand.CreateFromTask(PrivateLoad, validDirectory);
 			CopyANNID = ReactiveCommand.CreateFromTask<int>(PrivateCopyANNID);
+			OpenInfoFile = ReactiveCommand.Create<Anime>(PrivateOpenInfoFile);
+			GetVolumeInfo = ReactiveCommand.CreateFromTask<Anime>(PrivateGetVolumeInfo);
 			DuplicateAnime = ReactiveCommand.CreateFromTask<Anime>(PrivateDuplicateAnime);
 			DeleteAnime = ReactiveCommand.CreateFromTask<Anime>(PrivateDeleteAnime);
 			ChangeSource = ReactiveCommand.CreateFromTask<Anime>(PrivateChangeSource);
@@ -154,16 +152,17 @@ namespace AMQSongProcessor.UI.ViewModels
 
 		private async Task PrivateChangeSource(Anime anime)
 		{
-			var directory = anime.Directory;
+			var dir = anime.Directory;
 			var manager = Locator.Current.GetService<IMessageBoxManager>();
-			var result = await manager.GetFilesAsync(directory, "Source", false).ConfigureAwait(false);
-			var path = result.SingleOrDefault();
-			if (path != null)
+			var result = await manager.GetFilesAsync(dir, "Source", false).ConfigureAwait(false);
+			if (!(result.SingleOrDefault() is string filePath))
 			{
-				anime.Source = Path.GetFileName(path);
-				await _Loader.SaveAsync(anime).ConfigureAwait(true);
-				anime.VideoInfo = await _Gatherer.GetVideoInfoAsync(anime.Source).ConfigureAwait(true);
+				return;
 			}
+
+			anime.SetSourceFile(filePath);
+			await _Loader.SaveAsync(anime).ConfigureAwait(true);
+			anime.VideoInfo = await _Gatherer.GetVideoInfoAsync(filePath).ConfigureAwait(true);
 		}
 
 		private async Task PrivateClearSource(Anime anime)
@@ -259,6 +258,23 @@ namespace AMQSongProcessor.UI.ViewModels
 		private Task PrivateExportFixes()
 			=> _Processor.ExportFixesAsync(Directory!, Anime);
 
+		private async Task PrivateGetVolumeInfo(Anime anime)
+		{
+			var dir = anime.Directory;
+			var manager = Locator.Current.GetService<IMessageBoxManager>();
+			var result = await manager.GetFilesAsync(dir, "Volume Info", false).ConfigureAwait(false);
+			if (!(result.SingleOrDefault() is string filePath))
+			{
+				return;
+			}
+
+			var info = await _Gatherer.GetAverageVolumeAsync(filePath).ConfigureAwait(true);
+			var text = $"Volume information for \"{Path.GetFileName(filePath)}\":" +
+				$"\nMean volume: {info.MeanVolume}dB" +
+				$"\nMax volume: {info.MaxVolume}dB";
+			await Dispatcher.UIThread.InvokeAsync(() => manager.ShowAsync(text, "Volume Info")).ConfigureAwait(true);
+		}
+
 		private async Task PrivateLoad()
 		{
 			var shouldAttemptToLoad = !Anime.Any();
@@ -274,6 +290,17 @@ namespace AMQSongProcessor.UI.ViewModels
 			}
 
 			DirectoryButtonText = Anime.Any() ? UNLOAD : LOAD;
+		}
+
+		private void PrivateOpenInfoFile(Anime anime)
+		{
+			new Process
+			{
+				StartInfo = new ProcessStartInfo(anime.InfoFile)
+				{
+					UseShellExecute = true
+				}
+			}.Start();
 		}
 
 		private async Task PrivatePasteSong(Anime anime)

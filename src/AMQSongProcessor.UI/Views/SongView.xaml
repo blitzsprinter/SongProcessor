@@ -26,7 +26,7 @@
       <Grid.ContextMenu>
         <ContextMenu>
           <HeaderedContentControl Header="Expand All">
-            <CheckBox IsChecked="{Binding IsExpanded}" />
+            <CheckBox IsChecked="{Binding SongVisibility.IsExpanded}" />
           </HeaderedContentControl>
           <MenuItem Header="-" />
           <HeaderedContentControl Header="Show Ignored Songs">
@@ -53,6 +53,10 @@
                 <ContextMenu Classes="disableWhenProcessing">
                   <MenuItem Header="Copy ANNID" CommandParameter="{Binding Id}"
                             Command="{Binding ElementName=Tree, Path=DataContext.CopyANNID}" />
+                  <MenuItem Header="Open Info File" CommandParameter="{Binding}"
+                            Command="{Binding ElementName=Tree, Path=DataContext.OpenInfoFile}" />
+                  <MenuItem Header="Get Volume Info" CommandParameter="{Binding}"
+                            Command="{Binding ElementName=Tree, Path=DataContext.GetVolumeInfo}" />
                   <MenuItem Header="-" />
                   <MenuItem Header="Duplicate Anime" CommandParameter="{Binding}"
                             Command="{Binding ElementName=Tree, Path=DataContext.DuplicateAnime}" />
@@ -112,7 +116,7 @@
           <!-- Expand all the anime items to show all the songs -->
           <Style Selector="TreeView > TreeViewItem">
             <Setter Property="IsExpanded"
-                    Value="{Binding ElementName=Tree, Path=DataContext.IsExpanded}" />
+                    Value="{Binding ElementName=Tree, Path=DataContext.SongVisibility.IsExpanded}" />
           </Style>
 
           <!-- Hide the songs if they are ignored and we don't want to see ignored songs -->

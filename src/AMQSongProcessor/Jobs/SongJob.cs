@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AdvorangesUtils;
 
 using AMQSongProcessor.Models;
+using AMQSongProcessor.Utils;
 
 namespace AMQSongProcessor.Jobs
 {
@@ -32,7 +33,7 @@ namespace AMQSongProcessor.Jobs
 			}
 
 			var args = GenerateArgs();
-			using var process = Utils.CreateProcess(Utils.FFmpeg, args);
+			using var process = ProcessUtils.CreateProcess(ProcessUtils.FFmpeg, args);
 
 			//ffmpeg will output the information we want to std:out
 			var ffmpegProgress = new MutableFfmpegProgress();
@@ -72,7 +73,7 @@ namespace AMQSongProcessor.Jobs
 			var path = GetPath();
 #pragma warning restore CS0618 // Type or member is obsolete
 			var dir = Path.GetDirectoryName(path)!;
-			var file = Utils.RemoveInvalidPathChars(Path.GetFileName(path));
+			var file = FileUtils.RemoveInvalidPathChars(Path.GetFileName(path));
 			return Path.Combine(dir, file);
 		}
 	}

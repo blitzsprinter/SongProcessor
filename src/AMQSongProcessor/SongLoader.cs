@@ -9,6 +9,7 @@ using AdvorangesUtils;
 
 using AMQSongProcessor.Converters;
 using AMQSongProcessor.Models;
+using AMQSongProcessor.Utils;
 
 namespace AMQSongProcessor
 {
@@ -19,7 +20,7 @@ namespace AMQSongProcessor
 			var fullDir = options.Directory;
 			if (options.AddShowNameDirectory)
 			{
-				var showDir = Utils.RemoveInvalidPathChars($"[{anime.Year}] {anime.Name}");
+				var showDir = FileUtils.RemoveInvalidPathChars($"[{anime.Year}] {anime.Name}");
 				fullDir = Path.Combine(options.Directory, showDir);
 			}
 			Directory.CreateDirectory(fullDir);
@@ -28,7 +29,7 @@ namespace AMQSongProcessor
 			var fileExists = File.Exists(file);
 			if (fileExists && options.CreateDuplicateFile)
 			{
-				file = Utils.NextAvailableFilename(file);
+				file = FileUtils.NextAvailableFilename(file);
 				fileExists = false;
 			}
 			anime.InfoFile = file;
