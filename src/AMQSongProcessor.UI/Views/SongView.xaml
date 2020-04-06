@@ -48,8 +48,7 @@
       <TreeView Name="Tree" Grid.Row="1" Items="{Binding Anime}">
         <TreeView.DataTemplates>
           <TreeDataTemplate DataType="models:Anime" ItemsSource="{Binding Songs}">
-            <TextBlock VerticalAlignment="Center"
-                       Background="{Binding Converter={x:Static converters:MiscConverters.SourceColor}}">
+            <TextBlock Background="{Binding Converter={x:Static converters:MiscConverters.SourceColor}}">
               <TextBlock.ContextMenu>
                 <ContextMenu Classes="disableWhenProcessing">
                   <MenuItem Header="Copy ANNID" CommandParameter="{Binding Id}"
@@ -89,8 +88,7 @@
           </TreeDataTemplate>
 
           <DataTemplate DataType="models:Song">
-            <TextBlock VerticalAlignment="Center"
-                       Background="{Binding Status, Converter={x:Static converters:MiscConverters.StatusColor}}">
+            <TextBlock Background="{Binding Status, Converter={x:Static converters:MiscConverters.StatusColor}}">
               <TextBlock.ContextMenu>
                 <ContextMenu Classes="disableWhenProcessing">
                   <MenuItem Header="Edit Song" CommandParameter="{Binding}"
@@ -116,6 +114,11 @@
         </TreeView.DataTemplates>
 
         <TreeView.Styles>
+          <Style Selector="TreeViewItem > TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+          </Style>
+
           <!-- Expand all the anime items to show all the songs -->
           <Style Selector="TreeView > TreeViewItem">
             <Setter Property="IsExpanded"

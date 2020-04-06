@@ -25,11 +25,11 @@
     <None Remove="Views\SongView.xaml" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="0.9.999-cibuild0006362-beta" />
-    <PackageReference Include="Avalonia.Desktop" Version="0.9.999-cibuild0006362-beta" />
-    <PackageReference Include="Avalonia.ReactiveUI" Version="0.9.999-cibuild0006362-beta" />
+    <PackageReference Include="Avalonia" Version="0.9.999-cibuild0006541-beta" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.9.999-cibuild0006541-beta" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="0.9.999-cibuild0006541-beta" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="ReactiveUI.Validation" Version="1.4.10" />
+    <PackageReference Include="ReactiveUI.Validation" Version="1.4.13" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Views\AddView.xaml">
