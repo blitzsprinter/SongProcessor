@@ -17,12 +17,14 @@ namespace AMQSongProcessor
 	public sealed class SongProcessor : ISongProcessor
 	{
 		private const int MP3 = -1;
-
+		private static readonly Resolution RES_480 = new Resolution(480, Status.Res480);
+		private static readonly Resolution RES_720 = new Resolution(720, Status.Res720);
+		private static readonly Resolution RES_MP3 = new Resolution(MP3, Status.Mp3);
 		private static readonly Resolution[] Resolutions = new[]
 		{
-			new Resolution(MP3, Status.Mp3),
-			new Resolution(480, Status.Res480),
-			new Resolution(720, Status.Res720)
+			RES_MP3,
+			RES_480,
+			RES_720
 		};
 
 		public string FixesFile { get; set; } = "fixes.txt";
@@ -188,6 +190,12 @@ namespace AMQSongProcessor
 				{
 					valid.Add(res);
 				}
+			}
+
+			//Smaller than 480p source. Just upscale it ¯\_(ツ)_/¯
+			if (valid.Count == 1 && valid.Single().IsMp3)
+			{
+				valid.Add(RES_480);
 			}
 			return valid;
 		}

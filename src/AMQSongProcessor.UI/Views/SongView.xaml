@@ -8,6 +8,13 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="800"
              x:Class="AMQSongProcessor.UI.Views.SongView">
 
+  <UserControl.Resources>
+    <!-- SongVisibility must go first, Song(s) must go second. No other values. -->
+    <converters:SongVisibilityConverter x:Key="SongVisibility" />
+    <!-- SearchTerms must go first, Song(s)/Anime(s) must go second. No other values. -->
+    <converters:SearchVisibilityConverter x:Key="SearchVisibility" />
+  </UserControl.Resources>
+
   <UserControl.Styles>
     <Style Selector=":is(InputElement).disableWhenProcessing">
       <Setter Property="IsEnabled" Value="{Binding ElementName=Tree, Path=!DataContext.BusyProcessing}" />
@@ -25,27 +32,37 @@
     <Grid Grid.Row="1" ColumnDefinitions="9*,1*">
       <Grid.ContextMenu>
         <ContextMenu>
-          <HeaderedContentControl Header="Expand All">
+          <HeaderedContentControl Header="Search by anime name">
+            <TextBox Text="{Binding Search.AnimeName}" />
+          </HeaderedContentControl>
+          <HeaderedContentControl Header=" Search by song name">
+            <TextBox Text="{Binding Search.SongName}" />
+          </HeaderedContentControl>
+          <HeaderedContentControl Header=" Search by artist name">
+            <TextBox Text="{Binding Search.ArtistName}" />
+          </HeaderedContentControl>
+          <MenuItem Header="-" />
+          <HeaderedContentControl Header="Expand all">
             <CheckBox IsChecked="{Binding SongVisibility.IsExpanded}" />
           </HeaderedContentControl>
           <MenuItem Header="-" />
-          <HeaderedContentControl Header="Show Ignored Songs">
+          <HeaderedContentControl Header="Show ignored songs">
             <CheckBox IsChecked="{Binding SongVisibility.ShowIgnoredSongs}" />
           </HeaderedContentControl>
           <MenuItem Header="-" />
-          <HeaderedContentControl Header="Show Unsubmitted Songs">
+          <HeaderedContentControl Header="Show unsubmitted songs">
             <CheckBox IsChecked="{Binding SongVisibility.ShowUnsubmittedSongs}" />
           </HeaderedContentControl>
-          <HeaderedContentControl Header="Show Incompleted Songs">
+          <HeaderedContentControl Header="Show incompleted songs">
             <CheckBox IsChecked="{Binding SongVisibility.ShowIncompletedSongs}" />
           </HeaderedContentControl>
-          <HeaderedContentControl Header="Show Completed Songs">
+          <HeaderedContentControl Header="Show completed songs">
             <CheckBox IsChecked="{Binding SongVisibility.ShowCompletedSongs}" />
           </HeaderedContentControl>
         </ContextMenu>
       </Grid.ContextMenu>
 
-      <TreeView Name="Tree" Grid.Row="1" Items="{Binding Anime}">
+      <TreeView Name="Tree" Items="{Binding Anime}">
         <TreeView.DataTemplates>
           <TreeDataTemplate DataType="models:Anime" ItemsSource="{Binding Songs}">
             <TextBlock Background="{Binding Converter={x:Static converters:MiscConverters.SourceColor}}">
@@ -123,15 +140,26 @@
           <Style Selector="TreeView > TreeViewItem">
             <Setter Property="IsExpanded"
                     Value="{Binding ElementName=Tree, Path=DataContext.SongVisibility.IsExpanded}" />
+            <Setter Property="IsVisible">
+              <MultiBinding Converter="{StaticResource SearchVisibility}">
+                <Binding ElementName="Tree" Path="DataContext.Search.Self" />
+                <Binding />
+              </MultiBinding>
+            </Setter>
           </Style>
 
           <!-- Hide the songs if they are ignored and we don't want to see ignored songs -->
           <Style Selector="TreeView > TreeViewItem > TreeViewItem">
             <Setter Property="IsVisible">
-              <!-- SongVisibility must go first, Song(s) must go second. No other values. -->
-              <MultiBinding Converter="{x:Static converters:MiscConverters.SongVisibility}">
-                <Binding ElementName="Tree" Path="DataContext.SongVisibility.Self" />
-                <Binding />
+              <MultiBinding Converter="{x:Static BoolConverters.And}">
+                <MultiBinding Converter="{StaticResource SongVisibility}">
+                  <Binding ElementName="Tree" Path="DataContext.SongVisibility.Self" />
+                  <Binding />
+                </MultiBinding>
+                <MultiBinding Converter="{StaticResource SearchVisibility}">
+                  <Binding ElementName="Tree" Path="DataContext.Search.Self" />
+                  <Binding />
+                </MultiBinding>
               </MultiBinding>
             </Setter>
           </Style>
@@ -139,10 +167,15 @@
           <!-- Don't show the expand button if all songs are ignored and ignored songs are blocked -->
           <Style Selector="TreeView > TreeViewItem /template/ ToggleButton#expander">
             <Setter Property="IsVisible">
-              <!-- SongVisibility must go first, Song(s) must go second. No other values. -->
-              <MultiBinding Converter="{x:Static converters:MiscConverters.SongVisibility}">
-                <Binding ElementName="Tree" Path="DataContext.SongVisibility.Self" />
-                <Binding Path="Songs.Items" />
+              <MultiBinding Converter="{x:Static BoolConverters.And}">
+                <MultiBinding Converter="{StaticResource SongVisibility}">
+                  <Binding ElementName="Tree" Path="DataContext.SongVisibility.Self" />
+                  <Binding Path="Songs.Items" />
+                </MultiBinding>
+                <MultiBinding Converter="{StaticResource SearchVisibility}">
+                  <Binding ElementName="Tree" Path="DataContext.Search.Self" />
+                  <Binding Path="Songs.Items" />
+                </MultiBinding>
               </MultiBinding>
             </Setter>
           </Style>

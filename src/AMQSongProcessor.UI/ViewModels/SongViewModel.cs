@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using AMQSongProcessor.Models;
 
 using Avalonia.Threading;
-using DynamicData;
+
 using ReactiveUI;
 
 using Splat;
@@ -36,6 +36,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		private string _DirectoryButtonText = LOAD;
 		private ProcessingData? _ProcessingData;
 		private int _QueuedJobs;
+		private SearchTerms _Search = new SearchTerms();
 		private SongVisibility _SongVisibility = new SongVisibility();
 
 		public ReactiveCommand<Anime, Unit> AddSong { get; }
@@ -96,6 +97,12 @@ namespace AMQSongProcessor.UI.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _QueuedJobs, value);
 		}
 		[DataMember]
+		public SearchTerms Search
+		{
+			get => _Search;
+			set => this.RaiseAndSetIfChanged(ref _Search, value);
+		}
+		[DataMember]
 		public SongVisibility SongVisibility
 		{
 			get => _SongVisibility;
@@ -152,7 +159,10 @@ namespace AMQSongProcessor.UI.ViewModels
 		}
 
 		private void PrivateCancelProcessing()
-			=> BusyProcessing = false;
+		{
+			BusyProcessing = false;
+			ProcessingData = null;
+		}
 
 		private async Task PrivateChangeSource(Anime anime)
 		{
