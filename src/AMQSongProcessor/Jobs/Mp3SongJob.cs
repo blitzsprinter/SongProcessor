@@ -26,7 +26,7 @@ namespace AMQSongProcessor.Jobs
 				args =
 					$" -ss {Song.Start}" + //Starting time
 					$" -to {Song.End}" + //Ending time
-					$" -i \"{anime.GetSourcePath()}\"" + //Video source
+					$" -i \"{anime.AbsoluteSourcePath}\"" + //Video source
 					$" -map 0:a:{Song.OverrideAudioTrack}"; //Use the first input's audio
 			}
 			else

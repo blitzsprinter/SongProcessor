@@ -41,7 +41,7 @@ namespace AMQSongProcessor
 					Warnings?.Report($"Source is null: {show.Name}");
 					continue;
 				}
-				else if (!File.Exists(show.GetSourcePath()))
+				else if (!File.Exists(show.AbsoluteSourcePath))
 				{
 					throw new ArgumentException($"{show.Name} '{show.Source}' does not exist.", nameof(show.Source));
 				}

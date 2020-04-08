@@ -48,13 +48,13 @@ namespace AMQSongProcessor.Models
 		}
 
 		public string? GetCleanSongPath()
-			=> FileUtils.GetFile(Anime.Directory, CleanPath);
+			=> FileUtils.EnsureAbsolutePath(Anime.Directory, CleanPath);
 
 		public string GetMp3Path()
-			=> FileUtils.GetFile(Anime.Directory, $"[{Anime.Id}] {Name}.mp3")!;
+			=> FileUtils.EnsureAbsolutePath(Anime.Directory, $"[{Anime.Id}] {Name}.mp3")!;
 
 		public string GetVideoPath(int resolution)
-			=> FileUtils.GetFile(Anime.Directory, $"[{Anime.Id}] {Name} [{resolution}p].webm")!;
+			=> FileUtils.EnsureAbsolutePath(Anime.Directory, $"[{Anime.Id}] {Name} [{resolution}p].webm")!;
 
 		public bool IsMissing(Status status)
 			=> (Status & status) == 0;

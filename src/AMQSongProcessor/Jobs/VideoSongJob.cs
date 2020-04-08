@@ -41,7 +41,7 @@ namespace AMQSongProcessor.Jobs
 			var args =
 				$" -ss {Song.Start}" + //Starting time
 				$" -to {Song.End}" + //Ending time
-				$" -i \"{anime.GetSourcePath()}\""; //Video source
+				$" -i \"{anime.AbsoluteSourcePath}\""; //Video source
 
 			if (Song.CleanPath == null)
 			{

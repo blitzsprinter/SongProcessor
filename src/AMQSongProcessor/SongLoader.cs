@@ -59,13 +59,13 @@ namespace AMQSongProcessor
 					throw new JsonException($"Unable to parse {file}", e);
 				}
 
-				show.InfoFile = file;
+				show.AbsoluteInfoPath = file;
 				show.Songs = new SongCollection(show, show.Songs);
 				if (RemoveIgnoredSongs)
 				{
 					show.Songs.RemoveAll(x => x.ShouldIgnore);
 				}
-				if (show.GetSourcePath() is string source)
+				if (show.AbsoluteSourcePath is string source)
 				{
 					try
 					{
@@ -103,7 +103,7 @@ namespace AMQSongProcessor
 				file = FileUtils.NextAvailableFilename(file);
 				fileExists = false;
 			}
-			anime.InfoFile = file;
+			anime.AbsoluteInfoPath = file;
 
 			if (!fileExists || options.AllowOverwrite)
 			{
@@ -114,20 +114,20 @@ namespace AMQSongProcessor
 
 		public async Task SaveAsync(Anime anime)
 		{
-			if (string.IsNullOrWhiteSpace(anime.InfoFile))
+			if (string.IsNullOrWhiteSpace(anime.AbsoluteInfoPath))
 			{
-				throw new ArgumentNullException(nameof(anime.InfoFile));
+				throw new ArgumentNullException(nameof(anime.AbsoluteInfoPath));
 			}
 
 			try
 			{
-				using var fs = new FileStream(anime.InfoFile, FileMode.Create);
+				using var fs = new FileStream(anime.AbsoluteInfoPath, FileMode.Create);
 
 				await JsonSerializer.SerializeAsync(fs, anime, _Options).CAF();
 			}
 			catch (Exception e)
 			{
-				throw new InvalidOperationException($"Unable to save {anime.Name} to {anime.InfoFile}.", e);
+				throw new InvalidOperationException($"Unable to save {anime.Name} to {anime.AbsoluteInfoPath}.", e);
 			}
 		}
 	}

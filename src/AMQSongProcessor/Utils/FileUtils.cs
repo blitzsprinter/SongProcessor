@@ -18,7 +18,7 @@ namespace AMQSongProcessor.Utils
 		private static readonly bool IsWindows =
 			Environment.OSVersion.Platform.ToString().CaseInsContains("win");
 
-		public static string? GetFile(string directory, string? path)
+		public static string? EnsureAbsolutePath(string? directory, string? path)
 		{
 			if (path == null)
 			{
@@ -27,6 +27,11 @@ namespace AMQSongProcessor.Utils
 			else if (Path.IsPathRooted(path))
 			{
 				return path;
+			}
+
+			if (directory == null)
+			{
+				return null;
 			}
 			return Path.Combine(directory, path);
 		}

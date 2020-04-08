@@ -65,7 +65,7 @@
       <TreeView Name="Tree" Items="{Binding Anime}">
         <TreeView.DataTemplates>
           <TreeDataTemplate DataType="models:Anime" ItemsSource="{Binding Songs}">
-            <TextBlock Background="{Binding Converter={x:Static converters:MiscConverters.SourceColor}}">
+            <TextBlock>
               <TextBlock.ContextMenu>
                 <ContextMenu Classes="disableWhenProcessing">
                   <MenuItem Header="Copy ANNID" CommandParameter="{Binding Id}"
@@ -101,6 +101,11 @@
                   <Binding Path="Name" />
                 </MultiBinding>
               </TextBlock.Text>
+
+              <TextBlock.Background>
+                <Binding Path="AbsoluteSourcePath"
+                         Converter="{x:Static converters:MiscConverters.SourceColor}" />
+              </TextBlock.Background>
             </TextBlock>
           </TreeDataTemplate>
 

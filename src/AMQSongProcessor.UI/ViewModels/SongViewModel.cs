@@ -167,7 +167,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		private async Task PrivateChangeSource(Anime anime)
 		{
 			var dir = anime.Directory;
-			var defFile = Path.GetFileName(anime.GetSourcePath());
+			var defFile = Path.GetFileName(anime.AbsoluteSourcePath);
 			var manager = Locator.Current.GetService<IMessageBoxManager>();
 			var result = await manager.GetFilesAsync(dir, "Source", false, defFile).ConfigureAwait(false);
 			if (!(result.SingleOrDefault() is string filePath))
@@ -241,7 +241,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			{
 				var item = Anime.First(x => x.Id == anime.Id);
 				Anime.Remove(item);
-				File.Delete(anime.InfoFile);
+				File.Delete(anime.AbsoluteInfoPath);
 			}
 		}
 
@@ -335,7 +335,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		{
 			new Process
 			{
-				StartInfo = new ProcessStartInfo(anime.InfoFile)
+				StartInfo = new ProcessStartInfo(anime.AbsoluteInfoPath)
 				{
 					UseShellExecute = true
 				}
