@@ -26,32 +26,31 @@ namespace AMQSongProcessor.UI.ViewModels
 			get => _Anime;
 			set => this.RaiseAndSetIfChanged(ref _Anime, value);
 		}
-
 		[DataMember]
 		public string? Directory
 		{
 			get => _Directory;
 			set => this.RaiseAndSetIfChanged(ref _Directory, value);
 		}
-
 		public Exception? Exception
 		{
 			get => _Exception;
 			set => this.RaiseAndSetIfChanged(ref _Exception, value);
 		}
-
 		public IScreen HostScreen => _HostScreen ?? Locator.Current.GetService<IScreen>();
-
 		[DataMember]
 		public int Id
 		{
 			get => _Id;
 			set => this.RaiseAndSetIfChanged(ref _Id, value);
 		}
-
 		public string UrlPathSegment => "/add";
 
-		public AddViewModel(IScreen? screen = null)
+		public AddViewModel() : this(null)
+		{
+		}
+
+		public AddViewModel(IScreen? screen)
 		{
 			_HostScreen = screen;
 			_Loader = Locator.Current.GetService<ISongLoader>();

@@ -110,7 +110,11 @@ namespace AMQSongProcessor.UI.ViewModels
 		}
 		public string UrlPathSegment => "/songs";
 
-		public SongViewModel(IScreen? screen = null)
+		public SongViewModel() : this(null)
+		{
+		}
+
+		public SongViewModel(IScreen? screen)
 		{
 			_HostScreen = screen;
 			_Loader = Locator.Current.GetService<ISongLoader>();

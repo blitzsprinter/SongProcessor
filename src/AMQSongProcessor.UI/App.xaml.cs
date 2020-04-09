@@ -31,7 +31,12 @@ namespace AMQSongProcessor.UI
 			Locator.CurrentMutable.Register<ISongProcessor>(() => new SongProcessor());
 
 			var suspension = new AutoSuspendHelper(ApplicationLifetime);
-			var driver = new NewtonsoftJsonSuspensionDriver("appstate.json");
+			var driver = new NewtonsoftJsonSuspensionDriver("appstate.json")
+			{
+#if DEBUG
+				DeleteOnInvalidState = false,
+#endif
+			};
 			RxApp.SuspensionHost.CreateNewAppState = () => new MainViewModel();
 			RxApp.SuspensionHost.SetupDefaultSuspendResume(driver);
 			suspension.OnFrameworkInitializationCompleted();

@@ -19,6 +19,7 @@ namespace AMQSongProcessor.UI
 			Formatting = Formatting.Indented,
 			ContractResolver = new WritablePropertiesOnlyResolver(),
 		};
+		public bool DeleteOnInvalidState { get; set; }
 
 		public NewtonsoftJsonSuspensionDriver(string file)
 		{
@@ -27,7 +28,7 @@ namespace AMQSongProcessor.UI
 
 		public IObservable<Unit> InvalidateState()
 		{
-			if (File.Exists(_File))
+			if (DeleteOnInvalidState && File.Exists(_File))
 			{
 				File.Delete(_File);
 			}

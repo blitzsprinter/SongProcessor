@@ -15,7 +15,6 @@ namespace AMQSongProcessor.UI.ViewModels
 		public ReactiveCommand<Unit, Unit> Add { get; }
 		public ReactiveCommand<Unit, Unit> GoBack { get; }
 		public ReactiveCommand<Unit, Unit> Load { get; }
-
 		[DataMember]
 		public RoutingState Router
 		{
@@ -25,16 +24,8 @@ namespace AMQSongProcessor.UI.ViewModels
 
 		public MainViewModel()
 		{
-			Load = ReactiveCommand.Create(() =>
-			{
-				Router.Navigate.Execute(new SongViewModel());
-			}, CanNavigateTo<SongViewModel>());
-
-			Add = ReactiveCommand.Create(() =>
-			{
-				Router.Navigate.Execute(new AddViewModel());
-			}, CanNavigateTo<AddViewModel>());
-
+			Load = CreateViewModelCommand<SongViewModel>();
+			Add = CreateViewModelCommand<AddViewModel>();
 			GoBack = ReactiveCommand.Create(() =>
 			{
 				Router.NavigateBack.Execute();
@@ -54,7 +45,7 @@ namespace AMQSongProcessor.UI.ViewModels
 					{
 						return controller.CanNavigate;
 					}
-					return Observable.Never<bool>().StartWith(true);
+					return Observable.Return(true);
 				});
 		}
 
@@ -64,6 +55,14 @@ namespace AMQSongProcessor.UI.ViewModels
 				.WhenAnyObservable(x => x.Router.CurrentViewModel)
 				.Select(x => !(x is T));
 			return CanNavigate().CombineLatest(isDifferent, (x, y) => x && y);
+		}
+
+		private ReactiveCommand<Unit, Unit> CreateViewModelCommand<T>() where T : IRoutableViewModel, new()
+		{
+			return ReactiveCommand.Create(() =>
+			{
+				Router.Navigate.Execute(new T());
+			}, CanNavigateTo<T>());
 		}
 	}
 }
