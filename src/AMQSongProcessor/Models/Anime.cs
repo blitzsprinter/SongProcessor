@@ -27,7 +27,7 @@ namespace AMQSongProcessor.Models
 		public string AbsoluteInfoPath
 		{
 			get => _AbsoluteInfoPath;
-			set
+			internal set
 			{
 				//If info file has been changed then update the directory
 				if (RaiseAndSetIfChanged(ref _AbsoluteInfoPath, value))
@@ -89,7 +89,6 @@ namespace AMQSongProcessor.Models
 			get => _Year;
 			set => RaiseAndSetIfChanged(ref _Year, value);
 		}
-
 		private string DebuggerDisplay => Name;
 
 		public event PropertyChangedEventHandler? PropertyChanged;

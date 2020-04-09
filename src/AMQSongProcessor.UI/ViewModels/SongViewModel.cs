@@ -262,7 +262,8 @@ namespace AMQSongProcessor.UI.ViewModels
 
 		private async Task PrivateDuplicateAnime(Anime anime)
 		{
-			var duplicate = await _Loader.LoadFromANNAsync(anime.Id, new SaveNewOptions(anime.Directory)
+			var duplicate = new Anime(anime);
+			await _Loader.SaveAsync(anime, new SaveNewOptions(anime.Directory)
 			{
 				AllowOverwrite = false,
 				CreateDuplicateFile = true,
@@ -322,7 +323,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			if (shouldAttemptToLoad)
 			{
 				ClipboardSong = null;
-				await foreach (var anime in _Loader.LoadAsync(Directory!))
+				await foreach (var anime in _Loader.LoadFromDirectoryAsync(Directory!))
 				{
 					Anime.Add(anime);
 				}

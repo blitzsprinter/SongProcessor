@@ -43,49 +43,44 @@ namespace AMQSongProcessor
 			return await JsonSerializer.DeserializeAsync<Song>(ms, _Options).CAF();
 		}
 
-		public async IAsyncEnumerable<Anime> LoadAsync(string dir)
+		public async Task<Anime> LoadAsync(string file)
 		{
-			foreach (var file in Directory.EnumerateFiles(dir, $"*.{Extension}", SearchOption.AllDirectories))
-			{
-				using var fs = new FileStream(file, FileMode.Open);
+			using var fs = new FileStream(file, FileMode.Open);
 
-				Anime show;
+			Anime show;
+			try
+			{
+				show = await JsonSerializer.DeserializeAsync<Anime>(fs, _Options).CAF();
+			}
+			catch (Exception e)
+			{
+				throw new JsonException($"Unable to parse {file}", e);
+			}
+
+			show.AbsoluteInfoPath = file;
+			show.Songs = new SongCollection(show, show.Songs);
+			if (RemoveIgnoredSongs)
+			{
+				show.Songs.RemoveAll(x => x.ShouldIgnore);
+			}
+			if (show.AbsoluteSourcePath is string source)
+			{
 				try
 				{
-					show = await JsonSerializer.DeserializeAsync<Anime>(fs, _Options).CAF();
+					show.VideoInfo = await _Gatherer.GetVideoInfoAsync(source).CAF();
 				}
-				catch (Exception e)
+				catch (GatheringException) when (DontThrowVideoExceptions)
 				{
-					throw new JsonException($"Unable to parse {file}", e);
 				}
-
-				show.AbsoluteInfoPath = file;
-				show.Songs = new SongCollection(show, show.Songs);
-				if (RemoveIgnoredSongs)
-				{
-					show.Songs.RemoveAll(x => x.ShouldIgnore);
-				}
-				if (show.AbsoluteSourcePath is string source)
-				{
-					try
-					{
-						show.VideoInfo = await _Gatherer.GetVideoInfoAsync(source).CAF();
-					}
-					catch (GatheringException) when (DontThrowVideoExceptions)
-					{
-					}
-				}
-
-				yield return show;
 			}
+			return show;
 		}
 
-		public async Task<Anime> LoadFromANNAsync(int id, SaveNewOptions? options = null)
+		public Task SaveAsync(Anime anime, SaveNewOptions? options = null)
 		{
-			var anime = await ANNGatherer.GetAsync(id).CAF();
 			if (options == null)
 			{
-				return anime;
+				return SaveAsync(anime);
 			}
 
 			var fullDir = options.Directory;
@@ -105,14 +100,14 @@ namespace AMQSongProcessor
 			}
 			anime.AbsoluteInfoPath = file;
 
-			if (!fileExists || options.AllowOverwrite)
+			if (fileExists && !options.AllowOverwrite)
 			{
-				await SaveAsync(anime).CAF();
+				return Task.CompletedTask;
 			}
-			return anime;
+			return SaveAsync(anime);
 		}
 
-		public async Task SaveAsync(Anime anime)
+		private async Task SaveAsync(Anime anime)
 		{
 			if (string.IsNullOrWhiteSpace(anime.AbsoluteInfoPath))
 			{

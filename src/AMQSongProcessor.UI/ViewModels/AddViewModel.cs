@@ -64,7 +64,8 @@ namespace AMQSongProcessor.UI.ViewModels
 			{
 				try
 				{
-					var anime = await _Loader.LoadFromANNAsync(Id, new SaveNewOptions(Directory!)
+					var anime = await ANNGatherer.GetAsync(Id).ConfigureAwait(true);
+					await _Loader.SaveAsync(anime, new SaveNewOptions(Directory!)
 					{
 						AllowOverwrite = false,
 						CreateDuplicateFile = false,

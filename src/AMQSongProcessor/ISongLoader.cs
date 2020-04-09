@@ -1,5 +1,8 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
+
+using AdvorangesUtils;
 
 using AMQSongProcessor.Models;
 
@@ -12,10 +15,20 @@ namespace AMQSongProcessor
 
 		Task<Song> DuplicateSongAsync(Song song);
 
-		IAsyncEnumerable<Anime> LoadAsync(string dir);
+		Task<Anime> LoadAsync(string file);
 
-		Task<Anime> LoadFromANNAsync(int id, SaveNewOptions? options = null);
+		Task SaveAsync(Anime anime, SaveNewOptions? options = null);
+	}
 
-		Task SaveAsync(Anime anime);
+	public static class ISongLoaderUtils
+	{
+		public static async IAsyncEnumerable<Anime> LoadFromDirectoryAsync(this ISongLoader loader, string dir)
+		{
+			var pattern = $"*.{loader.Extension}";
+			foreach (var file in Directory.EnumerateFiles(dir, pattern, SearchOption.AllDirectories))
+			{
+				yield return await loader.LoadAsync(file).CAF();
+			}
+		}
 	}
 }

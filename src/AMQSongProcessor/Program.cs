@@ -45,7 +45,7 @@ namespace AMQSongProcessor
 #endif
 			var loader = new SongLoader(new SourceInfoGatherer());
 			await AddNewShowsAsync(loader, dir).CAF();
-			var anime = await loader.LoadAsync(dir).ToListAsync().CAF();
+			var anime = await loader.LoadFromDirectoryAsync(dir).ToListAsync().CAF();
 
 			Display(anime);
 
@@ -153,7 +153,8 @@ namespace AMQSongProcessor
 			};
 			foreach (var id in File.ReadAllLines(idFile).Select(int.Parse))
 			{
-				var anime = await loader.LoadFromANNAsync(id, options).CAF();
+				var anime = await ANNGatherer.GetAsync(id).CAF();
+				await loader.SaveAsync(anime, options).CAF();
 				Console.WriteLine($"Got information from ANN for {anime.Name}.");
 			}
 
