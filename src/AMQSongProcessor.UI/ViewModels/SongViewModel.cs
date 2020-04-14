@@ -9,6 +9,7 @@ using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
 using AMQSongProcessor.Models;
+using AMQSongProcessor.Utils;
 
 using Avalonia.Threading;
 
@@ -21,19 +22,15 @@ namespace AMQSongProcessor.UI.ViewModels
 	[DataContract]
 	public class SongViewModel : ReactiveObject, IRoutableViewModel, INavigationController
 	{
-		private const string LOAD = "Load";
 		private const string NO = "No";
-		private const string UNLOAD = "Unload";
 		private const string YES = "Yes";
 		private readonly ISourceInfoGatherer _Gatherer;
 		private readonly IScreen? _HostScreen;
 		private readonly ISongLoader _Loader;
 		private readonly ISongProcessor _Processor;
-		private bool _BusyProcessing;
 		private Clipboard<Song>? _ClipboardSong;
 		private int _CurrentJob;
 		private string? _Directory;
-		private string _DirectoryButtonText = LOAD;
 		private ProcessingData? _ProcessingData;
 		private int _QueuedJobs;
 		private SearchTerms _Search = new SearchTerms();
@@ -41,11 +38,6 @@ namespace AMQSongProcessor.UI.ViewModels
 
 		public ReactiveCommand<Anime, Unit> AddSong { get; }
 		public ObservableCollection<Anime> Anime { get; } = new ObservableCollection<Anime>();
-		public bool BusyProcessing
-		{
-			get => _BusyProcessing;
-			set => this.RaiseAndSetIfChanged(ref _BusyProcessing, value);
-		}
 		public ReactiveCommand<Unit, Unit> CancelProcessing { get; }
 		public IObservable<bool> CanNavigate { get; }
 		public ReactiveCommand<Anime, Unit> ChangeSource { get; }
@@ -71,11 +63,6 @@ namespace AMQSongProcessor.UI.ViewModels
 		{
 			get => _Directory;
 			set => this.RaiseAndSetIfChanged(ref _Directory, value);
-		}
-		public string DirectoryButtonText
-		{
-			get => _DirectoryButtonText;
-			set => this.RaiseAndSetIfChanged(ref _DirectoryButtonText, value);
 		}
 		public ReactiveCommand<Anime, Unit> DuplicateAnime { get; }
 		public ReactiveCommand<Song, Unit> EditSong { get; }
@@ -108,6 +95,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			get => _SongVisibility;
 			set => this.RaiseAndSetIfChanged(ref _SongVisibility, value);
 		}
+		public ReactiveCommand<Unit, Unit> Unload { get; }
 		public string UrlPathSegment => "/songs";
 
 		public SongViewModel() : this(null)
@@ -128,14 +116,12 @@ namespace AMQSongProcessor.UI.ViewModels
 				}
 				ProcessingData = x;
 			});
-			CanNavigate = this
-				.ObservableForProperty(x => x.BusyProcessing)
-				.Select(x => !x.Value);
 
 			var validDirectory = this
 				.WhenAnyValue(x => x.Directory)
 				.Select(System.IO.Directory.Exists);
 			Load = ReactiveCommand.CreateFromTask(PrivateLoad, validDirectory);
+			Unload = ReactiveCommand.Create(PrivateUnload);
 			CopyANNID = ReactiveCommand.CreateFromTask<int>(PrivateCopyANNID);
 			OpenInfoFile = ReactiveCommand.Create<Anime>(PrivateOpenInfoFile);
 			GetVolumeInfo = ReactiveCommand.CreateFromTask<Anime>(PrivateGetVolumeInfo);
@@ -153,6 +139,10 @@ namespace AMQSongProcessor.UI.ViewModels
 			ExportFixes = ReactiveCommand.CreateFromTask(PrivateExportFixes);
 			ProcessSongs = ReactiveCommand.CreateFromObservable(PrivateProcessSongs);
 			CancelProcessing = ReactiveCommand.Create(PrivateCancelProcessing);
+
+			var loading = Load.IsExecuting;
+			var processing = ProcessSongs.IsExecuting;
+			CanNavigate = loading.CombineLatest(processing, (x, y) => !(x || y));
 		}
 
 		private void PrivateAddSong(Anime anime)
@@ -163,10 +153,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		}
 
 		private void PrivateCancelProcessing()
-		{
-			BusyProcessing = false;
-			ProcessingData = null;
-		}
+			=> ProcessingData = null;
 
 		private async Task PrivateChangeSource(Anime anime)
 		{
@@ -183,7 +170,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			{
 				anime.VideoInfo = await _Gatherer.GetVideoInfoAsync(filePath).ConfigureAwait(true);
 			}
-			catch (GatheringException)
+			catch (InvalidFileTypeException)
 			{
 				var text = $"\"{filePath}\" is an invalid file for a video source.";
 				await Dispatcher.UIThread.InvokeAsync(() => manager.ShowAsync(text, "Invalid File")).ConfigureAwait(true);
@@ -321,19 +308,10 @@ namespace AMQSongProcessor.UI.ViewModels
 
 		private async Task PrivateLoad()
 		{
-			var shouldAttemptToLoad = !Anime.Any();
-			Anime.Clear();
-
-			if (shouldAttemptToLoad)
+			await foreach (var anime in _Loader.LoadFromDirectoryAsync(Directory!))
 			{
-				ClipboardSong = null;
-				await foreach (var anime in _Loader.LoadFromDirectoryAsync(Directory!))
-				{
-					Anime.Add(anime);
-				}
+				Anime.Add(anime);
 			}
-
-			DirectoryButtonText = Anime.Any() ? UNLOAD : LOAD;
 		}
 
 		private void PrivateOpenInfoFile(Anime anime)
@@ -364,17 +342,20 @@ namespace AMQSongProcessor.UI.ViewModels
 			//start processing, but cancel if the cancel button is clicked
 			return Observable.StartAsync(async token =>
 			{
-				BusyProcessing = true;
-
 				var jobs = _Processor.CreateJobs(Anime);
 				CurrentJob = 1;
 				QueuedJobs = jobs.Count;
 
-				await _Processor.ProcessAsync(jobs, token).ConfigureAwait(true);
+				await jobs.ProcessAsync(token).ConfigureAwait(true);
 
-				BusyProcessing = false;
 				ProcessingData = null;
 			}).TakeUntil(CancelProcessing);
+		}
+
+		private void PrivateUnload()
+		{
+			Anime.Clear();
+			ClipboardSong = null;
 		}
 	}
 }

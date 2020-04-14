@@ -17,6 +17,7 @@ namespace AMQSongProcessor
 	public sealed class SourceInfoGatherer : ISourceInfoGatherer
 	{
 		private static readonly JsonSerializerOptions _Options = new JsonSerializerOptions();
+		private static readonly char[] _SplitChars = new[] { '_', 'd' };
 
 		public bool RetryUntilSuccess { get; set; }
 
@@ -32,7 +33,7 @@ namespace AMQSongProcessor
 		{
 			if (!File.Exists(file))
 			{
-				throw new FileDoesNotExistException(file);
+				throw new FileNotFoundException("File does not exist to get average volume.", file);
 			}
 
 			#region Args
@@ -48,8 +49,7 @@ namespace AMQSongProcessor
 				OUTPUT_ARGS;
 			#endregion Args
 
-			using var process = ProcessUtils.CreateProcess(ProcessUtils.FFmpeg, args);
-
+			using var process = ProcessUtils.FFmpeg.CreateProcess(args);
 			process.WithCleanUp((s, e) =>
 			{
 				process.Kill();
@@ -57,7 +57,7 @@ namespace AMQSongProcessor
 			}, _ => { });
 
 			var info = new VolumeInfo();
-			void OnErrorReceived(object sender, DataReceivedEventArgs e)
+			process.ErrorDataReceived += (s, e) =>
 			{
 				if (e.Data == null)
 				{
@@ -81,16 +81,13 @@ namespace AMQSongProcessor
 					"max_volume" => x => x.MaxVolume = VolumeModifer.Parse(value).Decibels!.Value,
 					_ => x => //histogram_#db
 					{
-						var db = key.Split('_')[1].Split('d')[0];
-						x.Histograms[int.Parse(db)] = int.Parse(value);
+						var db = int.Parse(key.Split(_SplitChars)[1]);
+						x.Histograms[db] = int.Parse(value);
 					}
 				};
 				f(info);
-			}
-
-			process.ErrorDataReceived += OnErrorReceived;
+			};
 			await process.RunAsync(false).CAF();
-			process.ErrorDataReceived -= OnErrorReceived;
 
 			return info;
 		}
@@ -102,7 +99,7 @@ namespace AMQSongProcessor
 		{
 			if (!File.Exists(file))
 			{
-				throw new FileDoesNotExistException(file);
+				throw new FileNotFoundException($"File does not exist to gather {stream} info.", file);
 			}
 
 			#region Args
@@ -115,8 +112,7 @@ namespace AMQSongProcessor
 				$" \"{file}\"";
 			#endregion Args
 
-			using var process = ProcessUtils.CreateProcess(ProcessUtils.FFprobe, args);
-
+			using var process = ProcessUtils.FFprobe.CreateProcess(args);
 			process.WithCleanUp((s, e) =>
 			{
 				process.Kill();
@@ -124,12 +120,8 @@ namespace AMQSongProcessor
 			}, _ => { });
 
 			var sb = new StringBuilder();
-			void OnOutputReceived(object sender, DataReceivedEventArgs e)
-				=> sb.Append(e.Data);
-
-			process.OutputDataReceived += OnOutputReceived;
+			process.OutputDataReceived += (s, e) => sb.Append(e.Data);
 			await process.RunAsync(false).CAF();
-			process.OutputDataReceived -= OnOutputReceived;
 
 			try
 			{
@@ -140,7 +132,7 @@ namespace AMQSongProcessor
 			}
 			catch (KeyNotFoundException knfe) when (sb.Length == 2)
 			{
-				throw new InvalidFileTypeException(file, knfe);
+				throw new InvalidFileTypeException($"Invalid file for {stream} info gathering.", file, knfe);
 			}
 			catch (Exception e)
 			{

@@ -16,17 +16,19 @@
   </UserControl.Resources>
 
   <UserControl.Styles>
-    <Style Selector=":is(InputElement).disableWhenProcessing">
-      <Setter Property="IsEnabled" Value="{Binding ElementName=Tree, Path=!DataContext.BusyProcessing}" />
+    <Style Selector=":is(InputElement).notWhenBusy">
+      <Setter Property="IsEnabled"
+              Value="{Binding ElementName=Tree, Path=DataContext.CanNavigate^}" />
     </Style>
   </UserControl.Styles>
 
   <Grid RowDefinitions="1*,19*">
-    <Grid ColumnDefinitions="9*,1*">
+    <Grid ColumnDefinitions="9*,1*" Classes="notWhenBusy">
       <TextBox Watermark="Directory" Text="{Binding Directory}" KeyDown="OnKeyDown"
                IsEnabled="{Binding !Anime.Count}" />
-      <Button Classes="disableWhenProcessing" Grid.Column="1"
-              Content="{Binding DirectoryButtonText}" Command="{Binding Load}" />
+      <Button Grid.Column="1" Content="Load" Command="{Binding Load}" />
+      <Button Grid.Column="1" Content="Unload" Command="{Binding Unload}"
+              IsVisible="{Binding Anime.Count}" />
     </Grid>
 
     <Grid Grid.Row="1" ColumnDefinitions="9*,1*">
@@ -35,30 +37,40 @@
           <HeaderedContentControl Header="Search by anime name">
             <TextBox Text="{Binding Search.AnimeName}" />
           </HeaderedContentControl>
-          <HeaderedContentControl Header=" Search by song name">
+          <HeaderedContentControl Header="Search by song name">
             <TextBox Text="{Binding Search.SongName}" />
           </HeaderedContentControl>
-          <HeaderedContentControl Header=" Search by artist name">
+          <HeaderedContentControl Header="Search by artist name">
             <TextBox Text="{Binding Search.ArtistName}" />
           </HeaderedContentControl>
           <MenuItem Header="-" />
-          <HeaderedContentControl Header="Expand all">
-            <CheckBox IsChecked="{Binding SongVisibility.IsExpanded}" />
-          </HeaderedContentControl>
+          <MenuItem Header="Expand all">
+            <MenuItem.Icon>
+              <CheckBox IsChecked="{Binding SongVisibility.IsExpanded}" />
+            </MenuItem.Icon>
+          </MenuItem>
           <MenuItem Header="-" />
-          <HeaderedContentControl Header="Show ignored songs">
-            <CheckBox IsChecked="{Binding SongVisibility.ShowIgnoredSongs}" />
-          </HeaderedContentControl>
+          <MenuItem Header="Show ignored songs">
+            <MenuItem.Icon>
+              <CheckBox IsChecked="{Binding SongVisibility.ShowIgnoredSongs}" />
+            </MenuItem.Icon>
+          </MenuItem>
           <MenuItem Header="-" />
-          <HeaderedContentControl Header="Show unsubmitted songs">
-            <CheckBox IsChecked="{Binding SongVisibility.ShowUnsubmittedSongs}" />
-          </HeaderedContentControl>
-          <HeaderedContentControl Header="Show incompleted songs">
-            <CheckBox IsChecked="{Binding SongVisibility.ShowIncompletedSongs}" />
-          </HeaderedContentControl>
-          <HeaderedContentControl Header="Show completed songs">
-            <CheckBox IsChecked="{Binding SongVisibility.ShowCompletedSongs}" />
-          </HeaderedContentControl>
+          <MenuItem Header="Show unsubmitted songs">
+            <MenuItem.Icon>
+              <CheckBox IsChecked="{Binding SongVisibility.ShowUnsubmittedSongs}" />
+            </MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="Show incompleted songs">
+            <MenuItem.Icon>
+              <CheckBox IsChecked="{Binding SongVisibility.ShowIncompletedSongs}" />
+            </MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="Show completed songs">
+            <MenuItem.Icon>
+              <CheckBox IsChecked="{Binding SongVisibility.ShowCompletedSongs}" />
+            </MenuItem.Icon>
+          </MenuItem>
         </ContextMenu>
       </Grid.ContextMenu>
 
@@ -67,7 +79,7 @@
           <TreeDataTemplate DataType="models:Anime" ItemsSource="{Binding Songs}">
             <TextBlock>
               <TextBlock.ContextMenu>
-                <ContextMenu Classes="disableWhenProcessing">
+                <ContextMenu Classes="notWhenBusy">
                   <MenuItem Header="Copy ANNID" CommandParameter="{Binding Id}"
                             Command="{Binding ElementName=Tree, Path=DataContext.CopyANNID}" />
                   <MenuItem Header="Open Info File" CommandParameter="{Binding}"
@@ -112,7 +124,7 @@
           <DataTemplate DataType="models:Song">
             <TextBlock Background="{Binding Status, Converter={x:Static converters:MiscConverters.StatusColor}}">
               <TextBlock.ContextMenu>
-                <ContextMenu Classes="disableWhenProcessing">
+                <ContextMenu Classes="notWhenBusy">
                   <MenuItem Header="Edit Song" CommandParameter="{Binding}"
                             Command="{Binding ElementName=Tree, Path=DataContext.EditSong}" />
                   <MenuItem Header="-" />
@@ -188,11 +200,13 @@
       </TreeView>
 
       <Grid Grid.Column="1" RowDefinitions="1*,1*,1*,12*,6*" IsEnabled="{Binding Anime.Count}">
-        <Button Grid.Row="0" Content="Export Fixes" Command="{Binding ExportFixes}" />
-        <Button Grid.Row="1" Content="Process Songs" Command="{Binding ProcessSongs}"
-                IsVisible="{Binding !BusyProcessing}" />
-        <Button Grid.Row="1" Content="Cancel" Command="{Binding CancelProcessing}"
-                IsVisible="{Binding BusyProcessing}" />
+        <Button Grid.Row="0" Classes="notWhenBusy" Content="Export Fixes"
+                Command="{Binding ExportFixes}" />
+        <Button Grid.Row="1" Classes="notWhenBusy" Content="Process Songs"
+                Command="{Binding ProcessSongs}" />
+        <Button Grid.Row="1" Content="Cancel"
+                Command="{Binding CancelProcessing}"
+                IsVisible="{Binding ProcessSongs.IsExecuting^}" />
 
         <UniformGrid Grid.Row="3" Columns="1" IsVisible="{Binding !!ProcessingData}">
           <UniformGrid.Styles>

@@ -56,7 +56,7 @@ namespace AMQSongProcessor
 			};
 			await processor.ExportFixesAsync(dir, anime).CAF();
 			var jobs = processor.CreateJobs(anime);
-			await processor.ProcessAsync(jobs).CAF();
+			await jobs.ProcessAsync().CAF();
 		}
 
 		private static void Display(IEnumerable<Anime> anime)

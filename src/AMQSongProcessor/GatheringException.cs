@@ -10,23 +10,23 @@ namespace AMQSongProcessor
 		{
 		}
 
-		protected GatheringException(string message)
+		protected GatheringException(string? message)
 			: base(message)
 		{
 		}
 
-		protected GatheringException(string message, string path)
+		protected GatheringException(string? message, string? path)
 			: base(message)
 		{
 			Path = path;
 		}
 
-		protected GatheringException(string message, Exception innerException)
+		protected GatheringException(string? message, Exception? innerException)
 			: base(message, innerException)
 		{
 		}
 
-		protected GatheringException(string message, string path, Exception innerException)
+		protected GatheringException(string? message, string? path, Exception? innerException)
 			: base(message, innerException)
 		{
 			Path = path;

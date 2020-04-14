@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 using AdvorangesUtils;
@@ -43,7 +42,7 @@ namespace AMQSongProcessor
 				}
 				else if (!File.Exists(show.AbsoluteSourcePath))
 				{
-					throw new ArgumentException($"{show.Name} '{show.Source}' does not exist.", nameof(show.Source));
+					throw new FileNotFoundException($"{show.Name} source does not exist.", show.Source);
 				}
 
 				var resolutions = GetValidResolutions(show);
@@ -142,15 +141,6 @@ namespace AMQSongProcessor
 
 					await sw.WriteAsync(sb.AppendLine()).CAF();
 				}
-			}
-		}
-
-		public async Task ProcessAsync(IEnumerable<ISongJob> jobs, CancellationToken? token = null)
-		{
-			foreach (var job in jobs)
-			{
-				token?.ThrowIfCancellationRequested();
-				await job.ProcessAsync(token).CAF();
 			}
 		}
 

@@ -69,7 +69,7 @@ namespace AMQSongProcessor
 				{
 					show.VideoInfo = await _Gatherer.GetVideoInfoAsync(source).CAF();
 				}
-				catch (GatheringException) when (DontThrowVideoExceptions)
+				catch (Exception) when (DontThrowVideoExceptions)
 				{
 				}
 			}

@@ -12,12 +12,25 @@ using AdvorangesUtils;
 
 namespace AMQSongProcessor.Utils
 {
+	public readonly struct Program
+	{
+		public string Path { get; }
+
+		public Program(string path)
+		{
+			Path = path;
+		}
+
+		public Process CreateProcess(string args)
+			=> ProcessUtils.CreateProcess(Path, args);
+	}
+
 	public static class ProcessUtils
 	{
 		private static readonly bool IsWindows =
 			Environment.OSVersion.Platform.ToString().CaseInsContains("win");
-		public static string FFmpeg { get; } = FindProgram("ffmpeg");
-		public static string FFprobe { get; } = FindProgram("ffprobe");
+		public static Program FFmpeg { get; } = FindProgram("ffmpeg");
+		public static Program FFprobe { get; } = FindProgram("ffprobe");
 
 		public static Process CreateProcess(string program, string args)
 		{
@@ -61,7 +74,7 @@ namespace AMQSongProcessor.Utils
 			return tcs.Task;
 		}
 
-		public static void WithCleanUp(this Process process, EventHandler cancel, Action<int> finish, CancellationToken? token = null)
+		public static Process WithCleanUp(this Process process, EventHandler cancel, Action<int> finish, CancellationToken? token = null)
 		{
 			if (!process.EnableRaisingEvents)
 			{
@@ -93,9 +106,10 @@ namespace AMQSongProcessor.Utils
 				registration?.Dispose();
 				finish(process.ExitCode);
 			};
+			return process;
 		}
 
-		private static string FindProgram(string program)
+		private static Program FindProgram(string program)
 		{
 			program = IsWindows ? program + ".exe" : program;
 			//Look through every directory and any subfolders they have called bin
@@ -103,11 +117,11 @@ namespace AMQSongProcessor.Utils
 			{
 				if (TryGetProgram(dir, program, out var path))
 				{
-					return path;
+					return new Program(path);
 				}
 				else if (TryGetProgram(Path.Combine(dir, "bin"), program, out path))
 				{
-					return path;
+					return new Program(path);
 				}
 			}
 			throw new InvalidOperationException($"Unable to find {program}.");

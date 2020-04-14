@@ -1,12 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
+
+using AdvorangesUtils;
+
+using AMQSongProcessor.Jobs;
 
 namespace AMQSongProcessor.Utils
 {
 	public static class Utils
 	{
+		public static async Task ProcessAsync(this IEnumerable<ISongJob> jobs, CancellationToken? token = null)
+		{
+			foreach (var job in jobs)
+			{
+				token?.ThrowIfCancellationRequested();
+				await job.ProcessAsync(token).CAF();
+			}
+		}
+
 		public static T[] ToArray<T>(this IEnumerable<T> source, int count)
 		{
 			if (source == null)

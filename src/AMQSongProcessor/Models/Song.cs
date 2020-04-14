@@ -9,8 +9,6 @@ namespace AMQSongProcessor.Models
 	[DebuggerDisplay("{DebuggerDisplay,nq}")]
 	public class Song
 	{
-		public static readonly TimeSpan UnknownTime = TimeSpan.FromSeconds(-1);
-
 		[JsonIgnore]
 		public Anime Anime { get; set; } = null!;
 		public string Artist { get; set; } = null!;
@@ -18,7 +16,7 @@ namespace AMQSongProcessor.Models
 		public TimeSpan End { get; set; }
 		public int? Episode { get; set; }
 		public string FullName => $"{Name} ({Artist})";
-		public bool HasTimeStamp => Start != UnknownTime;
+		public bool HasTimeStamp => Start > TimeSpan.FromSeconds(0);
 		public bool IsCompleted => !IsMissing(Status.Res480 | Status.Res720);
 		public bool IsIncompleted => !(IsCompleted || IsUnsubmitted);
 		public bool IsUnsubmitted => Status == Status.NotSubmitted;

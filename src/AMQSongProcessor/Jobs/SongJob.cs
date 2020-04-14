@@ -32,8 +32,15 @@ namespace AMQSongProcessor.Jobs
 				return FILE_ALREADY_EXISTS;
 			}
 
-			var args = GenerateArgs();
-			using var process = ProcessUtils.CreateProcess(ProcessUtils.FFmpeg, args);
+			using var process = ProcessUtils.FFmpeg.CreateProcess(GenerateArgs());
+			process.WithCleanUp((s, e) =>
+			{
+				process.Kill();
+				process.Dispose();
+				//Without this sleep the file is not released in time and an exception happens
+				Thread.Sleep(25);
+				File.Delete(path);
+			}, _ => { }, token);
 
 			//ffmpeg will output the information we want to std:out
 			var ffmpegProgress = new MutableFfmpegProgress();
@@ -49,15 +56,6 @@ namespace AMQSongProcessor.Jobs
 					Processing?.Report(new ProcessingData(path, Song.Length, progress));
 				}
 			};
-
-			process.WithCleanUp((s, e) =>
-			{
-				process.Kill();
-				process.Dispose();
-				//Without this sleep the file is not released in time and an exception happens
-				Thread.Sleep(25);
-				File.Delete(path);
-			}, _ => { }, token);
 
 			return await process.RunAsync(false).CAF();
 		}
