@@ -1,13 +1,7 @@
-﻿using System;
-
-namespace AMQSongProcessor.UI.Converters
+﻿namespace AMQSongProcessor.UI.Converters
 {
-	public interface IMaybeFunc<out TRet>
+	public interface IMaybeFunc<out TRet> : IMaybeFunc
 	{
-		public Type RequiredType { get; }
-
-		public bool CanUse(object obj);
-
 		public TRet Use(object obj);
 	}
 }

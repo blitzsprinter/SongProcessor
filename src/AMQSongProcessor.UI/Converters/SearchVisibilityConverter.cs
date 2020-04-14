@@ -10,17 +10,19 @@ namespace AMQSongProcessor.UI.Converters
 {
 	public sealed class SearchVisibilityConverter : BaseConverter
 	{
+		private static readonly IMaybeFunc<SearchTerms, bool>[] _Funcs
+			= new MaybeFuncCollectionBuilder<SearchTerms, bool>()
+			.Add<Song>((song, search) => search.IsVisible(song))
+			.Add<Anime>((anime, search) => search.IsVisible(anime))
+			.Add<IEnumerable<Song>>((songs, search) => songs.Any(x => search.IsVisible(x)))
+			.ToArray();
+
 		public override int ExpectedValueCount => 2;
 
 		protected override object Convert(ValueCollection values, Type targetType, object parameter, CultureInfo culture)
 		{
 			var search = values.ConvertNextValue<SearchTerms>();
-			return values.UseNextValue(new IMaybeFunc<bool>[]
-			{
-				new MaybeFunc<Anime, bool>(x => search.IsVisible(x)),
-				new MaybeFunc<IEnumerable<Song>, bool>(x => x.Any(y => search.IsVisible(y))),
-				new MaybeFunc<Song, bool>(x => search.IsVisible(x))
-			});
+			return values.ConvertNextValue(search, _Funcs);
 		}
 	}
 }

@@ -28,34 +28,22 @@ namespace AMQSongProcessor.UI.ViewModels
 			get => _ArtistName;
 			set => this.RaiseAndSetIfChangedSelf(ref _ArtistName, value);
 		}
+		public SearchTerms Self => this;
 		[DataMember]
 		public string? SongName
 		{
 			get => _SongName;
 			set => this.RaiseAndSetIfChangedSelf(ref _SongName, value);
 		}
-		public SearchTerms Self => this;
-
 		object IBindableToSelf.Self => this;
 
 		public bool IsVisible(Anime anime)
-		{
-			var animeName = Sanitize(AnimeName);
-			return animeName == null
-				|| anime.Name.CaseInsContains(animeName);
-		}
+			=> IsVisible(AnimeName, anime.Name);
 
 		public bool IsVisible(Song song)
-		{
-			var songName = Sanitize(SongName);
-			var artistName = Sanitize(ArtistName);
-			return (songName == null
-				&& artistName == null)
-				|| song.Name.CaseInsContains(songName)
-				|| song.Artist.CaseInsContains(artistName);
-		}
+			=> IsVisible(SongName, song.Name) && IsVisible(ArtistName, song.Artist);
 
-		private string? Sanitize(string? value)
-			=> string.IsNullOrWhiteSpace(value) ? null : value;
+		private bool IsVisible(string? search, string actual)
+			=> string.IsNullOrWhiteSpace(search) || actual.CaseInsContains(search);
 	}
 }

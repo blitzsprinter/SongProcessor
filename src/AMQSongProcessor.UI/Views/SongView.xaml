@@ -153,20 +153,29 @@
             <Setter Property="HorizontalAlignment" Value="Left" />
           </Style>
 
-          <!-- Expand all the anime items to show all the songs -->
           <Style Selector="TreeView > TreeViewItem">
+            <!-- Expand all the anime items to show all the songs -->
             <Setter Property="IsExpanded"
                     Value="{Binding ElementName=Tree, Path=DataContext.SongVisibility.IsExpanded}" />
+
+            <!-- Don't show the anime if its name doesnt match the anime name search term -->
+            <!-- or if none of its songs match the song name/artist search terms -->
             <Setter Property="IsVisible">
-              <MultiBinding Converter="{StaticResource SearchVisibility}">
-                <Binding ElementName="Tree" Path="DataContext.Search.Self" />
-                <Binding />
+              <MultiBinding Converter="{x:Static BoolConverters.And}">
+                <MultiBinding Converter="{StaticResource SearchVisibility}">
+                  <Binding ElementName="Tree" Path="DataContext.Search.Self" />
+                  <Binding />
+                </MultiBinding>
+                <MultiBinding Converter="{StaticResource SearchVisibility}">
+                  <Binding ElementName="Tree" Path="DataContext.Search.Self" />
+                  <Binding Path="Songs.Items" />
+                </MultiBinding>
               </MultiBinding>
             </Setter>
           </Style>
 
-          <!-- Hide the songs if they are ignored and we don't want to see ignored songs -->
           <Style Selector="TreeView > TreeViewItem > TreeViewItem">
+            <!-- Hide the songs if they are ignored and we don't want to see ignored songs -->
             <Setter Property="IsVisible">
               <MultiBinding Converter="{x:Static BoolConverters.And}">
                 <MultiBinding Converter="{StaticResource SongVisibility}">
@@ -181,18 +190,12 @@
             </Setter>
           </Style>
 
-          <!-- Don't show the expand button if all songs are ignored and ignored songs are blocked -->
           <Style Selector="TreeView > TreeViewItem /template/ ToggleButton#expander">
+            <!-- Don't show the expand button if all songs are ignored and ignored songs are blocked -->
             <Setter Property="IsVisible">
-              <MultiBinding Converter="{x:Static BoolConverters.And}">
-                <MultiBinding Converter="{StaticResource SongVisibility}">
-                  <Binding ElementName="Tree" Path="DataContext.SongVisibility.Self" />
-                  <Binding Path="Songs.Items" />
-                </MultiBinding>
-                <MultiBinding Converter="{StaticResource SearchVisibility}">
-                  <Binding ElementName="Tree" Path="DataContext.Search.Self" />
-                  <Binding Path="Songs.Items" />
-                </MultiBinding>
+              <MultiBinding Converter="{StaticResource SongVisibility}">
+                <Binding ElementName="Tree" Path="DataContext.SongVisibility.Self" />
+                <Binding Path="Songs.Items" />
               </MultiBinding>
             </Setter>
           </Style>
