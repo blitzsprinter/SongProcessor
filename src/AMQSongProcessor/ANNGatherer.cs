@@ -31,7 +31,7 @@ namespace AMQSongProcessor
 		private static readonly Regex SongRegex =
 			new Regex(SongPattern, RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 
-		public static async Task<Anime> GetAsync(int id)
+		public static async Task<Anime> GetAsync(int id, ANNGathererOptions? options = null)
 		{
 			var url = URL + id;
 			var result = await _Client.GetAsync(url).CAF();
@@ -65,8 +65,13 @@ namespace AMQSongProcessor
 
 			void ProcessSong(XElement e, string t)
 			{
-				var match = SongRegex.Match(e.Value);
 				var type = Enum.Parse<SongType>(t.Split(' ')[0], true);
+				if (options?.CanBeGathered(type) == false)
+				{
+					return;
+				}
+
+				var match = SongRegex.Match(e.Value);
 				var position = match.Groups.TryGetValue(POSITION, out var a)
 					&& int.TryParse(a.Value, out var temp) ? temp : default(int?);
 				anime.Songs.Add(new Song
@@ -100,6 +105,25 @@ namespace AMQSongProcessor
 			}
 
 			return anime;
+		}
+	}
+
+	public sealed class ANNGathererOptions
+	{
+		public bool AddEndings { get; set; }
+		public bool AddInserts { get; set; }
+		public bool AddOpenings { get; set; }
+		public bool AddSongs { get; set; }
+
+		public bool CanBeGathered(SongType type)
+		{
+			return AddSongs && type switch
+			{
+				SongType.Ed => AddEndings,
+				SongType.In => AddInserts,
+				SongType.Op => AddOpenings,
+				_ => throw new ArgumentOutOfRangeException(nameof(type)),
+			};
 		}
 	}
 }

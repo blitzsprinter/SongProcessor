@@ -22,8 +22,6 @@ namespace AMQSongProcessor.UI.ViewModels
 	[DataContract]
 	public class SongViewModel : ReactiveObject, IRoutableViewModel, INavigationController
 	{
-		private const string NO = "No";
-		private const string YES = "Yes";
 		private readonly ISourceInfoGatherer _Gatherer;
 		private readonly IScreen? _HostScreen;
 		private readonly ISongLoader _Loader;
@@ -187,8 +185,8 @@ namespace AMQSongProcessor.UI.ViewModels
 			const string TITLE = "Song Clearing";
 
 			var manager = Locator.Current.GetService<IMessageBoxManager>();
-			var result = await manager.ShowAsync(text, TITLE, new[] { YES, NO }).ConfigureAwait(true);
-			if (result == YES)
+			var result = await manager.ShowAsync(text, TITLE, Constants.YesNo).ConfigureAwait(true);
+			if (result == Constants.YES)
 			{
 				anime.Songs.Clear();
 				await _Loader.SaveAsync(anime).ConfigureAwait(true);
@@ -227,11 +225,10 @@ namespace AMQSongProcessor.UI.ViewModels
 			const string TITLE = "Anime Deletion";
 
 			var manager = Locator.Current.GetService<IMessageBoxManager>();
-			var result = await manager.ShowAsync(text, TITLE, new[] { YES, NO }).ConfigureAwait(true);
-			if (result == YES)
+			var result = await manager.ShowAsync(text, TITLE, Constants.YesNo).ConfigureAwait(true);
+			if (result == Constants.YES)
 			{
-				var item = Anime.First(x => x.Id == anime.Id);
-				Anime.Remove(item);
+				Anime.Remove(anime);
 				File.Delete(anime.AbsoluteInfoPath);
 			}
 		}
@@ -243,8 +240,8 @@ namespace AMQSongProcessor.UI.ViewModels
 			const string TITLE = "Song Deletion";
 
 			var manager = Locator.Current.GetService<IMessageBoxManager>();
-			var result = await manager.ShowAsync(text, TITLE, new[] { YES, NO }).ConfigureAwait(true);
-			if (result == YES)
+			var result = await manager.ShowAsync(text, TITLE, Constants.YesNo).ConfigureAwait(true);
+			if (result == Constants.YES)
 			{
 				anime.Songs.Remove(song);
 				await _Loader.SaveAsync(anime).ConfigureAwait(true);

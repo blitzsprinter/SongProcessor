@@ -10,15 +10,22 @@
     <TextBlock Text="Hello :)">
       <TextBlock.IsVisible>
         <MultiBinding Converter="{x:Static BoolConverters.And}">
-          <Binding Path="Anime" Converter="{x:Static ObjectConverters.IsNull}" />
+          <Binding Path="!Anime.Count" />
           <Binding Path="Exception" Converter="{x:Static ObjectConverters.IsNull}" />
         </MultiBinding>
       </TextBlock.IsVisible>
     </TextBlock>
-    <TreeView Items="{Binding Anime}" IsVisible="{Binding !!Anime}">
+    <TreeView Name="Tree" Items="{Binding Anime}" IsVisible="{Binding Anime.Count}">
       <TreeView.DataTemplates>
         <TreeDataTemplate DataType="models:Anime" ItemsSource="{Binding Songs}">
           <TextBlock>
+            <TextBlock.ContextMenu>
+              <ContextMenu>
+                <MenuItem Header="Delete Anime" CommandParameter="{Binding}"
+                          Command="{Binding ElementName=Tree, Path=DataContext.DeleteAnime}" />
+              </ContextMenu>
+            </TextBlock.ContextMenu>
+
             <TextBlock.Text>
               <MultiBinding StringFormat="[{0}] {1}">
                 <Binding Path="Year" />
@@ -44,7 +51,32 @@
 
     <Grid Grid.Row="1" RowDefinitions="1*,1*" ColumnDefinitions="9*,1*">
       <TextBox Grid.Row="0" Watermark="Directory" Text="{Binding Directory}" />
-      <NumericUpDown Grid.Row="1" Watermark="ANN Id" Minimum="1" Value="{Binding Id}" />
+      <UniformGrid Grid.Row="1" Rows="1">
+        <NumericUpDown Grid.Row="1" Watermark="ANN Id" Minimum="1" Value="{Binding Id}" />
+
+        <HeaderedContentControl Header="Add Songs">
+          <CheckBox IsChecked="{Binding AddSongs}" />
+        </HeaderedContentControl>
+        <HeaderedContentControl Header="Add Openings">
+          <CheckBox IsChecked="{Binding AddOpenings}"
+                    IsEnabled="{Binding AddSongs}" />
+        </HeaderedContentControl>
+        <HeaderedContentControl Header="Add Endings">
+          <CheckBox IsChecked="{Binding AddEndings}"
+                    IsEnabled="{Binding AddSongs}" />
+        </HeaderedContentControl>
+        <HeaderedContentControl Header="Add Inserts">
+          <CheckBox IsChecked="{Binding AddInserts}"
+                    IsEnabled="{Binding AddSongs}" />
+        </HeaderedContentControl>
+
+        <UniformGrid.Styles>
+          <Style Selector="HeaderedContentControl">
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+          </Style>
+        </UniformGrid.Styles>
+      </UniformGrid>
 
       <Button Grid.Column="1" Grid.RowSpan="2" Content="Add"
               Command="{Binding Add}" HotKey="Enter" />
