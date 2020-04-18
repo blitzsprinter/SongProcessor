@@ -38,5 +38,21 @@
         </Setter.Value>
       </Setter>
     </Style>
+    <Style Selector="TextBlock.anime">
+      <Setter Property="Text">
+        <MultiBinding StringFormat="[{0}] {1}">
+          <Binding Path="Year" />
+          <Binding Path="Name" />
+        </MultiBinding>
+      </Setter>
+    </Style>
+    <Style Selector="TextBlock.song">
+      <Setter Property="Text">
+        <MultiBinding StringFormat="[{0}] {1}">
+          <Binding Path="Type" />
+          <Binding Path="FullName" />
+        </MultiBinding>
+      </Setter>
+    </Style>
   </Application.Styles>
 </Application>

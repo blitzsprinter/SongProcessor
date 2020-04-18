@@ -113,7 +113,6 @@ namespace AMQSongProcessor.UI.ViewModels
 			catch (Exception e)
 			{
 				Exception = e;
-				Anime.Clear();
 			}
 		}
 

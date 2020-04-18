@@ -74,7 +74,11 @@ namespace AMQSongProcessor.Utils
 			return tcs.Task;
 		}
 
-		public static Process WithCleanUp(this Process process, EventHandler cancel, Action<int> finish, CancellationToken? token = null)
+		public static Process WithCleanUp(
+			this Process process,
+			EventHandler onCancel,
+			Action<int> onComplete,
+			CancellationToken? token = null)
 		{
 			if (!process.EnableRaisingEvents)
 			{
@@ -90,7 +94,7 @@ namespace AMQSongProcessor.Utils
 				}
 
 				isCanceled = true;
-				cancel(sender, args);
+				onCancel(sender, args);
 			}
 
 			//If the program gets shut down, make sure it also shuts down the process
@@ -104,7 +108,7 @@ namespace AMQSongProcessor.Utils
 				AppDomain.CurrentDomain.ProcessExit -= Cancel;
 				AppDomain.CurrentDomain.UnhandledException -= Cancel;
 				registration?.Dispose();
-				finish(process.ExitCode);
+				onComplete(process.ExitCode);
 			};
 			return process;
 		}

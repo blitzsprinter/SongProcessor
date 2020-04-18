@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Text.RegularExpressions;
@@ -31,6 +32,11 @@ namespace AMQSongProcessor
 		private static readonly Regex SongRegex =
 			new Regex(SongPattern, RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 
+		private static readonly string[] VintageFormats = new[]
+		{
+			"yyyy"
+		};
+
 		public static async Task<Anime> GetAsync(int id, ANNGathererOptions? options = null)
 		{
 			var url = URL + id;
@@ -42,7 +48,6 @@ namespace AMQSongProcessor
 
 			var stream = await result.Content.ReadAsStreamAsync().CAF();
 			var doc = XElement.Load(stream);
-
 			if (doc.Descendants("warning").Any(x => x.Value.Contains("no result for anime")))
 			{
 				throw new HttpRequestException($"{id} does not exist on ANN.");
@@ -54,57 +59,68 @@ namespace AMQSongProcessor
 				Year = int.MaxValue,
 			};
 
-			void ProcessTitle(XElement e, string _)
-				=> anime.Name = e.Value;
-
-			void ProcessVintage(XElement e, string _)
+			foreach (var element in doc.Descendants("info"))
 			{
-				var dt = DateTime.Parse(e.Value.Split(' ')[0]);
-				anime.Year = Math.Min(anime.Year, dt.Year);
-			}
-
-			void ProcessSong(XElement e, string t)
-			{
-				var type = Enum.Parse<SongType>(t.Split(' ')[0], true);
-				if (options?.CanBeGathered(type) == false)
-				{
-					return;
-				}
-
-				var match = SongRegex.Match(e.Value);
-				var position = match.Groups.TryGetValue(POSITION, out var a)
-					&& int.TryParse(a.Value, out var temp) ? temp : default(int?);
-				anime.Songs.Add(new Song
-				{
-					Type = new SongTypeAndPosition(type, position),
-					Name = match.Groups[NAME].Value,
-					Artist = match.Groups[ARTIST].Value,
-				});
-			}
-
-			foreach (var info in doc.Descendants("info"))
-			{
-				var type = info.Attribute("type").Value.ToLower();
+				var type = element.Attribute("type").Value.ToLower();
 				try
 				{
-					var f = type switch
+					switch (type)
 					{
-						"main title" => ProcessTitle,
-						"vintage" => ProcessVintage,
-						"opening theme" => ProcessSong,
-						"ending theme" => ProcessSong,
-						"insert song" => ProcessSong,
-						_ => default(Action<XElement, string>)
-					};
-					f?.Invoke(info, type);
+						case "main title":
+							ProcessTitle(anime, element);
+							break;
+
+						case "vintage":
+							ProcessVintage(anime, element);
+							break;
+
+						case "opening theme":
+						case "ending theme":
+						case "insert song":
+							ProcessSong(anime, options, element, type);
+							break;
+					}
 				}
 				catch (Exception e)
 				{
 					throw new FormatException($"Invalid {type} provided by ANN for {id}", e);
 				}
 			}
-
 			return anime;
+		}
+
+		private static void ProcessSong(Anime anime, ANNGathererOptions? options, XElement e, string t)
+		{
+			var type = Enum.Parse<SongType>(t.Split(' ')[0], true);
+			if (options?.CanBeGathered(type) == false)
+			{
+				return;
+			}
+
+			var match = SongRegex.Match(e.Value);
+			var position = match.Groups.TryGetValue(POSITION, out var a)
+				&& int.TryParse(a.Value, out var temp) ? temp : default(int?);
+			anime.Songs.Add(new Song
+			{
+				Type = new SongTypeAndPosition(type, position),
+				Name = match.Groups[NAME].Value,
+				Artist = match.Groups[ARTIST].Value,
+			});
+		}
+
+		private static void ProcessTitle(Anime anime, XElement e)
+			=> anime.Name = e.Value;
+
+		private static void ProcessVintage(Anime anime, XElement e)
+		{
+			static bool TryParseExact(string s, out DateTime dt)
+				=> DateTime.TryParseExact(s, VintageFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out dt);
+
+			var s = e.Value.Split(' ')[0];
+			if (DateTime.TryParse(s, out var dt) || TryParseExact(s, out dt))
+			{
+				anime.Year = Math.Min(anime.Year, dt.Year);
+			}
 		}
 	}
 

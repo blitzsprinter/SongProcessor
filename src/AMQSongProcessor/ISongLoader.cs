@@ -1,8 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
-
-using AdvorangesUtils;
+﻿using System.Threading.Tasks;
 
 using AMQSongProcessor.Models;
 
@@ -18,17 +14,5 @@ namespace AMQSongProcessor
 		Task<Anime> LoadAsync(string file);
 
 		Task SaveAsync(Anime anime, SaveNewOptions? options = null);
-	}
-
-	public static class ISongLoaderUtils
-	{
-		public static async IAsyncEnumerable<Anime> LoadFromDirectoryAsync(this ISongLoader loader, string dir)
-		{
-			var pattern = $"*.{loader.Extension}";
-			foreach (var file in Directory.EnumerateFiles(dir, pattern, SearchOption.AllDirectories))
-			{
-				yield return await loader.LoadAsync(file).CAF();
-			}
-		}
 	}
 }

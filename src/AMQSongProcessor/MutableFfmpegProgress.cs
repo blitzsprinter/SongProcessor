@@ -77,6 +77,7 @@ namespace AMQSongProcessor
 			return true;
 		}
 
+		[return: MaybeNull]
 		private static T Parse<T>(
 			Dictionary<string, string> source,
 			string name,
@@ -85,6 +86,11 @@ namespace AMQSongProcessor
 		{
 			if (source.TryGetValue(name, out var value))
 			{
+				if (value == "N/A")
+				{
+					return default;
+				}
+
 				return parser(value);
 			}
 			return missingVal;

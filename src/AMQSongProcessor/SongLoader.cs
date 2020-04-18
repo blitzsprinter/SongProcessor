@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -47,33 +46,33 @@ namespace AMQSongProcessor
 		{
 			using var fs = new FileStream(file, FileMode.Open);
 
-			Anime show;
+			Anime anime;
 			try
 			{
-				show = await JsonSerializer.DeserializeAsync<Anime>(fs, _Options).CAF();
+				anime = await JsonSerializer.DeserializeAsync<Anime>(fs, _Options).CAF();
 			}
 			catch (Exception e)
 			{
 				throw new JsonException($"Unable to parse {file}", e);
 			}
 
-			show.AbsoluteInfoPath = file;
-			show.Songs = new SongCollection(show, show.Songs);
+			anime.AbsoluteInfoPath = file;
+			anime.Songs = new SongCollection(anime, anime.Songs);
 			if (RemoveIgnoredSongs)
 			{
-				show.Songs.RemoveAll(x => x.ShouldIgnore);
+				anime.Songs.RemoveAll(x => x.ShouldIgnore);
 			}
-			if (show.AbsoluteSourcePath is string source)
+			if (anime.AbsoluteSourcePath is string source)
 			{
 				try
 				{
-					show.VideoInfo = await _Gatherer.GetVideoInfoAsync(source).CAF();
+					anime.VideoInfo = await _Gatherer.GetVideoInfoAsync(source).CAF();
 				}
 				catch (Exception) when (DontThrowVideoExceptions)
 				{
 				}
 			}
-			return show;
+			return anime;
 		}
 
 		public Task SaveAsync(Anime anime, SaveNewOptions? options = null)

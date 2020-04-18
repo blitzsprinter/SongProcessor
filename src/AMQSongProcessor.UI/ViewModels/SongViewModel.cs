@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
@@ -35,7 +36,8 @@ namespace AMQSongProcessor.UI.ViewModels
 		private SongVisibility _SongVisibility = new SongVisibility();
 
 		public ReactiveCommand<Anime, Unit> AddSong { get; }
-		public ObservableCollection<Anime> Anime { get; } = new ObservableCollection<Anime>();
+		public ObservableCollection<Anime> Anime { get; }
+			= new SortedObservableCollection<Anime>(new AnimeComparer());
 		public ReactiveCommand<Unit, Unit> CancelProcessing { get; }
 		public IObservable<bool> CanNavigate { get; }
 		public ReactiveCommand<Anime, Unit> ChangeSource { get; }
@@ -305,7 +307,8 @@ namespace AMQSongProcessor.UI.ViewModels
 
 		private async Task PrivateLoad()
 		{
-			await foreach (var anime in _Loader.LoadFromDirectoryAsync(Directory!))
+			var files = _Loader.GetFiles(Directory!);
+			await foreach (var anime in _Loader.LoadFromFilesAsync(files, 5))
 			{
 				Anime.Add(anime);
 			}

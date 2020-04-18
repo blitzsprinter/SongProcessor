@@ -190,6 +190,11 @@ namespace AMQSongProcessor.UI.ViewModels
 
 			Save = ReactiveCommand.CreateFromTask(async () =>
 			{
+				if (_Song.Anime == null)
+				{
+					_Anime.Songs.Add(_Song);
+				}
+
 				_Song.Artist = Artist;
 				_Song.OverrideAudioTrack = AudioTrack;
 				_Song.SetCleanPath(GetNullIfEmpty(CleanPath));
@@ -202,11 +207,6 @@ namespace AMQSongProcessor.UI.ViewModels
 				_Song.Start = TimeSpan.Parse(Start);
 				_Song.OverrideVideoTrack = VideoTrack;
 				_Song.VolumeModifier = GetVolumeModifer(VolumeModifier);
-
-				if (_Song.Anime == null)
-				{
-					_Anime.Songs.Add(_Song);
-				}
 
 				await _Loader.SaveAsync(_Song.Anime!).CAF();
 			}, this.IsValid());

@@ -62,7 +62,7 @@ namespace AMQSongProcessor.Jobs
 
 		protected abstract string GenerateArgs();
 
-		[Obsolete("Use " + nameof(GetValidPath) + " instead")]
+		[Obsolete("Implement this, but use " + nameof(GetValidPath) + " instead")]
 		protected abstract string GetPath();
 
 		protected string GetValidPath()

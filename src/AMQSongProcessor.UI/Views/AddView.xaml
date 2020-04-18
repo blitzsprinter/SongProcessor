@@ -15,35 +15,28 @@
         </MultiBinding>
       </TextBlock.IsVisible>
     </TextBlock>
-    <TreeView Name="Tree" Items="{Binding Anime}" IsVisible="{Binding Anime.Count}">
+    <TreeView Name="Tree" Items="{Binding Anime}">
+      <TreeView.IsVisible>
+        <MultiBinding Converter="{x:Static BoolConverters.And}">
+          <Binding Path="!!Anime.Count" />
+          <Binding Path="!Exception" />
+        </MultiBinding>
+      </TreeView.IsVisible>
+
       <TreeView.DataTemplates>
         <TreeDataTemplate DataType="models:Anime" ItemsSource="{Binding Songs}">
-          <TextBlock>
+          <TextBlock Classes="anime">
             <TextBlock.ContextMenu>
               <ContextMenu>
                 <MenuItem Header="Delete Anime" CommandParameter="{Binding}"
                           Command="{Binding ElementName=Tree, Path=DataContext.DeleteAnime}" />
               </ContextMenu>
             </TextBlock.ContextMenu>
-
-            <TextBlock.Text>
-              <MultiBinding StringFormat="[{0}] {1}">
-                <Binding Path="Year" />
-                <Binding Path="Name" />
-              </MultiBinding>
-            </TextBlock.Text>
           </TextBlock>
         </TreeDataTemplate>
 
         <DataTemplate DataType="models:Song">
-          <TextBlock>
-            <TextBlock.Text>
-              <MultiBinding StringFormat="[{0}] {1}">
-                <Binding Path="Type" />
-                <Binding Path="FullName" />
-              </MultiBinding>
-            </TextBlock.Text>
-          </TextBlock>
+          <TextBlock Classes="song" />
         </DataTemplate>
       </TreeView.DataTemplates>
     </TreeView>

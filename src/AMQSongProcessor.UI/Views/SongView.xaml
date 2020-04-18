@@ -77,7 +77,7 @@
       <TreeView Name="Tree" Items="{Binding Anime}">
         <TreeView.DataTemplates>
           <TreeDataTemplate DataType="models:Anime" ItemsSource="{Binding Songs}">
-            <TextBlock>
+            <TextBlock Classes="anime">
               <TextBlock.ContextMenu>
                 <ContextMenu Classes="notWhenBusy">
                   <MenuItem Header="Copy ANNID" CommandParameter="{Binding Id}"
@@ -107,13 +107,6 @@
                 </ContextMenu>
               </TextBlock.ContextMenu>
 
-              <TextBlock.Text>
-                <MultiBinding StringFormat="[{0}] {1}">
-                  <Binding Path="Year" />
-                  <Binding Path="Name" />
-                </MultiBinding>
-              </TextBlock.Text>
-
               <TextBlock.Background>
                 <Binding Path="AbsoluteSourcePath"
                          Converter="{x:Static converters:MiscConverters.SourceColor}" />
@@ -122,7 +115,8 @@
           </TreeDataTemplate>
 
           <DataTemplate DataType="models:Song">
-            <TextBlock Background="{Binding Status, Converter={x:Static converters:MiscConverters.StatusColor}}">
+            <TextBlock Classes="song"
+                       Background="{Binding Status, Converter={x:Static converters:MiscConverters.StatusColor}}">
               <TextBlock.ContextMenu>
                 <ContextMenu Classes="notWhenBusy">
                   <MenuItem Header="Edit Song" CommandParameter="{Binding}"
@@ -136,13 +130,6 @@
                             Command="{Binding ElementName=Tree, Path=DataContext.DeleteSong}" />
                 </ContextMenu>
               </TextBlock.ContextMenu>
-
-              <TextBlock.Text>
-                <MultiBinding StringFormat="[{0}] {1}">
-                  <Binding Path="Type" />
-                  <Binding Path="FullName" />
-                </MultiBinding>
-              </TextBlock.Text>
             </TextBlock>
           </DataTemplate>
         </TreeView.DataTemplates>
