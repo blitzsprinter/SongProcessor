@@ -3,7 +3,7 @@ using System.Threading;
 
 namespace AMQSongProcessor
 {
-	public sealed class LogProcessingToConsole : IProgress<ProcessingData>
+	internal sealed class LogProcessingToConsole : IProgress<ProcessingData>
 	{
 		private string? _Current;
 

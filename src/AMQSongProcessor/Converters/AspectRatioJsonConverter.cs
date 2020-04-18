@@ -6,7 +6,7 @@ using AMQSongProcessor.Models;
 
 namespace AMQSongProcessor.Converters
 {
-	public sealed class AspectRatioJsonConverter : JsonConverter<AspectRatio>
+	internal sealed class AspectRatioJsonConverter : JsonConverter<AspectRatio>
 	{
 		private const char SEPARATOR = ':';
 

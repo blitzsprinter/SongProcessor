@@ -18,7 +18,7 @@ namespace AMQSongProcessor
 			Console.SetBufferSize(Console.BufferWidth, short.MaxValue - 1);
 		}
 
-		public static async Task Main()
+		private static async Task Main()
 		{
 			string dir;
 #if true

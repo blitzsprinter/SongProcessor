@@ -6,7 +6,7 @@ using AMQSongProcessor.Models;
 
 namespace AMQSongProcessor.Converters
 {
-	public sealed class SongTypeAndPositionJsonConverter : JsonConverter<SongTypeAndPosition>
+	internal sealed class SongTypeAndPositionJsonConverter : JsonConverter<SongTypeAndPosition>
 	{
 		public override SongTypeAndPosition Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
 			=> SongTypeAndPosition.Parse(reader.GetString());

@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace AMQSongProcessor.Converters
 {
-	public sealed class TimeSpanJsonConverter : JsonConverter<TimeSpan>
+	internal sealed class TimeSpanJsonConverter : JsonConverter<TimeSpan>
 	{
 		public override TimeSpan Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
 			=> TimeSpan.Parse(reader.GetString());

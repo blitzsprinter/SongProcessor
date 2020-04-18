@@ -5,7 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace AMQSongProcessor
 {
-	public sealed class MutableFfmpegProgress
+	internal sealed class FfmpegProgressBuilder
 	{
 		public const string BITRATE = "bitrate";
 		public const string DROP_FRAMES = "drop_frames";
@@ -77,12 +77,11 @@ namespace AMQSongProcessor
 			return true;
 		}
 
-		[return: MaybeNull]
 		private static T Parse<T>(
 			Dictionary<string, string> source,
 			string name,
 			Func<string, T> parser,
-			T missingVal = default)
+			T missingVal = default) where T : struct
 		{
 			if (source.TryGetValue(name, out var value))
 			{

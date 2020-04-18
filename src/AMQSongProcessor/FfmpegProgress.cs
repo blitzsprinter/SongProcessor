@@ -4,17 +4,17 @@ namespace AMQSongProcessor
 {
 	public sealed class FfmpegProgress
 	{
-		public double Bitrate { get; set; }
-		public int DroppedFrames { get; set; }
-		public int DuplicateFrames { get; set; }
-		public double Fps { get; set; }
-		public int Frame { get; set; }
-		public bool IsEnd { get; set; }
-		public TimeSpan OutTime { get; set; }
-		public long OutTimeMs { get; set; }
-		public long OutTimeUs { get; set; }
-		public double Speed { get; set; }
-		public double Stream00q { get; set; }
-		public long TotalSize { get; set; }
+		public double Bitrate { get; internal set; }
+		public int DroppedFrames { get; internal set; }
+		public int DuplicateFrames { get; internal set; }
+		public double Fps { get; internal set; }
+		public int Frame { get; internal set; }
+		public bool IsEnd { get; internal set; }
+		public TimeSpan OutTime { get; internal set; }
+		public long OutTimeMs { get; internal set; }
+		public long OutTimeUs { get; internal set; }
+		public double Speed { get; internal set; }
+		public double Stream00q { get; internal set; }
+		public long TotalSize { get; internal set; }
 	}
 }

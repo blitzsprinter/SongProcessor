@@ -43,7 +43,7 @@ namespace AMQSongProcessor.Jobs
 			}, _ => { }, token);
 
 			//ffmpeg will output the information we want to std:out
-			var ffmpegProgress = new MutableFfmpegProgress();
+			var ffmpegProgressBuilder = new FfmpegProgressBuilder();
 			process.OutputDataReceived += (s, e) =>
 			{
 				if (e.Data == null)
@@ -51,7 +51,7 @@ namespace AMQSongProcessor.Jobs
 					return;
 				}
 
-				if (ffmpegProgress.IsNextProgressReady(e.Data, out var progress))
+				if (ffmpegProgressBuilder.IsNextProgressReady(e.Data, out var progress))
 				{
 					Processing?.Report(new ProcessingData(path, Song.Length, progress));
 				}

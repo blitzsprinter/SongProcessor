@@ -6,7 +6,7 @@ using AMQSongProcessor.Models;
 
 namespace AMQSongProcessor.Converters
 {
-	public sealed class VolumeModifierConverter : JsonConverter<VolumeModifer?>
+	internal sealed class VolumeModifierConverter : JsonConverter<VolumeModifer?>
 	{
 		public override VolumeModifer? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
 		{
