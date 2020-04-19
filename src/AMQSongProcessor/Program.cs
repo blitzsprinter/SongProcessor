@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 using AdvorangesUtils;
-
+using AMQSongProcessor.Gatherers;
 using AMQSongProcessor.Models;
 using AMQSongProcessor.Utils;
 
@@ -151,9 +152,10 @@ namespace AMQSongProcessor
 				CreateDuplicateFile = false,
 				AddShowNameDirectory = true,
 			};
+			var gatherer = new ANNGatherer(new HttpClient());
 			foreach (var id in File.ReadAllLines(idFile).Select(int.Parse))
 			{
-				var anime = await ANNGatherer.GetAsync(id).CAF();
+				var anime = await gatherer.GetAsync(id).CAF();
 				await loader.SaveAsync(anime, options).CAF();
 				Console.WriteLine($"Got information from ANN for {anime.Name}.");
 			}

@@ -10,16 +10,14 @@ using AdvorangesUtils;
 
 using AMQSongProcessor.Models;
 
-namespace AMQSongProcessor
+namespace AMQSongProcessor.Gatherers
 {
-	public static class ANNGatherer
+	public sealed class ANNGatherer : IAnimeGatherer
 	{
 		private const string ARTIST = "arist";
 		private const string NAME = "name";
 		private const string POSITION = "position";
 		private const string URL = "https://cdn.animenewsnetwork.com/encyclopedia/api.xml?anime=";
-
-		private static readonly HttpClient _Client = new HttpClient();
 
 		private static readonly string SongPattern =
 			$@"(?<{POSITION}>\d*?)" + //Some openings/endings will have a position
@@ -37,7 +35,15 @@ namespace AMQSongProcessor
 			"yyyy"
 		};
 
-		public static async Task<Anime> GetAsync(int id, ANNGathererOptions? options = null)
+		private readonly HttpClient _Client;
+		public string Name { get; } = "ANN";
+
+		public ANNGatherer(HttpClient client)
+		{
+			_Client = client;
+		}
+
+		public async Task<Anime> GetAsync(int id, GatherOptions? options = null)
 		{
 			var url = URL + id;
 			var result = await _Client.GetAsync(url).CAF();
@@ -50,7 +56,7 @@ namespace AMQSongProcessor
 			var doc = XElement.Load(stream);
 			if (doc.Descendants("warning").Any(x => x.Value.Contains("no result for anime")))
 			{
-				throw new HttpRequestException($"{id} does not exist on ANN.");
+				throw new HttpRequestException($"{id} does not exist on {Name}.");
 			}
 
 			var anime = new Anime
@@ -89,7 +95,10 @@ namespace AMQSongProcessor
 			return anime;
 		}
 
-		private static void ProcessSong(Anime anime, ANNGathererOptions? options, XElement e, string t)
+		public override string ToString()
+			=> Name;
+
+		private static void ProcessSong(Anime anime, GatherOptions? options, XElement e, string t)
 		{
 			var type = Enum.Parse<SongType>(t.Split(' ')[0], true);
 			if (options?.CanBeGathered(type) == false)
@@ -121,25 +130,6 @@ namespace AMQSongProcessor
 			{
 				anime.Year = Math.Min(anime.Year, dt.Year);
 			}
-		}
-	}
-
-	public sealed class ANNGathererOptions
-	{
-		public bool AddEndings { get; set; }
-		public bool AddInserts { get; set; }
-		public bool AddOpenings { get; set; }
-		public bool AddSongs { get; set; }
-
-		public bool CanBeGathered(SongType type)
-		{
-			return AddSongs && type switch
-			{
-				SongType.Ed => AddEndings,
-				SongType.In => AddInserts,
-				SongType.Op => AddOpenings,
-				_ => throw new ArgumentOutOfRangeException(nameof(type)),
-			};
 		}
 	}
 }

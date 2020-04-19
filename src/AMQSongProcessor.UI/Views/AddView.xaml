@@ -62,6 +62,7 @@
           <CheckBox IsChecked="{Binding AddInserts}"
                     IsEnabled="{Binding AddSongs}" />
         </HeaderedContentControl>
+        <ComboBox Items="{Binding GathererNames}" SelectedItem="{Binding SelectedGathererName}" />
 
         <UniformGrid.Styles>
           <Style Selector="HeaderedContentControl">

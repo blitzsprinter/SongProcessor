@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Reactive;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
+using AMQSongProcessor.Gatherers;
 using AMQSongProcessor.Models;
 
 using ReactiveUI;
@@ -16,6 +19,7 @@ namespace AMQSongProcessor.UI.ViewModels
 	[DataContract]
 	public class AddViewModel : ReactiveObject, IRoutableViewModel
 	{
+		private readonly IEnumerable<IAnimeGatherer> _Gatherers;
 		private readonly IScreen? _HostScreen;
 		private readonly ISongLoader _Loader;
 		private bool _AddEndings = true;
@@ -25,6 +29,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		private string? _Directory;
 		private Exception? _Exception;
 		private int _Id = 1;
+		private string _SelectedGathererName;
 
 		public ReactiveCommand<Unit, Unit> Add { get; }
 		[DataMember]
@@ -64,12 +69,19 @@ namespace AMQSongProcessor.UI.ViewModels
 			get => _Exception;
 			set => this.RaiseAndSetIfChanged(ref _Exception, value);
 		}
+		public IEnumerable<string> GathererNames { get; }
 		public IScreen HostScreen => _HostScreen ?? Locator.Current.GetService<IScreen>();
 		[DataMember]
 		public int Id
 		{
 			get => _Id;
 			set => this.RaiseAndSetIfChanged(ref _Id, value);
+		}
+		[DataMember]
+		public string SelectedGathererName
+		{
+			get => _SelectedGathererName;
+			set => this.RaiseAndSetIfChanged(ref _SelectedGathererName, value);
 		}
 		public string UrlPathSegment => "/add";
 
@@ -81,6 +93,9 @@ namespace AMQSongProcessor.UI.ViewModels
 		{
 			_HostScreen = screen;
 			_Loader = Locator.Current.GetService<ISongLoader>();
+			_Gatherers = Locator.Current.GetService<IEnumerable<IAnimeGatherer>>();
+			_SelectedGathererName = _Gatherers.First().Name;
+			GathererNames = _Gatherers.Select(x => x.Name);
 
 			var canAdd = this.WhenAnyValue(
 				x => x.Directory,
@@ -94,7 +109,8 @@ namespace AMQSongProcessor.UI.ViewModels
 		{
 			try
 			{
-				var anime = await ANNGatherer.GetAsync(Id, new ANNGathererOptions
+				var gatherer = _Gatherers.Single(x => x.Name == SelectedGathererName);
+				var anime = await gatherer.GetAsync(Id, new GatherOptions
 				{
 					AddSongs = AddSongs,
 					AddEndings = AddEndings,
@@ -104,7 +120,7 @@ namespace AMQSongProcessor.UI.ViewModels
 				await _Loader.SaveAsync(anime, new SaveNewOptions(Directory!)
 				{
 					AllowOverwrite = false,
-					CreateDuplicateFile = false,
+					CreateDuplicateFile = true,
 					AddShowNameDirectory = true,
 				}).ConfigureAwait(true);
 				Anime.Add(anime);
