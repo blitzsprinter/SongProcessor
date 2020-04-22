@@ -161,23 +161,24 @@ namespace AMQSongProcessor.UI.ViewModels
 			var defFile = Path.GetFileName(anime.AbsoluteSourcePath);
 			var manager = Locator.Current.GetService<IMessageBoxManager>();
 			var result = await manager.GetFilesAsync(dir, "Source", false, defFile).ConfigureAwait(false);
-			if (!(result.SingleOrDefault() is string filePath))
+			if (!(result.SingleOrDefault() is string path))
 			{
 				return;
 			}
 
+			VideoInfo info;
 			try
 			{
-				anime.VideoInfo = await _Gatherer.GetVideoInfoAsync(filePath).ConfigureAwait(true);
+				info = await _Gatherer.GetVideoInfoAsync(path).ConfigureAwait(true);
 			}
 			catch (InvalidFileTypeException)
 			{
-				var text = $"\"{filePath}\" is an invalid file for a video source.";
+				var text = $"\"{path}\" is an invalid file for a video source.";
 				await Dispatcher.UIThread.InvokeAsync(() => manager.ShowAsync(text, "Invalid File")).ConfigureAwait(true);
 				return;
 			}
 
-			anime.SetSourceFile(filePath);
+			anime.SetSourceFile(path, info);
 			await _Loader.SaveAsync(anime).ConfigureAwait(true);
 		}
 

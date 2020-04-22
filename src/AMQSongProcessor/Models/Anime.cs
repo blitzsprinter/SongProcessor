@@ -112,8 +112,11 @@ namespace AMQSongProcessor.Models
 		{
 		}
 
-		public void SetSourceFile(string? path)
-			=> Source = FileUtils.StoreRelativeOrAbsolute(Directory, path);
+		public void SetSourceFile(string? path, VideoInfo info)
+		{
+			Source = FileUtils.StoreRelativeOrAbsolute(Directory, path);
+			VideoInfo = info;
+		}
 
 		private void OnPropertyChanged([CallerMemberName] string propertyName = "")
 			=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

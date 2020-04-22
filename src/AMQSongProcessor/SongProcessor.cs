@@ -172,9 +172,13 @@ namespace AMQSongProcessor
 			var valid = new List<Resolution>(Resolutions.Length);
 			foreach (var res in Resolutions)
 			{
-				if (res.Size > anime.VideoInfo?.Height)
+				if (anime.VideoInfo == null)
 				{
-					/*Warnings.Report($"Source is smaller than {res.Size}p: {show.Name}");*/
+					Warnings?.Report($"Video info is null {anime.Name}");
+				}
+				else if (res.Size > anime.VideoInfo?.Height)
+				{
+					Warnings?.Report($"Source is smaller than {res.Size}p: {anime.Name}");
 				}
 				else
 				{

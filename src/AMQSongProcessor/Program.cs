@@ -152,7 +152,7 @@ namespace AMQSongProcessor
 				CreateDuplicateFile = false,
 				AddShowNameDirectory = true,
 			};
-			var gatherer = new ANNGatherer(new HttpClient());
+			var gatherer = new ANNGatherer();
 			foreach (var id in File.ReadAllLines(idFile).Select(int.Parse))
 			{
 				var anime = await gatherer.GetAsync(id).CAF();

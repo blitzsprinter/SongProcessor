@@ -38,9 +38,9 @@ namespace AMQSongProcessor.Gatherers
 		private readonly HttpClient _Client;
 		public string Name { get; } = "ANN";
 
-		public ANNGatherer(HttpClient client)
+		public ANNGatherer(HttpClient? client = null)
 		{
-			_Client = client;
+			_Client = client ?? new HttpClient();
 		}
 
 		public async Task<Anime> GetAsync(int id, GatherOptions? options = null)

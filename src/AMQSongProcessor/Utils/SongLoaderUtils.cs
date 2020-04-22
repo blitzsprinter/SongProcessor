@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+
 using AdvorangesUtils;
 
 using AMQSongProcessor.Models;
@@ -18,29 +19,20 @@ namespace AMQSongProcessor.Utils
 
 		public static IAsyncEnumerable<Anime> LoadFromDirectoryAsync(
 			this ISongLoader loader,
-			string directory)
-			=> loader.LoadFromFilesAsync(loader.GetFiles(directory));
+			string directory,
+			int? filesPerTask = null)
+			=> loader.LoadFromFilesAsync(loader.GetFiles(directory), filesPerTask);
 
 		public static IAsyncEnumerable<Anime> LoadFromFilesAsync(
 			this ISongLoader loader,
 			IEnumerable<string> files,
-			int filesPerTask)
+			int? filesPerTask = null)
 		{
-			if (filesPerTask < 1)
+			if (!filesPerTask.HasValue)
 			{
-				return loader.LoadFromFilesAsync(files);
+				return loader.SlowLoadFromFilesAsync(files);
 			}
-			return loader.FastLoadFromFilesAsync(files, filesPerTask);
-		}
-
-		public static async IAsyncEnumerable<Anime> LoadFromFilesAsync(
-			this ISongLoader loader,
-			IEnumerable<string> files)
-		{
-			foreach (var file in files)
-			{
-				yield return await loader.LoadAsync(file).CAF();
-			}
+			return loader.FastLoadFromFilesAsync(files, filesPerTask.Value);
 		}
 
 		private static async IAsyncEnumerable<Anime> FastLoadFromFilesAsync(
@@ -66,7 +58,7 @@ namespace AMQSongProcessor.Utils
 
 			var enumerators = files
 				.GroupInto(filesPerTask)
-				.Select(x => loader.LoadFromFilesAsync(x).GetAsyncEnumerator())
+				.Select(x => loader.SlowLoadFromFilesAsync(x).GetAsyncEnumerator())
 				.ToHashSet();
 
 			try
@@ -106,6 +98,16 @@ namespace AMQSongProcessor.Utils
 				{
 					await enumerator.DisposeAsync().CAF();
 				}
+			}
+		}
+
+		private static async IAsyncEnumerable<Anime> SlowLoadFromFilesAsync(
+			this ISongLoader loader,
+			IEnumerable<string> files)
+		{
+			foreach (var file in files)
+			{
+				yield return await loader.LoadAsync(file).CAF();
 			}
 		}
 	}
