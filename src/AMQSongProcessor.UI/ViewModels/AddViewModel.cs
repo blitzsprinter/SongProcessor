@@ -22,6 +22,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		private readonly IEnumerable<IAnimeGatherer> _Gatherers;
 		private readonly IScreen? _HostScreen;
 		private readonly ISongLoader _Loader;
+		private readonly IMessageBoxManager _MessageBoxManager;
 		private bool _AddEndings = true;
 		private bool _AddInserts = true;
 		private bool _AddOpenings = true;
@@ -93,6 +94,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		{
 			_HostScreen = screen;
 			_Loader = Locator.Current.GetService<ISongLoader>();
+			_MessageBoxManager = Locator.Current.GetService<IMessageBoxManager>();
 			_Gatherers = Locator.Current.GetService<IEnumerable<IAnimeGatherer>>();
 			_SelectedGathererName = _Gatherers.First().Name;
 			GathererNames = _Gatherers.Select(x => x.Name);
@@ -137,8 +139,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			var text = $"Are you sure you want to delete {anime.Name}?";
 			const string TITLE = "Anime Deletion";
 
-			var manager = Locator.Current.GetService<IMessageBoxManager>();
-			var result = await manager.ShowAsync(text, TITLE, Constants.YesNo).ConfigureAwait(true);
+			var result = await _MessageBoxManager.ShowAsync(text, TITLE, Constants.YesNo).ConfigureAwait(true);
 			if (result == Constants.YES)
 			{
 				Anime.Remove(anime);

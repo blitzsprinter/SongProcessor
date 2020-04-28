@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.Net.Http;
+
 using AMQSongProcessor.Gatherers;
 using AMQSongProcessor.UI.ViewModels;
 using AMQSongProcessor.UI.Views;
@@ -21,24 +21,20 @@ namespace AMQSongProcessor.UI
 
 		public override void OnFrameworkInitializationCompleted()
 		{
+			var window = InitializeSystemItems();
 			InitializeSongItems();
-			InitializeGatherers();
-			InitializeSuspension();
 
-			var state = RxApp.SuspensionHost.GetAppState<MainViewModel>();
-			Locator.CurrentMutable.RegisterConstant<IScreen>(state);
-			Locator.CurrentMutable.Register<IViewFor<SongViewModel>>(() => new SongView());
-			Locator.CurrentMutable.Register<IViewFor<AddViewModel>>(() => new AddView());
-			Locator.CurrentMutable.Register<IViewFor<EditViewModel>>(() => new EditView());
-
-			var window = new MainWindow
-			{
-				DataContext = state
-			};
-			Locator.CurrentMutable.RegisterConstant<IMessageBoxManager>(new MessageBoxManager(window));
-
+			window.DataContext = InitializeSuspension();
 			window.Show();
 			base.OnFrameworkInitializationCompleted();
+		}
+
+		private MainWindow InitializeSystemItems()
+		{
+			var window = new MainWindow();
+			Locator.CurrentMutable.RegisterConstant(Clipboard);
+			Locator.CurrentMutable.RegisterConstant<IMessageBoxManager>(new MessageBoxManager(window));
+			return window;
 		}
 
 		private void InitializeSongItems()
@@ -54,10 +50,7 @@ namespace AMQSongProcessor.UI
 			Locator.CurrentMutable.RegisterConstant<ISourceInfoGatherer>(gatherer);
 			Locator.CurrentMutable.RegisterConstant<ISongLoader>(loader);
 			Locator.CurrentMutable.Register<ISongProcessor>(() => new SongProcessor());
-		}
 
-		private void InitializeGatherers()
-		{
 			Locator.CurrentMutable.RegisterConstant<IEnumerable<IAnimeGatherer>>(new IAnimeGatherer[]
 			{
 				new ANNGatherer(),
@@ -65,7 +58,7 @@ namespace AMQSongProcessor.UI
 			});
 		}
 
-		private void InitializeSuspension()
+		private MainViewModel InitializeSuspension()
 		{
 			var suspension = new AutoSuspendHelper(ApplicationLifetime);
 			var driver = new NewtonsoftJsonSuspensionDriver("appstate.json")
@@ -77,6 +70,13 @@ namespace AMQSongProcessor.UI
 			RxApp.SuspensionHost.CreateNewAppState = () => new MainViewModel();
 			RxApp.SuspensionHost.SetupDefaultSuspendResume(driver);
 			suspension.OnFrameworkInitializationCompleted();
+
+			var state = RxApp.SuspensionHost.GetAppState<MainViewModel>();
+			Locator.CurrentMutable.RegisterConstant<IScreen>(state);
+			Locator.CurrentMutable.Register<IViewFor<SongViewModel>>(() => new SongView());
+			Locator.CurrentMutable.Register<IViewFor<AddViewModel>>(() => new AddView());
+			Locator.CurrentMutable.Register<IViewFor<EditViewModel>>(() => new EditView());
+			return state;
 		}
 	}
 }

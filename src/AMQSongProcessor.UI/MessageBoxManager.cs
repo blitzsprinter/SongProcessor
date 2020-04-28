@@ -25,7 +25,7 @@ namespace AMQSongProcessor.UI
 			}.ShowAsync(_Window);
 		}
 
-		public Task<string[]?> GetFilesAsync(
+		public Task<string[]> GetFilesAsync(
 			string directory,
 			string title,
 			bool allowMultiple = true,

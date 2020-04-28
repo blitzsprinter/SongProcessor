@@ -91,56 +91,49 @@ namespace AMQSongProcessor
 				return song.Episode.ToString() + "/" + ts;
 			}
 
-			var counts = new ConcurrentDictionary<string, List<Anime>>();
-			foreach (var show in anime)
-			{
-				foreach (var song in show.Songs.Where(x => !x.ShouldIgnore))
-				{
-					counts.GetOrAdd(song.FullName, _ => new List<Anime>()).Add(show);
-				}
-			}
-
-			if (counts.Count == 0)
+			var songs = anime.SelectMany(x => x.Songs).Where(x => !x.ShouldIgnore).ToArray();
+			if (songs.Length == 0)
 			{
 				return;
 			}
 
-			var file = Path.Combine(dir, FixesFile);
-			using var fs = new FileStream(file, FileMode.Create);
-			using var sw = new StreamWriter(fs);
-
-			foreach (var show in anime)
+			var matches = new ConcurrentDictionary<string, List<Anime>>();
+			foreach (var song in songs)
 			{
-				foreach (var song in show.Songs.Where(x => !x.ShouldIgnore))
+				matches.GetOrAdd(song.FullName, _ => new List<Anime>()).Add(song.Anime);
+			}
+
+			var file = Path.Combine(dir, FixesFile);
+			using var sw = new StreamWriter(file, append: false);
+
+			foreach (var song in songs)
+			{
+				if (song.Status != Status.NotSubmitted)
 				{
-					if (song.Status != Status.NotSubmitted)
-					{
-						continue;
-					}
-
-					var sb = new StringBuilder();
-
-					sb.Append("**Anime:** ").AppendLine(show.Name);
-					sb.Append("**ANNID:** ").AppendLine(show.Id.ToString());
-					sb.Append("**Song Title:** ").AppendLine(song.Name);
-					sb.Append("**Artist:** ").AppendLine(song.Artist);
-					sb.Append("**Type:** ").AppendLine(song.Type.ToString());
-					sb.Append("**Episode/Timestamp:** ").AppendLine(FormatTimestamp(song));
-					sb.Append("**Length:** ").AppendLine(FormatTimeSpan(song.Length));
-
-					var matches = counts[song.FullName];
-					if (matches.Count > 1)
-					{
-						var others = matches
-							.Where(x => x.Id != show.Id)
-							.OrderBy(x => x.Id);
-
-						sb.Append("**Duplicate found in:** ")
-							.AppendLine(others.Join(x => x.Id.ToString()));
-					}
-
-					await sw.WriteAsync(sb.AppendLine()).CAF();
+					continue;
 				}
+
+				var sb = new StringBuilder();
+				sb.Append("**Anime:** ").AppendLine(song.Anime.Name);
+				sb.Append("**ANNID:** ").AppendLine(song.Anime.Id.ToString());
+				sb.Append("**Song Title:** ").AppendLine(song.Name);
+				sb.Append("**Artist:** ").AppendLine(song.Artist);
+				sb.Append("**Type:** ").AppendLine(song.Type.ToString());
+				sb.Append("**Episode/Timestamp:** ").AppendLine(FormatTimestamp(song));
+				sb.Append("**Length:** ").AppendLine(FormatTimeSpan(song.Length));
+
+				var m = matches[song.FullName];
+				if (m.Count > 1)
+				{
+					var others = m
+						.Where(x => x.Id != song.Anime.Id)
+						.OrderBy(x => x.Id)
+						.Join(x => x.Id.ToString());
+
+					sb.Append("**Duplicate found in:** ").AppendLine(others);
+				}
+
+				await sw.WriteAsync(sb.AppendLine()).CAF();
 			}
 		}
 

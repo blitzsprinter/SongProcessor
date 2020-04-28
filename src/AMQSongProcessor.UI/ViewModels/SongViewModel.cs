@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
@@ -12,6 +11,7 @@ using System.Threading.Tasks;
 using AMQSongProcessor.Models;
 using AMQSongProcessor.Utils;
 
+using Avalonia.Input.Platform;
 using Avalonia.Threading;
 
 using ReactiveUI;
@@ -26,7 +26,9 @@ namespace AMQSongProcessor.UI.ViewModels
 		private readonly ISourceInfoGatherer _Gatherer;
 		private readonly IScreen? _HostScreen;
 		private readonly ISongLoader _Loader;
+		private readonly IMessageBoxManager _MessageBoxManager;
 		private readonly ISongProcessor _Processor;
+		private readonly IClipboard _SystemClipboard;
 		private Clipboard<Song>? _ClipboardSong;
 		private int _CurrentJob;
 		private string? _Directory;
@@ -108,6 +110,8 @@ namespace AMQSongProcessor.UI.ViewModels
 			_Loader = Locator.Current.GetService<ISongLoader>();
 			_Processor = Locator.Current.GetService<ISongProcessor>();
 			_Gatherer = Locator.Current.GetService<ISourceInfoGatherer>();
+			_SystemClipboard = Locator.Current.GetService<IClipboard>();
+			_MessageBoxManager = Locator.Current.GetService<IMessageBoxManager>();
 			_Processor.Processing = new LogProcessingToViewModel(x =>
 			{
 				if (x.Progress.IsEnd)
@@ -159,8 +163,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		{
 			var dir = anime.Directory;
 			var defFile = Path.GetFileName(anime.AbsoluteSourcePath);
-			var manager = Locator.Current.GetService<IMessageBoxManager>();
-			var result = await manager.GetFilesAsync(dir, "Source", false, defFile).ConfigureAwait(false);
+			var result = await _MessageBoxManager.GetFilesAsync(dir, "Source", false, defFile).ConfigureAwait(false);
 			if (!(result.SingleOrDefault() is string path))
 			{
 				return;
@@ -174,7 +177,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			catch (InvalidFileTypeException)
 			{
 				var text = $"\"{path}\" is an invalid file for a video source.";
-				await Dispatcher.UIThread.InvokeAsync(() => manager.ShowAsync(text, "Invalid File")).ConfigureAwait(true);
+				await Dispatcher.UIThread.InvokeAsync(() => _MessageBoxManager.ShowAsync(text, "Invalid File")).ConfigureAwait(true);
 				return;
 			}
 
@@ -187,8 +190,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			var text = $"Are you sure you want to delete all songs {anime.Name}?";
 			const string TITLE = "Song Clearing";
 
-			var manager = Locator.Current.GetService<IMessageBoxManager>();
-			var result = await manager.ShowAsync(text, TITLE, Constants.YesNo).ConfigureAwait(true);
+			var result = await _MessageBoxManager.ShowAsync(text, TITLE, Constants.YesNo).ConfigureAwait(true);
 			if (result == Constants.YES)
 			{
 				anime.Songs.Clear();
@@ -204,7 +206,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		}
 
 		private Task PrivateCopyANNID(int id)
-			=> Avalonia.Application.Current.Clipboard.SetTextAsync(id.ToString());
+			=> _SystemClipboard.SetTextAsync(id.ToString());
 
 		private async Task PrivateCopySong(Song song)
 		{
@@ -227,8 +229,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			var text = $"Are you sure you want to delete {anime.Name}?";
 			const string TITLE = "Anime Deletion";
 
-			var manager = Locator.Current.GetService<IMessageBoxManager>();
-			var result = await manager.ShowAsync(text, TITLE, Constants.YesNo).ConfigureAwait(true);
+			var result = await _MessageBoxManager.ShowAsync(text, TITLE, Constants.YesNo).ConfigureAwait(true);
 			if (result == Constants.YES)
 			{
 				Anime.Remove(anime);
@@ -242,8 +243,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			var text = $"Are you sure you want to delete \"{song.Name}\" from {anime.Name}?";
 			const string TITLE = "Song Deletion";
 
-			var manager = Locator.Current.GetService<IMessageBoxManager>();
-			var result = await manager.ShowAsync(text, TITLE, Constants.YesNo).ConfigureAwait(true);
+			var result = await _MessageBoxManager.ShowAsync(text, TITLE, Constants.YesNo).ConfigureAwait(true);
 			if (result == Constants.YES)
 			{
 				anime.Songs.Remove(song);
@@ -292,18 +292,20 @@ namespace AMQSongProcessor.UI.ViewModels
 		private async Task PrivateGetVolumeInfo(Anime anime)
 		{
 			var dir = anime.Directory;
-			var manager = Locator.Current.GetService<IMessageBoxManager>();
-			var result = await manager.GetFilesAsync(dir, "Volume Info", false).ConfigureAwait(false);
-			if (!(result.SingleOrDefault() is string filePath))
+			var result = await _MessageBoxManager.GetFilesAsync(dir, "Volume Info", true).ConfigureAwait(false);
+			if (result.Length == 0)
 			{
 				return;
 			}
 
-			var info = await _Gatherer.GetAverageVolumeAsync(filePath).ConfigureAwait(true);
-			var text = $"Volume information for \"{Path.GetFileName(filePath)}\":" +
-				$"\nMean volume: {info.MeanVolume}dB" +
-				$"\nMax volume: {info.MaxVolume}dB";
-			await Dispatcher.UIThread.InvokeAsync(() => manager.ShowAsync(text, "Volume Info")).ConfigureAwait(true);
+			foreach (var path in result)
+			{
+				var info = await _Gatherer.GetAverageVolumeAsync(path).ConfigureAwait(true);
+				var text = $"Volume information for \"{Path.GetFileName(path)}\":" +
+					$"\nMean volume: {info.MeanVolume}dB" +
+					$"\nMax volume: {info.MaxVolume}dB";
+				_ = Dispatcher.UIThread.InvokeAsync(() => _MessageBoxManager.ShowAsync(text, "Volume Info")).ConfigureAwait(true);
+			}
 		}
 
 		private async Task PrivateLoad()
