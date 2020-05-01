@@ -9,7 +9,6 @@ namespace AMQSongProcessor.Models
 		public int Height { get; }
 		public float Ratio => Width / (float)Height;
 		public int Width { get; }
-
 		private string DebuggerDisplay => ToString();
 
 		public AspectRatio(int width, int height)

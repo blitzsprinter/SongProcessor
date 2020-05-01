@@ -9,8 +9,7 @@ namespace AMQSongProcessor
 {
 	public interface ISongProcessor
 	{
-		IProgress<ProcessingData>? Processing { get; set; }
-		IProgress<string>? Warnings { get; set; }
+		event Action<string> WarningReceived;
 
 		IReadOnlyList<ISongJob> CreateJobs(IEnumerable<Anime> anime);
 

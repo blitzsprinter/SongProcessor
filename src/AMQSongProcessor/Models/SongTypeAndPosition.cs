@@ -13,9 +13,7 @@ namespace AMQSongProcessor.Models
 			SongType.In => nameof(SongType.Insert),
 			_ => throw new ArgumentOutOfRangeException(nameof(Type)),
 		};
-
 		public int? Position { get; }
-
 		public string ShortType => Type switch
 		{
 			SongType.Op => nameof(SongType.Op),
@@ -23,9 +21,7 @@ namespace AMQSongProcessor.Models
 			SongType.In => nameof(SongType.In),
 			_ => throw new ArgumentOutOfRangeException(nameof(Type)),
 		};
-
 		public SongType Type { get; }
-
 		private string DebuggerDisplay => ToString();
 
 		public SongTypeAndPosition(SongType type, int? position)

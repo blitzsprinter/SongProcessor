@@ -112,14 +112,6 @@ namespace AMQSongProcessor.UI.ViewModels
 			_Gatherer = Locator.Current.GetService<ISourceInfoGatherer>();
 			_SystemClipboard = Locator.Current.GetService<IClipboard>();
 			_MessageBoxManager = Locator.Current.GetService<IMessageBoxManager>();
-			_Processor.Processing = new LogProcessingToViewModel(x =>
-			{
-				if (x.Progress.IsEnd)
-				{
-					++CurrentJob;
-				}
-				ProcessingData = x;
-			});
 
 			var validDirectory = this
 				.WhenAnyValue(x => x.Directory)
@@ -349,7 +341,14 @@ namespace AMQSongProcessor.UI.ViewModels
 				CurrentJob = 1;
 				QueuedJobs = jobs.Count;
 
-				await jobs.ProcessAsync(token).ConfigureAwait(true);
+				await jobs.ProcessAsync(x =>
+				{
+					if (x.Progress.IsEnd)
+					{
+						++CurrentJob;
+					}
+					ProcessingData = x;
+				}, token).ConfigureAwait(true);
 
 				ProcessingData = null;
 			}).TakeUntil(CancelProcessing);

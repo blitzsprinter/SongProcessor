@@ -49,7 +49,8 @@ namespace AMQSongProcessor.UI.ViewModels
 				});
 		}
 
-		private IObservable<bool> CanNavigateTo<T>() where T : IRoutableViewModel
+		private IObservable<bool> CanNavigateTo<T>()
+			where T : IRoutableViewModel
 		{
 			var isDifferent = this
 				.WhenAnyObservable(x => x.Router.CurrentViewModel)
@@ -57,7 +58,8 @@ namespace AMQSongProcessor.UI.ViewModels
 			return CanNavigate().CombineLatest(isDifferent, (x, y) => x && y);
 		}
 
-		private ReactiveCommand<Unit, Unit> CreateViewModelCommand<T>() where T : IRoutableViewModel, new()
+		private ReactiveCommand<Unit, Unit> CreateViewModelCommand<T>()
+			where T : IRoutableViewModel, new()
 		{
 			return ReactiveCommand.Create(() =>
 			{

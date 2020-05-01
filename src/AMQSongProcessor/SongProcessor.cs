@@ -27,8 +27,8 @@ namespace AMQSongProcessor
 		};
 
 		public string FixesFile { get; set; } = "fixes.txt";
-		public IProgress<ProcessingData>? Processing { get; set; }
-		public IProgress<string>? Warnings { get; set; }
+
+		public event Action<string>? WarningReceived;
 
 		public IReadOnlyList<ISongJob> CreateJobs(IEnumerable<Anime> anime)
 		{
@@ -37,7 +37,7 @@ namespace AMQSongProcessor
 			{
 				if (show.Source == null)
 				{
-					Warnings?.Report($"Source is null: {show.Name}");
+					WarningReceived?.Invoke($"Source is null: {show.Name}");
 					continue;
 				}
 				else if (!File.Exists(show.AbsoluteSourcePath))
@@ -50,24 +50,17 @@ namespace AMQSongProcessor
 				{
 					if (x.ShouldIgnore)
 					{
-						Warnings?.Report($"Is ignored: {x.Name}");
+						WarningReceived?.Invoke($"Is ignored: {x.Name}");
 						return false;
 					}
 					if (!x.HasTimeStamp)
 					{
-						Warnings?.Report($"Timestamp is null: {x.Name}");
+						WarningReceived?.Invoke($"Timestamp is null: {x.Name}");
 						return false;
 					}
 					return true;
 				});
-				var validJobs = GetJobs(resolutions, songs).Where(x =>
-				{
-					if (!x.AlreadyExists)
-					{
-						x.Processing = Processing;
-					}
-					return !x.AlreadyExists;
-				});
+				var validJobs = GetJobs(resolutions, songs).Where(x => !x.AlreadyExists);
 				jobs.AddRange(validJobs);
 			}
 			return jobs;
@@ -167,11 +160,11 @@ namespace AMQSongProcessor
 			{
 				if (anime.VideoInfo == null)
 				{
-					Warnings?.Report($"Video info is null {anime.Name}");
+					WarningReceived?.Invoke($"Video info is null {anime.Name}");
 				}
 				else if (res.Size > anime.VideoInfo?.Height)
 				{
-					Warnings?.Report($"Source is smaller than {res.Size}p: {anime.Name}");
+					WarningReceived?.Invoke($"Source is smaller than {res.Size}p: {anime.Name}");
 				}
 				else
 				{

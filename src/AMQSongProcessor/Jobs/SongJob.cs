@@ -15,8 +15,9 @@ namespace AMQSongProcessor.Jobs
 		public const int FILE_ALREADY_EXISTS = 183;
 		public static readonly AspectRatio SquareSAR = new AspectRatio(1, 1);
 
+		public event Action<ProcessingData>? ProcessingDataReceived;
+
 		public bool AlreadyExists => File.Exists(GetValidPath());
-		public IProgress<ProcessingData>? Processing { get; set; }
 		public Song Song { get; }
 
 		protected SongJob(Song song)
@@ -53,7 +54,7 @@ namespace AMQSongProcessor.Jobs
 
 				if (ffmpegProgressBuilder.IsNextProgressReady(e.Data, out var progress))
 				{
-					Processing?.Report(new ProcessingData(path, Song.Length, progress));
+					ProcessingDataReceived?.Invoke(new ProcessingData(path, Song.Length, progress));
 				}
 			};
 

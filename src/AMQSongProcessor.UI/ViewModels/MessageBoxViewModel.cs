@@ -11,9 +11,6 @@ namespace AMQSongProcessor.UI.ViewModels
 {
 	public class MessageBoxViewModel : ReactiveObject
 	{
-		private const string CONFIRM = "Confirm";
-		private const string OK = "OK";
-
 		private string? _ButtonText;
 		private object? _CurrentOption;
 		private IEnumerable<object>? _Options;
@@ -25,32 +22,27 @@ namespace AMQSongProcessor.UI.ViewModels
 			get => _ButtonText;
 			set => this.RaiseAndSetIfChanged(ref _ButtonText, value);
 		}
-
 		public ReactiveCommand<Window, Unit> CloseCommand { get; }
-
 		public object? CurrentOption
 		{
 			get => _CurrentOption;
 			set => this.RaiseAndSetIfChanged(ref _CurrentOption, value);
 		}
-
 		public IEnumerable<object>? Options
 		{
 			get => _Options;
 			set
 			{
 				this.RaiseAndSetIfChanged(ref _Options, value);
-				this.RaiseAndSetIfChanged(ref _CurrentOption, null);
-				ButtonText = Options == null ? OK : CONFIRM;
+				CurrentOption = null;
+				ButtonText = Options == null ? "Ok" : "Confirm";
 			}
 		}
-
 		public string? Text
 		{
 			get => _Text;
 			set => this.RaiseAndSetIfChanged(ref _Text, value);
 		}
-
 		public string? Title
 		{
 			get => _Title;

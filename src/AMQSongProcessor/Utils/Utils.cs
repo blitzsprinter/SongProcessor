@@ -12,12 +12,24 @@ namespace AMQSongProcessor.Utils
 {
 	public static class Utils
 	{
-		public static async Task ProcessAsync(this IEnumerable<ISongJob> jobs, CancellationToken? token = null)
+		public static async Task ProcessAsync(
+			this IEnumerable<ISongJob> jobs,
+			Action<ProcessingData>? onProcessingDataReceived = null,
+			CancellationToken? token = null)
 		{
 			foreach (var job in jobs)
 			{
 				token?.ThrowIfCancellationRequested();
-				await job.ProcessAsync(token).CAF();
+				job.ProcessingDataReceived += onProcessingDataReceived;
+
+				try
+				{
+					await job.ProcessAsync(token).CAF();
+				}
+				finally
+				{
+					job.ProcessingDataReceived -= onProcessingDataReceived;
+				}
 			}
 		}
 

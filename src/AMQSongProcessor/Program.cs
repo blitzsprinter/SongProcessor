@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 using AdvorangesUtils;
+
 using AMQSongProcessor.Gatherers;
 using AMQSongProcessor.Models;
 using AMQSongProcessor.Utils;
@@ -14,6 +15,8 @@ namespace AMQSongProcessor
 {
 	public static class Program
 	{
+		private static string? _Current;
+
 		static Program()
 		{
 			Console.SetBufferSize(Console.BufferWidth, short.MaxValue - 1);
@@ -50,14 +53,12 @@ namespace AMQSongProcessor
 
 			Display(anime);
 
-			var processor = new SongProcessor
-			{
-				Processing = new LogProcessingToConsole(),
-				Warnings = new LogWarningsToConsole(),
-			};
+			var processor = new SongProcessor();
+			processor.WarningReceived += Console.WriteLine;
 			await processor.ExportFixesAsync(dir, anime).CAF();
+
 			var jobs = processor.CreateJobs(anime);
-			await jobs.ProcessAsync().CAF();
+			await jobs.ProcessAsync(OnProcessingReceived).CAF();
 		}
 
 		private static void Display(IEnumerable<Anime> anime)
@@ -136,6 +137,31 @@ namespace AMQSongProcessor
 					Console.WriteLine();
 				}
 			}
+		}
+
+		private static void OnProcessingReceived(ProcessingData value)
+		{
+			//For each new path, add in an extra line break for readability
+			var firstWrite = Interlocked.Exchange(ref _Current, value.Path) != value.Path;
+			var finalWrite = value.Progress.IsEnd;
+			if (firstWrite || finalWrite)
+			{
+				Console.WriteLine();
+			}
+
+			if (finalWrite)
+			{
+				Console.WriteLine($"Finished processing \"{value.Path}\"\n");
+				return;
+			}
+
+			if (!firstWrite)
+			{
+				Console.CursorLeft = 0;
+			}
+
+			Console.Write($"\"{value.Path}\" is {value.Percentage * 100:00.0}% complete. " +
+				$"ETA on completion: {value.CompletionETA}");
 		}
 
 		private static async Task AddNewShowsAsync(SongLoader loader, string directory)
