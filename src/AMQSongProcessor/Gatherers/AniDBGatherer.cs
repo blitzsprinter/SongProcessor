@@ -50,11 +50,11 @@ namespace AMQSongProcessor.Gatherers
 			{
 				var anime = new Anime
 				{
-					Id = ProcessANNId(doc),
-					Name = ProcessTitle(doc),
-					Year = ProcessYear(doc),
+					Id = GetANNId(doc),
+					Name = GetTitle(doc),
+					Year = GetYear(doc),
 				};
-				anime.Songs.AddRange(ProcessSongs(doc, options));
+				anime.Songs.AddRange(GetSongs(doc, options));
 				return anime;
 			}
 			catch (Exception e)
@@ -80,7 +80,7 @@ namespace AMQSongProcessor.Gatherers
 			return client;
 		}
 
-		private static int ProcessANNId(HtmlDocument doc)
+		private static int GetANNId(HtmlDocument doc)
 		{
 			try
 			{
@@ -95,7 +95,7 @@ namespace AMQSongProcessor.Gatherers
 			}
 		}
 
-		private static IEnumerable<Song> ProcessSongs(HtmlDocument doc, GatherOptions? options)
+		private static IEnumerable<Song> GetSongs(HtmlDocument doc, GatherOptions? options)
 		{
 			const string SONG = "song";
 			const string CREATOR = "creator";
@@ -157,7 +157,7 @@ namespace AMQSongProcessor.Gatherers
 			}
 		}
 
-		private static string ProcessTitle(HtmlDocument doc)
+		private static string GetTitle(HtmlDocument doc)
 		{
 			try
 			{
@@ -174,7 +174,7 @@ namespace AMQSongProcessor.Gatherers
 			}
 		}
 
-		private static int ProcessYear(HtmlDocument doc)
+		private static int GetYear(HtmlDocument doc)
 		{
 			try
 			{
