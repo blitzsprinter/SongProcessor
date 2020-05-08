@@ -7,11 +7,10 @@ namespace AMQSongProcessor
 	public interface ISongLoader
 	{
 		string Extension { get; set; }
-		bool RemoveIgnoredSongs { get; set; }
 
 		Task<Song> DuplicateSongAsync(Song song);
 
-		Task<Anime> LoadAsync(string file);
+		Task<Anime?> LoadAsync(string file);
 
 		Task SaveAsync(Anime anime, SaveNewOptions? options = null);
 	}

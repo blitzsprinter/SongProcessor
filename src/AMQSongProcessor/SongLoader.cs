@@ -20,7 +20,7 @@ namespace AMQSongProcessor
 			WriteIndented = true,
 			IgnoreReadOnlyProperties = true,
 		};
-		public bool DontThrowVideoExceptions { get; set; } = true;
+		public IgnoreExceptions ExceptionsToIgnore { get; set; } = IgnoreExceptions.Video;
 		public string Extension { get; set; } = "amq";
 		public bool RemoveIgnoredSongs { get; set; } = true;
 
@@ -42,8 +42,14 @@ namespace AMQSongProcessor
 			return await JsonSerializer.DeserializeAsync<Song>(ms, _Options).CAF();
 		}
 
-		public async Task<Anime> LoadAsync(string file)
+		public async Task<Anime?> LoadAsync(string file)
 		{
+			var fileInfo = new FileInfo(file);
+			if (!fileInfo.Exists || fileInfo.Length == 0)
+			{
+				return null;
+			}
+
 			using var fs = new FileStream(file, FileMode.Open);
 
 			Anime anime;
@@ -51,9 +57,13 @@ namespace AMQSongProcessor
 			{
 				anime = await JsonSerializer.DeserializeAsync<Anime>(fs, _Options).CAF();
 			}
+			catch (JsonException) when ((ExceptionsToIgnore & IgnoreExceptions.Json) != 0)
+			{
+				return null;
+			}
 			catch (Exception e)
 			{
-				throw new JsonException($"Unable to parse {file}", e);
+				throw new JsonException($"Unable to parse {file}.", e);
 			}
 
 			anime.AbsoluteInfoPath = file;
@@ -68,8 +78,12 @@ namespace AMQSongProcessor
 				{
 					anime.VideoInfo = await _Gatherer.GetVideoInfoAsync(source).CAF();
 				}
-				catch (Exception) when (DontThrowVideoExceptions)
+				catch (Exception) when ((ExceptionsToIgnore & IgnoreExceptions.Video) != 0)
 				{
+				}
+				catch (Exception e)
+				{
+					throw new InvalidOperationException($"Unable to get video info for {source}.", e);
 				}
 			}
 			return anime;

@@ -18,7 +18,7 @@
   <UserControl.Styles>
     <Style Selector=":is(InputElement).notWhenBusy">
       <Setter Property="IsEnabled"
-              Value="{Binding ElementName=Tree, Path=DataContext.CanNavigate^}" />
+              Value="{Binding ElementName=Tree, Path=!DataContext.IsBusy^}" />
     </Style>
   </UserControl.Styles>
 

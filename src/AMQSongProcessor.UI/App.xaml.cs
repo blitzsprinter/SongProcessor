@@ -46,6 +46,7 @@ namespace AMQSongProcessor.UI
 			var loader = new SongLoader(gatherer)
 			{
 				RemoveIgnoredSongs = false,
+				ExceptionsToIgnore = IgnoreExceptions.All,
 			};
 			Locator.CurrentMutable.RegisterConstant<ISourceInfoGatherer>(gatherer);
 			Locator.CurrentMutable.RegisterConstant<ISongLoader>(loader);

@@ -32,7 +32,6 @@ namespace AMQSongProcessor.UI.ViewModels
 		private Clipboard<Song>? _ClipboardSong;
 		private int _CurrentJob;
 		private string? _Directory;
-		private FileSystemWatcher _FileWatcher;
 		private ProcessingData? _ProcessingData;
 		private int _QueuedJobs;
 		private SearchTerms _Search = new SearchTerms();
@@ -72,6 +71,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		public ReactiveCommand<Unit, Unit> ExportFixes { get; }
 		public ReactiveCommand<Anime, Unit> GetVolumeInfo { get; }
 		public IScreen HostScreen => _HostScreen ?? Locator.Current.GetService<IScreen>();
+		public IObservable<bool> IsBusy { get; }
 		public ReactiveCommand<Unit, Unit> Load { get; }
 		public ReactiveCommand<Anime, Unit> OpenInfoFile { get; }
 		public ReactiveCommand<Anime, Unit> PasteSong { get; }
@@ -139,7 +139,12 @@ namespace AMQSongProcessor.UI.ViewModels
 
 			var loading = Load.IsExecuting;
 			var processing = ProcessSongs.IsExecuting;
-			CanNavigate = loading.CombineLatest(processing, (x, y) => !(x || y));
+			IsBusy = loading.CombineLatest(processing, (x, y) => x || y);
+
+			var loaded = this
+				.WhenAnyValue(x => x.Anime.Count)
+				.Select(x => x != 0);
+			CanNavigate = IsBusy.CombineLatest(loaded, (x, y) => !(x || y));
 		}
 
 		private void PrivateAddSong(Anime anime)
@@ -303,17 +308,6 @@ namespace AMQSongProcessor.UI.ViewModels
 
 		private async Task PrivateLoad()
 		{
-			_FileWatcher = new FileSystemWatcher(Directory!, "*.amq")
-			{
-				IncludeSubdirectories = true,
-				EnableRaisingEvents = true,
-			};
-			_FileWatcher.NotifyFilter = NotifyFilters.LastAccess |
-				NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
-			_FileWatcher.Created += (s, e) =>
-			{
-			};
-
 			var files = _Loader.GetFiles(Directory!);
 			await foreach (var anime in _Loader.LoadFromFilesAsync(files, 5))
 			{

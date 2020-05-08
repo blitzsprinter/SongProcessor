@@ -1,6 +1,5 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -119,7 +118,11 @@ namespace AMQSongProcessor.Utils
 		{
 			foreach (var file in files)
 			{
-				yield return await loader.LoadAsync(file).CAF();
+				var anime = await loader.LoadAsync(file).CAF();
+				if (anime != null)
+				{
+					yield return anime;
+				}
 			}
 		}
 	}
