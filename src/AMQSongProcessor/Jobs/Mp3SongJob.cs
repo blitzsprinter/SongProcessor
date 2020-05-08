@@ -18,6 +18,7 @@ namespace AMQSongProcessor.Jobs
 				" -stats" +
 				" -progress pipe:1" +
 				" -vn" + //No video
+				" -map_metadata -1" + //No metadata
 				" -f mp3" +
 				" -b:a 320k";
 
