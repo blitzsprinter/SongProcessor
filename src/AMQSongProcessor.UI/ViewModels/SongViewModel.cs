@@ -32,6 +32,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		private Clipboard<Song>? _ClipboardSong;
 		private int _CurrentJob;
 		private string? _Directory;
+		private FileSystemWatcher _FileWatcher;
 		private ProcessingData? _ProcessingData;
 		private int _QueuedJobs;
 		private SearchTerms _Search = new SearchTerms();
@@ -302,6 +303,17 @@ namespace AMQSongProcessor.UI.ViewModels
 
 		private async Task PrivateLoad()
 		{
+			_FileWatcher = new FileSystemWatcher(Directory!, "*.amq")
+			{
+				IncludeSubdirectories = true,
+				EnableRaisingEvents = true,
+			};
+			_FileWatcher.NotifyFilter = NotifyFilters.LastAccess |
+				NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
+			_FileWatcher.Created += (s, e) =>
+			{
+			};
+
 			var files = _Loader.GetFiles(Directory!);
 			await foreach (var anime in _Loader.LoadFromFilesAsync(files, 5))
 			{

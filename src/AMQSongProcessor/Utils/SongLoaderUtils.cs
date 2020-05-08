@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using AdvorangesUtils;
@@ -56,27 +59,30 @@ namespace AMQSongProcessor.Utils
 				}
 			}*/
 
-			var enumerators = files
+			var enumerators = new ConcurrentDictionary<IAsyncEnumerator<Anime>, bool>(files
 				.GroupInto(filesPerTask)
 				.Select(x => loader.SlowLoadFromFilesAsync(x).GetAsyncEnumerator())
-				.ToHashSet();
+				.ToDictionary(x => x, _ => false));
+			var processed = 0;
 
 			try
 			{
-				while (enumerators.Count != 0)
+				while (enumerators.Count - processed > 0)
 				{
-					var tasks = enumerators.Select(async x =>
+					var tasks = enumerators.Select(async kvp =>
 					{
-						if (await x.MoveNextAsync().CAF())
+						var i = kvp.Key;
+						if (await i.MoveNextAsync().CAF())
 						{
-							return (Enumerator: x, HasItem: true, Item: x.Current);
+							return (Enumerator: i, HasItem: true, Item: i.Current);
 						}
-						return (x, false, default!);
+						return (i, false, default!);
 					}).ToList();
 
 					while (tasks.Count != 0)
 					{
 						var task = await Task.WhenAny(tasks).CAF();
+
 						tasks.Remove(task);
 						var (enumerator, hasItem, item) = await task.CAF();
 
@@ -86,17 +92,23 @@ namespace AMQSongProcessor.Utils
 						}
 						else
 						{
-							enumerators.Remove(enumerator);
-							await enumerator.DisposeAsync().CAF();
+							Interlocked.Increment(ref processed);
+							if (enumerators.TryUpdate(enumerator, true, false))
+							{
+								await enumerator.DisposeAsync().CAF();
+							}
 						}
 					}
 				}
 			}
 			finally
 			{
-				foreach (var enumerator in enumerators)
+				foreach (var enumerator in enumerators.Keys)
 				{
-					await enumerator.DisposeAsync().CAF();
+					if (enumerators.TryUpdate(enumerator, true, false))
+					{
+						await enumerator.DisposeAsync().CAF();
+					}
 				}
 			}
 		}
