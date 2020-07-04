@@ -14,7 +14,10 @@
         <TextBox Text="{Binding Start}" />
       </HeaderedContentControl>
       <HeaderedContentControl Header="Clean Path">
-        <TextBox Text="{Binding CleanPath}" />
+        <Grid ColumnDefinitions="8*,2*">
+          <TextBox Grid.Column="0" Text="{Binding CleanPath}" />
+          <Button Grid.Column="1" Content="Select" Command="{Binding SelectCleanPath}" />
+        </Grid>
       </HeaderedContentControl>
       <HeaderedContentControl Header="Override Video Track">
         <NumericUpDown Minimum="0" Value="{Binding VideoTrack}" />

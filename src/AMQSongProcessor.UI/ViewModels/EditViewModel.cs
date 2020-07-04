@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
-
+using System.Threading.Tasks;
 using AdvorangesUtils;
 
 using AMQSongProcessor.Models;
@@ -26,6 +27,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		private readonly Anime _Anime;
 		private readonly IScreen? _HostScreen;
 		private readonly ISongLoader _Loader;
+		private readonly IMessageBoxManager _MessageBoxManager;
 		private readonly Song _Song;
 		private string _Artist;
 		private int _AudioTrack;
@@ -43,13 +45,6 @@ namespace AMQSongProcessor.UI.ViewModels
 		private string _Start;
 		private int _VideoTrack;
 		private int _VolumeModifier;
-
-		public static IReadOnlyCollection<SongType> SongTypes { get; } = new[]
-		{
-			SongType.Opening,
-			SongType.Ending,
-			SongType.Insert,
-		};
 
 		public string Artist
 		{
@@ -103,6 +98,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _Name, value);
 		}
 		public ReactiveCommand<Unit, Unit> Save { get; }
+		public ReactiveCommand<Unit, Unit> SelectCleanPath { get; }
 		public bool ShouldIgnore
 		{
 			get => _ShouldIgnore;
@@ -139,9 +135,10 @@ namespace AMQSongProcessor.UI.ViewModels
 		public EditViewModel(Anime anime, Song song, IScreen? screen = null)
 		{
 			_HostScreen = screen;
-			_Loader = Locator.Current.GetService<ISongLoader>();
 			_Song = song ?? throw new ArgumentNullException(nameof(song));
 			_Anime = anime ?? throw new ArgumentNullException(nameof(anime));
+			_Loader = Locator.Current.GetService<ISongLoader>();
+			_MessageBoxManager = Locator.Current.GetService<IMessageBoxManager>();
 
 			_Artist = _Song.Artist;
 			_AudioTrack = _Song.OverrideAudioTrack;
@@ -188,28 +185,8 @@ namespace AMQSongProcessor.UI.ViewModels
 				_ => validTimes,
 				(_, state) => !state ? "Invalid times supplied or start is less than end." : "");
 
-			Save = ReactiveCommand.CreateFromTask(async () =>
-			{
-				if (_Song.Anime == null)
-				{
-					_Anime.Songs.Add(_Song);
-				}
-
-				_Song.Artist = Artist;
-				_Song.OverrideAudioTrack = AudioTrack;
-				_Song.SetCleanPath(GetNullIfEmpty(CleanPath));
-				_Song.End = TimeSpan.Parse(End);
-				_Song.Episode = GetNullIfZero(Episode);
-				_Song.Name = Name;
-				_Song.Type = new SongTypeAndPosition(SongType, GetNullIfZero(SongPosition));
-				_Song.ShouldIgnore = ShouldIgnore;
-				_Song.Status = GetStatus();
-				_Song.Start = TimeSpan.Parse(Start);
-				_Song.OverrideVideoTrack = VideoTrack;
-				_Song.VolumeModifier = GetVolumeModifer(VolumeModifier);
-
-				await _Loader.SaveAsync(_Song.Anime!).CAF();
-			}, this.IsValid());
+			Save = ReactiveCommand.CreateFromTask(PrivateSave, this.IsValid());
+			SelectCleanPath = ReactiveCommand.CreateFromTask(PrivateSelectCleanPath);
 		}
 
 		private static string? GetNullIfEmpty(string str)
@@ -241,6 +218,41 @@ namespace AMQSongProcessor.UI.ViewModels
 				return Status.None;
 			}
 			return status;
+		}
+
+		private async Task PrivateSave()
+		{
+			if (_Song.Anime == null)
+			{
+				_Anime.Songs.Add(_Song);
+			}
+
+			_Song.Artist = Artist;
+			_Song.OverrideAudioTrack = AudioTrack;
+			_Song.SetCleanPath(GetNullIfEmpty(CleanPath));
+			_Song.End = TimeSpan.Parse(End);
+			_Song.Episode = GetNullIfZero(Episode);
+			_Song.Name = Name;
+			_Song.Type = new SongTypeAndPosition(SongType, GetNullIfZero(SongPosition));
+			_Song.ShouldIgnore = ShouldIgnore;
+			_Song.Status = GetStatus();
+			_Song.Start = TimeSpan.Parse(Start);
+			_Song.OverrideVideoTrack = VideoTrack;
+			_Song.VolumeModifier = GetVolumeModifer(VolumeModifier);
+
+			await _Loader.SaveAsync(_Song.Anime!).CAF();
+		}
+
+		private async Task PrivateSelectCleanPath()
+		{
+			var dir = _Anime.Directory;
+			var result = await _MessageBoxManager.GetFilesAsync(dir, "Clean Path", false).ConfigureAwait(true);
+			if (!(result.SingleOrDefault() is string path))
+			{
+				return;
+			}
+
+			CleanPath = path;
 		}
 	}
 }

@@ -92,6 +92,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			get => _Search;
 			set => this.RaiseAndSetIfChanged(ref _Search, value);
 		}
+		public ReactiveCommand<Unit, Unit> SelectDirectory { get; }
 		[DataMember]
 		public SongVisibility SongVisibility
 		{
@@ -136,6 +137,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			ExportFixes = ReactiveCommand.CreateFromTask(PrivateExportFixes);
 			ProcessSongs = ReactiveCommand.CreateFromObservable(PrivateProcessSongs);
 			CancelProcessing = ReactiveCommand.Create(PrivateCancelProcessing);
+			SelectDirectory = ReactiveCommand.CreateFromTask(PrivateSelectDirectory);
 
 			var loading = Load.IsExecuting;
 			var processing = ProcessSongs.IsExecuting;
@@ -161,7 +163,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		{
 			var dir = anime.Directory;
 			var defFile = Path.GetFileName(anime.AbsoluteSourcePath);
-			var result = await _MessageBoxManager.GetFilesAsync(dir, "Source", false, defFile).ConfigureAwait(false);
+			var result = await _MessageBoxManager.GetFilesAsync(dir, "Source", false, defFile).ConfigureAwait(true);
 			if (!(result.SingleOrDefault() is string path))
 			{
 				return;
@@ -290,7 +292,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		private async Task PrivateGetVolumeInfo(Anime anime)
 		{
 			var dir = anime.Directory;
-			var result = await _MessageBoxManager.GetFilesAsync(dir, "Volume Info", true).ConfigureAwait(false);
+			var result = await _MessageBoxManager.GetFilesAsync(dir, "Volume Info", true).ConfigureAwait(true);
 			if (result.Length == 0)
 			{
 				return;
@@ -358,6 +360,18 @@ namespace AMQSongProcessor.UI.ViewModels
 
 				ProcessingData = null;
 			}).TakeUntil(CancelProcessing);
+		}
+
+		private async Task PrivateSelectDirectory()
+		{
+			var dir = System.IO.Directory.Exists(Directory) ? Directory! : Environment.CurrentDirectory;
+			var path = await _MessageBoxManager.GetDirectoryAsync(dir, "Directory").ConfigureAwait(true);
+			if (string.IsNullOrWhiteSpace(path))
+			{
+				return;
+			}
+
+			Directory = path;
 		}
 
 		private void PrivateUnload()

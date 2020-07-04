@@ -78,6 +78,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			get => _Id;
 			set => this.RaiseAndSetIfChanged(ref _Id, value);
 		}
+		public ReactiveCommand<Unit, Unit> SelectDirectory { get; }
 		[DataMember]
 		public string SelectedGathererName
 		{
@@ -105,6 +106,7 @@ namespace AMQSongProcessor.UI.ViewModels
 				(directory, id) => System.IO.Directory.Exists(directory) && id > 0);
 			Add = ReactiveCommand.CreateFromTask(PrivateAdd, canAdd);
 			DeleteAnime = ReactiveCommand.CreateFromTask<Anime>(PrivateDeleteAnime);
+			SelectDirectory = ReactiveCommand.CreateFromTask(PrivateSelectDirectory);
 		}
 
 		private async Task PrivateAdd()
@@ -145,6 +147,18 @@ namespace AMQSongProcessor.UI.ViewModels
 				Anime.Remove(anime);
 				File.Delete(anime.AbsoluteInfoPath);
 			}
+		}
+
+		private async Task PrivateSelectDirectory()
+		{
+			var dir = System.IO.Directory.Exists(Directory) ? Directory! : Environment.CurrentDirectory;
+			var path = await _MessageBoxManager.GetDirectoryAsync(dir, "Directory").ConfigureAwait(true);
+			if (string.IsNullOrWhiteSpace(path))
+			{
+				return;
+			}
+
+			Directory = path;
 		}
 	}
 }

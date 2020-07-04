@@ -43,7 +43,10 @@
     <TextBlock Text="{Binding Exception}" IsVisible="{Binding !!Exception}" />
 
     <Grid Grid.Row="1" RowDefinitions="1*,1*" ColumnDefinitions="9*,1*">
-      <TextBox Grid.Row="0" Watermark="Directory" Text="{Binding Directory}" />
+      <Grid ColumnDefinitions="9*,1*">
+        <TextBox Watermark="Directory" Text="{Binding Directory}" />
+        <Button Grid.Column="1" Content="Select" Command="{Binding SelectDirectory}" />
+      </Grid>
       <UniformGrid Grid.Row="1" Rows="1">
         <NumericUpDown Grid.Row="1" Watermark="ANN Id" Minimum="1" Value="{Binding Id}" />
 

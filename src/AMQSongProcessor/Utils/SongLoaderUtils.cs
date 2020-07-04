@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -42,60 +43,44 @@ namespace AMQSongProcessor.Utils
 			IEnumerable<string> files,
 			int filesPerTask)
 		{
-			/*
-			var tasks = files
-				.GroupInto(filesPerTask)
-				.Select(x => loader.LoadFromFilesAsync(x).ToListAsync())
-				.ToList();
-
-			while (tasks.Count != 0)
-			{
-				var task = await Task.WhenAny(tasks).CAF();
-				tasks.Remove(task);
-				foreach (var value in await task.CAF())
-				{
-					yield return value;
-				}
-			}*/
-
 			var enumerators = new ConcurrentDictionary<IAsyncEnumerator<Anime>, bool>(files
 				.GroupInto(filesPerTask)
 				.Select(x => loader.SlowLoadFromFilesAsync(x).GetAsyncEnumerator())
 				.ToDictionary(x => x, _ => false));
 			var processed = 0;
 
+			ValueTask DisposeEnumeratorAsync(IAsyncEnumerator<Anime> enumerator)
+			{
+				if (enumerators.TryUpdate(enumerator, true, false))
+				{
+					return enumerator.DisposeAsync();
+				}
+				return new ValueTask();
+			}
+
 			try
 			{
 				while (enumerators.Count - processed > 0)
 				{
-					var tasks = enumerators.Select(async kvp =>
-					{
-						var i = kvp.Key;
-						if (await i.MoveNextAsync().CAF())
-						{
-							return (Enumerator: i, HasItem: true, Item: i.Current);
-						}
-						return (i, false, default!);
-					}).ToList();
+					var tasks = enumerators
+						.Keys
+						.Select(FastLoaded<Anime>.FromEnumerator)
+						.ToHashSet();
 
 					while (tasks.Count != 0)
 					{
 						var task = await Task.WhenAny(tasks).CAF();
-
 						tasks.Remove(task);
-						var (enumerator, hasItem, item) = await task.CAF();
+						var fastLoaded = await task.CAF();
 
-						if (hasItem)
+						if (fastLoaded.HasItem)
 						{
-							yield return item;
+							yield return fastLoaded.Item!;
 						}
 						else
 						{
 							Interlocked.Increment(ref processed);
-							if (enumerators.TryUpdate(enumerator, true, false))
-							{
-								await enumerator.DisposeAsync().CAF();
-							}
+							await DisposeEnumeratorAsync(fastLoaded.Enumerator).CAF();
 						}
 					}
 				}
@@ -104,10 +89,7 @@ namespace AMQSongProcessor.Utils
 			{
 				foreach (var enumerator in enumerators.Keys)
 				{
-					if (enumerators.TryUpdate(enumerator, true, false))
-					{
-						await enumerator.DisposeAsync().CAF();
-					}
+					await DisposeEnumeratorAsync(enumerator).CAF();
 				}
 			}
 		}
@@ -123,6 +105,28 @@ namespace AMQSongProcessor.Utils
 				{
 					yield return anime;
 				}
+			}
+		}
+
+		private struct FastLoaded<T> where T : class
+		{
+			public IAsyncEnumerator<T> Enumerator { get; }
+			public bool HasItem => Item != null;
+			public T? Item { get; }
+
+			public FastLoaded(IAsyncEnumerator<T> enumerator, T? item)
+			{
+				Enumerator = enumerator;
+				Item = item;
+			}
+
+			public static async Task<FastLoaded<T>> FromEnumerator(IAsyncEnumerator<T> enumerator)
+			{
+				if (await enumerator.MoveNextAsync().CAF())
+				{
+					return new FastLoaded<T>(enumerator, enumerator.Current);
+				}
+				return new FastLoaded<T>(enumerator, null);
 			}
 		}
 	}
