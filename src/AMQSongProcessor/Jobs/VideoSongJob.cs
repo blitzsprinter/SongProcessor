@@ -25,6 +25,7 @@ namespace AMQSongProcessor.Jobs
 				" -progress pipe:1" +
 				" -sn" + //No subtitles
 				" -map_metadata -1" + //No metadata
+				" -map_chapters -1" + //No chapters
 				" -shortest" +
 				" -c:a libopus" + //Set the audio codec to libopus
 				" -b:a 320k" + //Set the audio bitrate to 320k
