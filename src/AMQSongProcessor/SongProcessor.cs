@@ -115,14 +115,14 @@ namespace AMQSongProcessor
 				sb.Append("**Episode/Timestamp:** ").AppendLine(FormatTimestamp(song));
 				sb.Append("**Length:** ").AppendLine(FormatTimeSpan(song.Length));
 
-				var m = matches[song.FullName];
-				if (m.Count > 1)
+				var others = matches[song.FullName]
+					.Select(x => x.Id)
+					.Concat(song.AlsoIn)
+					.Where(x => x != song.Anime.Id)
+					.OrderBy(x => x)
+					.Join(x => x.ToString());
+				if (!string.IsNullOrWhiteSpace(others))
 				{
-					var others = m
-						.Where(x => x.Id != song.Anime.Id)
-						.OrderBy(x => x.Id)
-						.Join(x => x.Id.ToString());
-
 					sb.Append("**Duplicate found in:** ").AppendLine(others);
 				}
 

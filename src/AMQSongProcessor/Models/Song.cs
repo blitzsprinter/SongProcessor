@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text.Json.Serialization;
 
@@ -9,6 +10,7 @@ namespace AMQSongProcessor.Models
 	[DebuggerDisplay("{DebuggerDisplay,nq}")]
 	public class Song
 	{
+		public HashSet<int> AlsoIn { get; set; } = new HashSet<int>();
 		[JsonIgnore]
 		public Anime Anime { get; set; } = null!;
 		public string Artist { get; set; } = null!;
