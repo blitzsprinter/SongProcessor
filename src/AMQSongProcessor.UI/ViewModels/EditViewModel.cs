@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+
 using AdvorangesUtils;
 
 using AMQSongProcessor.Models;
@@ -45,6 +46,13 @@ namespace AMQSongProcessor.UI.ViewModels
 		private string _Start;
 		private int _VideoTrack;
 		private int _VolumeModifier;
+
+		public static IReadOnlyCollection<SongType> SongTypes { get; } = new[]
+		{
+			SongType.Opening,
+			SongType.Ending,
+			SongType.Insert,
+		};
 
 		public string Artist
 		{
