@@ -8,8 +8,6 @@ namespace AMQSongProcessor
 	{
 		string Extension { get; set; }
 
-		Task<Song> DuplicateSongAsync(Song song);
-
 		Task<Anime?> LoadAsync(string file);
 
 		Task SaveAsync(Anime anime, SaveNewOptions? options = null);

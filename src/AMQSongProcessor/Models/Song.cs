@@ -61,5 +61,16 @@ namespace AMQSongProcessor.Models
 
 		public void SetCleanPath(string? path)
 			=> CleanPath = FileUtils.StoreRelativeOrAbsolute(Anime.Directory, path);
+
+		public Song ShallowCopy()
+		{
+			var clone = (Song)MemberwiseClone();
+			//Anime should be null because this could be copied into a different anime
+			clone.Anime = null!;
+			//AlsoIn could be kept as the same list, but could lead to unexpected issues
+			//between restarts (since clones will have the same list until de/serialized)
+			clone.AlsoIn = new HashSet<int>(AlsoIn);
+			return clone;
+		}
 	}
 }

@@ -131,7 +131,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			AddSong = ReactiveCommand.Create<Anime>(PrivateAddSong);
 			PasteSong = ReactiveCommand.CreateFromTask<Anime>(PrivatePasteSong);
 			EditSong = ReactiveCommand.Create<Song>(PrivateEditSong);
-			CopySong = ReactiveCommand.CreateFromTask<Song>(PrivateCopySong);
+			CopySong = ReactiveCommand.Create<Song>(PrivateCopySong);
 			CutSong = ReactiveCommand.Create<Song>(PrivateCutSong);
 			DeleteSong = ReactiveCommand.CreateFromTask<Song>(PrivateDeleteSong);
 			ExportFixes = ReactiveCommand.CreateFromTask(PrivateExportFixes);
@@ -208,11 +208,8 @@ namespace AMQSongProcessor.UI.ViewModels
 		private Task PrivateCopyANNID(int id)
 			=> _SystemClipboard.SetTextAsync(id.ToString());
 
-		private async Task PrivateCopySong(Song song)
-		{
-			var dupe = await _Loader.DuplicateSongAsync(song).ConfigureAwait(true);
-			ClipboardSong = new Clipboard<Song>(dupe, false, null);
-		}
+		private void PrivateCopySong(Song song)
+			=> ClipboardSong = new Clipboard<Song>(song.ShallowCopy(), false, null);
 
 		private void PrivateCutSong(Song song)
 		{

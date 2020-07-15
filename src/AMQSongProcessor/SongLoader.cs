@@ -33,15 +33,6 @@ namespace AMQSongProcessor
 			_Options.Converters.Add(new VolumeModifierConverter());
 		}
 
-		public async Task<Song> DuplicateSongAsync(Song song)
-		{
-			using var ms = new MemoryStream();
-
-			await JsonSerializer.SerializeAsync(ms, song, _Options).CAF();
-			ms.Position = 0;
-			return await JsonSerializer.DeserializeAsync<Song>(ms, _Options).CAF();
-		}
-
 		public async Task<Anime?> LoadAsync(string file)
 		{
 			var fileInfo = new FileInfo(file);

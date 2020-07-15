@@ -71,7 +71,7 @@ namespace AMQSongProcessor
 			static string FormatTimeSpan(TimeSpan ts)
 			{
 				var format = ts.TotalHours < 1 ? @"mm\:ss" : @"hh\:mm\:ss";
-				return ts.ToString(format);
+				return $"`{ts.ToString(format)}`";
 			}
 
 			static string FormatTimestamp(Song song)
