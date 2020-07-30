@@ -18,7 +18,7 @@ namespace AMQSongProcessor
 		private static readonly JsonSerializerOptions _Options = new JsonSerializerOptions();
 		private static readonly char[] _SplitChars = new[] { '_', 'd' };
 
-		public bool RetryUntilSuccess { get; set; }
+		public int RetryLimit { get; set; } = 0;
 
 		static SourceInfoGatherer()
 		{
@@ -26,7 +26,7 @@ namespace AMQSongProcessor
 		}
 
 		public Task<AudioInfo> GetAudioInfoAsync(string file, int track = 0)
-			=> GetInfoAsync<AudioInfo>('a', file, track);
+			=> GetInfoAsync<AudioInfo>('a', file, track, 0);
 
 		public async Task<VolumeInfo> GetAverageVolumeAsync(string file)
 		{
@@ -92,9 +92,9 @@ namespace AMQSongProcessor
 		}
 
 		public Task<VideoInfo> GetVideoInfoAsync(string file, int track = 0)
-			=> GetInfoAsync<VideoInfo>('v', file, track);
+			=> GetInfoAsync<VideoInfo>('v', file, track, 0);
 
-		private async Task<T> GetInfoAsync<T>(char stream, string file, int track)
+		private async Task<T> GetInfoAsync<T>(char stream, string file, int track, int attempt)
 		{
 			if (!File.Exists(file))
 			{
@@ -129,15 +129,23 @@ namespace AMQSongProcessor
 				var infoJson = doc.RootElement.GetProperty("streams")[0];
 				return infoJson.ToObject<T>(_Options);
 			}
+			// Since this method is recursive, we want to rethrow a new stacktrace
+			// each time until it gets back up to the first non recursive call
+			catch (Exception e) when (e is JsonException || e is InvalidFileTypeException)
+			{
+#pragma warning disable RCS1044 // Remove original exception from throw statement.
+				throw e;
+#pragma warning restore RCS1044 // Remove original exception from throw statement.
+			}
 			catch (KeyNotFoundException knfe) when (sb.Length == 2)
 			{
 				throw new InvalidFileTypeException($"Invalid file for {stream} info gathering.", file, knfe);
 			}
 			catch (Exception e)
 			{
-				if (RetryUntilSuccess)
+				if (RetryLimit > attempt)
 				{
-					return await GetInfoAsync<T>(stream, file, track).CAF();
+					return await GetInfoAsync<T>(stream, file, track, attempt + 1).CAF();
 				}
 				throw new JsonException($"Unable to parse {stream} info for {file}.", e);
 			}

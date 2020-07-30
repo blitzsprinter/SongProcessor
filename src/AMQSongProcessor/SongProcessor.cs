@@ -15,17 +15,6 @@ namespace AMQSongProcessor
 {
 	public sealed class SongProcessor : ISongProcessor
 	{
-		private const int MP3 = -1;
-		private static readonly Resolution RES_480 = new Resolution(480, Status.Res480);
-		private static readonly Resolution RES_720 = new Resolution(720, Status.Res720);
-		private static readonly Resolution RES_MP3 = new Resolution(MP3, Status.Mp3);
-		private static readonly Resolution[] Resolutions = new[]
-		{
-			RES_MP3,
-			RES_480,
-			RES_720
-		};
-
 		public string FixesFile { get; set; } = "fixes.txt";
 
 		public event Action<string>? WarningReceived;
@@ -126,6 +115,7 @@ namespace AMQSongProcessor
 					sb.Append("**Duplicate found in:** ").AppendLine(others);
 				}
 
+				sb.AppendLine("**I solemnly swear that I have checked that this song-anime combo isn't in the game already, and I have read and understand all the pins**");
 				await sw.WriteAsync(sb.AppendLine()).CAF();
 			}
 		}
@@ -155,8 +145,8 @@ namespace AMQSongProcessor
 
 		private IReadOnlyList<Resolution> GetValidResolutions(Anime anime)
 		{
-			var valid = new List<Resolution>(Resolutions.Length);
-			foreach (var res in Resolutions)
+			var valid = new List<Resolution>(Resolution.Resolutions.Length);
+			foreach (var res in Resolution.Resolutions)
 			{
 				if (anime.VideoInfo == null)
 				{
@@ -175,18 +165,29 @@ namespace AMQSongProcessor
 			//Smaller than 480p source. Just upscale it ¯\_(ツ)_/¯
 			if (valid.Count == 1 && valid.Single().IsMp3)
 			{
-				valid.Add(RES_480);
+				valid.Add(Resolution.RES_480);
 			}
 			return valid;
 		}
 
 		private readonly struct Resolution
 		{
+			public static readonly Resolution RES_480 = new Resolution(480, Status.Res480);
+			public static readonly Resolution RES_720 = new Resolution(720, Status.Res720);
+			public static readonly Resolution RES_MP3 = new Resolution(MP3, Status.Mp3);
+			public static readonly Resolution[] Resolutions = new[]
+			{
+				RES_MP3,
+				RES_480,
+				RES_720
+			};
+			private const int MP3 = -1;
+
 			public bool IsMp3 => Size == MP3;
 			public int Size { get; }
 			public Status Status { get; }
 
-			public Resolution(int size, Status status)
+			private Resolution(int size, Status status)
 			{
 				Size = size;
 				Status = status;

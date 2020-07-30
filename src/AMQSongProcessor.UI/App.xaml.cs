@@ -41,7 +41,7 @@ namespace AMQSongProcessor.UI
 		{
 			var gatherer = new SourceInfoGatherer
 			{
-				RetryUntilSuccess = true,
+				RetryLimit = 3,
 			};
 			var loader = new SongLoader(gatherer)
 			{
