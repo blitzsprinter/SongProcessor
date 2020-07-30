@@ -129,19 +129,11 @@ namespace AMQSongProcessor
 				var infoJson = doc.RootElement.GetProperty("streams")[0];
 				return infoJson.ToObject<T>(_Options);
 			}
-			// Since this method is recursive, we want to rethrow a new stacktrace
-			// each time until it gets back up to the first non recursive call
-			catch (Exception e) when (e is JsonException || e is InvalidFileTypeException)
-			{
-#pragma warning disable RCS1044 // Remove original exception from throw statement.
-				throw e;
-#pragma warning restore RCS1044 // Remove original exception from throw statement.
-			}
 			catch (KeyNotFoundException knfe) when (sb.Length == 2)
 			{
 				throw new InvalidFileTypeException($"Invalid file for {stream} info gathering.", file, knfe);
 			}
-			catch (Exception e)
+			catch (Exception e) when (!(e is JsonException || e is InvalidFileTypeException))
 			{
 				if (RetryLimit > attempt)
 				{
