@@ -1,18 +1,18 @@
 ﻿using System;
 
 using AMQSongProcessor.Models;
+using AMQSongProcessor.Utils;
 
 namespace AMQSongProcessor.Jobs
 {
 	public class Mp3SongJob : SongJob
 	{
-		public Mp3SongJob(Song song) : base(song)
+		public Mp3SongJob(IAnime anime, Song song) : base(anime, song)
 		{
 		}
 
 		protected override string GenerateArgs()
 		{
-			var anime = Song.Anime;
 			const string ARGS =
 				" -v quiet" +
 				" -stats" +
@@ -29,14 +29,14 @@ namespace AMQSongProcessor.Jobs
 				args =
 					$" -ss {Song.Start}" + //Starting time
 					$" -to {Song.End}" + //Ending time
-					$" -i \"{anime.AbsoluteSourcePath}\"" + //Video source
+					$" -i \"{Anime.GetAbsoluteSourcePath()}\"" + //Video source
 					$" -map 0:a:{Song.OverrideAudioTrack}"; //Use the first input's audio
 			}
 			else
 			{
 				args =
 					$" -to {Song.Length}" +
-					$" -i \"{Song.GetCleanSongPath()}\"";
+					$" -i \"{Song.GetCleanSongPath(Anime.GetDirectory())}\"";
 			}
 
 			if (Song.VolumeModifier != null)
@@ -50,6 +50,6 @@ namespace AMQSongProcessor.Jobs
 
 		[Obsolete]
 		protected override string GetPath()
-			=> Song.GetMp3Path();
+			=> Song.GetMp3Path(Anime.GetDirectory(), Anime.Id);
 	}
 }

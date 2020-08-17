@@ -40,9 +40,10 @@
     </Style>
     <Style Selector="TextBlock.anime">
       <Setter Property="Text">
-        <MultiBinding StringFormat="[{0}] {1}">
+        <MultiBinding StringFormat="[{0}] {1} ({2})">
           <Binding Path="Year" />
           <Binding Path="Name" />
+          <Binding Path="AbsoluteInfoPath" />
         </MultiBinding>
       </Setter>
     </Style>

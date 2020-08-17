@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text.Json.Serialization;
 
 using AMQSongProcessor.Utils;
 
@@ -11,8 +10,6 @@ namespace AMQSongProcessor.Models
 	public class Song
 	{
 		public HashSet<int> AlsoIn { get; set; } = new HashSet<int>();
-		[JsonIgnore]
-		public Anime Anime { get; set; } = null!;
 		public string Artist { get; set; } = null!;
 		public string? CleanPath { get; set; }
 		public TimeSpan End { get; set; }
@@ -47,28 +44,26 @@ namespace AMQSongProcessor.Models
 			Status = status;
 		}
 
-		public string? GetCleanSongPath()
-			=> FileUtils.EnsureAbsolutePath(Anime.Directory, CleanPath);
+		public string? GetCleanSongPath(string directory)
+			=> FileUtils.EnsureAbsolutePath(directory, CleanPath);
 
-		public string GetMp3Path()
-			=> FileUtils.EnsureAbsolutePath(Anime.Directory, $"[{Anime.Id}] {Name}.mp3")!;
+		public string GetMp3Path(string directory, int animeId)
+			=> FileUtils.EnsureAbsolutePath(directory, $"[{animeId}] {Name}.mp3")!;
 
-		public string GetVideoPath(int resolution)
-			=> FileUtils.EnsureAbsolutePath(Anime.Directory, $"[{Anime.Id}] {Name} [{resolution}p].webm")!;
+		public string GetVideoPath(string directory, int animeId, int resolution)
+			=> FileUtils.EnsureAbsolutePath(directory, $"[{animeId}] {Name} [{resolution}p].webm")!;
 
 		public bool IsMissing(Status status)
 			=> (Status & status) == 0;
 
-		public void SetCleanPath(string? path)
-			=> CleanPath = FileUtils.StoreRelativeOrAbsolute(Anime.Directory, path);
+		public void SetCleanPath(string directory, string? path)
+			=> CleanPath = FileUtils.StoreRelativeOrAbsolute(directory, path);
 
 		public Song ShallowCopy()
 		{
 			var clone = (Song)MemberwiseClone();
-			//Anime should be null because this could be copied into a different anime
-			clone.Anime = null!;
-			//AlsoIn could be kept as the same list, but could lead to unexpected issues
-			//between restarts (since clones will have the same list until de/serialized)
+			// AlsoIn could be kept as the same list, but could lead to unexpected issues
+			// between restarts (since clones will have the same list until de/serialized)
 			clone.AlsoIn = new HashSet<int>(AlsoIn);
 			return clone;
 		}

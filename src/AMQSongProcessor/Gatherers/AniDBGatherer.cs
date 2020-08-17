@@ -25,7 +25,7 @@ namespace AMQSongProcessor.Gatherers
 			_Client = client ?? CreateClient();
 		}
 
-		public async Task<Anime> GetAsync(int id, GatherOptions? options = null)
+		public async Task<IAnimeBase> GetAsync(int id, GatherOptions? options = null)
 		{
 			var url = URL + id;
 			var result = await _Client.GetAsync(url).CAF();
@@ -48,7 +48,7 @@ namespace AMQSongProcessor.Gatherers
 
 			try
 			{
-				var anime = new Anime
+				var anime = new AnimeModel
 				{
 					Id = GetANNId(doc),
 					Name = GetTitle(doc),

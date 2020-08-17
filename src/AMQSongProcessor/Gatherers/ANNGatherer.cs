@@ -14,7 +14,7 @@ namespace AMQSongProcessor.Gatherers
 {
 	public sealed class ANNGatherer : IAnimeGatherer
 	{
-		private const string ARTIST = "arist";
+		private const string ARTIST = "artist";
 		private const string NAME = "name";
 		private const string POSITION = "position";
 		private const string URL = "https://cdn.animenewsnetwork.com/encyclopedia/api.xml?anime=";
@@ -43,7 +43,7 @@ namespace AMQSongProcessor.Gatherers
 			_Client = client ?? new HttpClient();
 		}
 
-		public async Task<Anime> GetAsync(int id, GatherOptions? options = null)
+		public async Task<IAnimeBase> GetAsync(int id, GatherOptions? options = null)
 		{
 			var url = URL + id;
 			var result = await _Client.GetAsync(url).CAF();
@@ -59,7 +59,7 @@ namespace AMQSongProcessor.Gatherers
 				throw new HttpRequestException($"{id} does not exist on {Name}.");
 			}
 
-			var anime = new Anime
+			var anime = new AnimeModel
 			{
 				Id = id,
 				Year = int.MaxValue,
@@ -98,7 +98,7 @@ namespace AMQSongProcessor.Gatherers
 		public override string ToString()
 			=> Name;
 
-		private static void ProcessSong(Anime anime, GatherOptions? options, XElement e, string t)
+		private static void ProcessSong(AnimeModel anime, GatherOptions? options, XElement e, string t)
 		{
 			var type = Enum.Parse<SongType>(t.Split(' ')[0], true);
 			if (options?.CanBeGathered(type) == false)
@@ -117,10 +117,10 @@ namespace AMQSongProcessor.Gatherers
 			});
 		}
 
-		private static void ProcessTitle(Anime anime, XElement e)
+		private static void ProcessTitle(AnimeModel anime, XElement e)
 			=> anime.Name = e.Value;
 
-		private static void ProcessVintage(Anime anime, XElement e)
+		private static void ProcessVintage(AnimeModel anime, XElement e)
 		{
 			static bool TryParseExact(string s, out DateTime dt)
 				=> DateTime.TryParseExact(s, VintageFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out dt);

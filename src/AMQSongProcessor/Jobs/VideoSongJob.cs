@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using AdvorangesUtils;
 
 using AMQSongProcessor.Models;
+using AMQSongProcessor.Utils;
 
 namespace AMQSongProcessor.Jobs
 {
@@ -11,14 +12,13 @@ namespace AMQSongProcessor.Jobs
 	{
 		public int Resolution { get; }
 
-		public VideoSongJob(Song song, int resolution) : base(song)
+		public VideoSongJob(IAnime anime, Song song, int resolution) : base(anime, song)
 		{
 			Resolution = resolution;
 		}
 
 		protected override string GenerateArgs()
 		{
-			var anime = Song.Anime;
 			const string ARGS =
 				" -v quiet" +
 				" -stats" +
@@ -43,7 +43,7 @@ namespace AMQSongProcessor.Jobs
 			var args =
 				$" -ss {Song.Start}" + //Starting time
 				$" -to {Song.End}" + //Ending time
-				$" -i \"{anime.AbsoluteSourcePath}\""; //Video source
+				$" -i \"{Anime.GetAbsoluteSourcePath()}\""; //Video source
 
 			if (Song.CleanPath == null)
 			{
@@ -54,25 +54,25 @@ namespace AMQSongProcessor.Jobs
 			else
 			{
 				args +=
-					$" -i \"{Song.GetCleanSongPath()}\"" + //Audio source
+					$" -i \"{Song.GetCleanSongPath(Anime.GetDirectory())}\"" + //Audio source
 					$" -map 0:v:{Song.OverrideVideoTrack}" + //Use the first input's video
 					" -map 1:a"; //Use the second input's audio
 			}
 
 			args += ARGS; //Add in the constant args, like quality + cpu usage
 
-			if (anime.VideoInfo != null)
+			if (Anime.VideoInfo?.Info is VideoInfo info)
 			{
 				var width = -1;
 				var videoFilterParts = new List<string>();
 				//Resize video if needed
-				if (anime.VideoInfo.SAR != SquareSAR)
+				if (info.SAR != SquareSAR)
 				{
 					videoFilterParts.Add($"setsar={SquareSAR.ToString('/')}");
-					videoFilterParts.Add($"setdar={anime.VideoInfo.DAR.ToString('/')}");
-					width = (int)(Resolution * anime.VideoInfo.DAR.Ratio);
+					videoFilterParts.Add($"setdar={info.DAR.ToString('/')}");
+					width = (int)(Resolution * info.DAR.Ratio);
 				}
-				if (anime.VideoInfo.Height != Resolution || width != -1)
+				if (info.Height != Resolution || width != -1)
 				{
 					videoFilterParts.Add($"scale={width}:{Resolution}");
 				}
@@ -92,6 +92,6 @@ namespace AMQSongProcessor.Jobs
 
 		[Obsolete]
 		protected override string GetPath()
-			=> Song.GetVideoPath(Resolution);
+			=> Song.GetVideoPath(Anime.GetDirectory(), Anime.Id, Resolution);
 	}
 }

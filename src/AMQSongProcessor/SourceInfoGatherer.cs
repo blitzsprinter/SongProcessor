@@ -25,10 +25,10 @@ namespace AMQSongProcessor
 			_Options.Converters.Add(new AspectRatioJsonConverter());
 		}
 
-		public Task<AudioInfo> GetAudioInfoAsync(string file, int track = 0)
+		public Task<SourceInfo<AudioInfo>> GetAudioInfoAsync(string file, int track = 0)
 			=> GetInfoAsync<AudioInfo>('a', file, track, 0);
 
-		public async Task<VolumeInfo> GetAverageVolumeAsync(string file)
+		public async Task<SourceInfo<VolumeInfo>> GetAverageVolumeAsync(string file)
 		{
 			if (!File.Exists(file))
 			{
@@ -88,13 +88,13 @@ namespace AMQSongProcessor
 			};
 			await process.RunAsync(false).CAF();
 
-			return info;
+			return new SourceInfo<VolumeInfo>(file, info);
 		}
 
-		public Task<VideoInfo> GetVideoInfoAsync(string file, int track = 0)
+		public Task<SourceInfo<VideoInfo>> GetVideoInfoAsync(string file, int track = 0)
 			=> GetInfoAsync<VideoInfo>('v', file, track, 0);
 
-		private async Task<T> GetInfoAsync<T>(char stream, string file, int track, int attempt)
+		private async Task<SourceInfo<T>> GetInfoAsync<T>(char stream, string file, int track, int attempt)
 		{
 			if (!File.Exists(file))
 			{
@@ -126,8 +126,13 @@ namespace AMQSongProcessor
 			{
 				using var doc = JsonDocument.Parse(sb.ToString());
 
-				var infoJson = doc.RootElement.GetProperty("streams")[0];
-				return infoJson.ToObject<T>(_Options);
+				var info = doc.RootElement.GetProperty("streams")[0].ToObject<T>(_Options);
+				if (info != null)
+				{
+					return new SourceInfo<T>(file, info);
+				}
+
+				throw new JsonException($"Unable to parse {stream} info for {file}.");
 			}
 			catch (KeyNotFoundException knfe) when (sb.Length == 2)
 			{

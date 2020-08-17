@@ -61,7 +61,7 @@ namespace AMQSongProcessor
 			await jobs.ProcessAsync(OnProcessingReceived).CAF();
 		}
 
-		private static void Display(IEnumerable<Anime> anime)
+		private static void Display(IEnumerable<IAnime> anime)
 		{
 			static void DisplayStatusItems(params bool[] items)
 			{
@@ -108,7 +108,7 @@ namespace AMQSongProcessor
 			foreach (var show in anime)
 			{
 				var text = $"[{show.Year}] [{show.Id}] {show.Name}";
-				if (show.VideoInfo is VideoInfo i)
+				if (show.VideoInfo?.Info is VideoInfo i)
 				{
 					text += $" [{i.Width}x{i.Height}] [SAR: {i.SAR}] [DAR: {i.DAR}]";
 				}
@@ -164,7 +164,7 @@ namespace AMQSongProcessor
 				$"ETA on completion: {value.CompletionETA}");
 		}
 
-		private static async Task AddNewShowsAsync(SongLoader loader, string directory)
+		private static async Task AddNewShowsAsync(ISongLoader loader, string directory)
 		{
 			var idFile = Path.Combine(directory, "new.txt");
 			if (!File.Exists(idFile))
@@ -172,7 +172,7 @@ namespace AMQSongProcessor
 				return;
 			}
 
-			var options = new SaveNewOptions(directory)
+			var options = new SaveNewOptions
 			{
 				AllowOverwrite = false,
 				CreateDuplicateFile = false,
@@ -181,9 +181,9 @@ namespace AMQSongProcessor
 			var gatherer = new ANNGatherer();
 			foreach (var id in File.ReadAllLines(idFile).Select(int.Parse))
 			{
-				var anime = await gatherer.GetAsync(id).CAF();
-				await loader.SaveAsync(anime, options).CAF();
-				Console.WriteLine($"Got information from ANN for {anime.Name}.");
+				var model = await gatherer.GetAsync(id).CAF();
+				await loader.SaveAsync(directory, model, options).CAF();
+				Console.WriteLine($"Got information from ANN for {model.Name}.");
 			}
 
 			//Clear the file after getting all the information

@@ -16,17 +16,17 @@ namespace AMQSongProcessor.Utils
 	{
 		public static IEnumerable<string> GetFiles(this ISongLoader loader, string directory)
 		{
-			var pattern = $"*.{loader.Extension}";
+			var pattern = "*." + loader.Extension;
 			return Directory.EnumerateFiles(directory, pattern, SearchOption.AllDirectories);
 		}
 
-		public static IAsyncEnumerable<Anime> LoadFromDirectoryAsync(
+		public static IAsyncEnumerable<IAnime> LoadFromDirectoryAsync(
 			this ISongLoader loader,
 			string directory,
 			int? filesPerTask = null)
 			=> loader.LoadFromFilesAsync(loader.GetFiles(directory), filesPerTask);
 
-		public static IAsyncEnumerable<Anime> LoadFromFilesAsync(
+		public static IAsyncEnumerable<IAnime> LoadFromFilesAsync(
 			this ISongLoader loader,
 			IEnumerable<string> files,
 			int? filesPerTask = null)
@@ -38,18 +38,18 @@ namespace AMQSongProcessor.Utils
 			return loader.FastLoadFromFilesAsync(files, filesPerTask.Value);
 		}
 
-		private static async IAsyncEnumerable<Anime> FastLoadFromFilesAsync(
+		private static async IAsyncEnumerable<IAnime> FastLoadFromFilesAsync(
 			this ISongLoader loader,
 			IEnumerable<string> files,
 			int filesPerTask)
 		{
-			var enumerators = new ConcurrentDictionary<IAsyncEnumerator<Anime>, bool>(files
+			var enumerators = new ConcurrentDictionary<IAsyncEnumerator<IAnime>, bool>(files
 				.GroupInto(filesPerTask)
 				.Select(x => loader.SlowLoadFromFilesAsync(x).GetAsyncEnumerator())
 				.ToDictionary(x => x, _ => false));
 			var processed = 0;
 
-			ValueTask DisposeEnumeratorAsync(IAsyncEnumerator<Anime> enumerator)
+			ValueTask DisposeEnumeratorAsync(IAsyncEnumerator<IAnime> enumerator)
 			{
 				if (enumerators.TryUpdate(enumerator, true, false))
 				{
@@ -64,7 +64,7 @@ namespace AMQSongProcessor.Utils
 				{
 					var tasks = enumerators
 						.Keys
-						.Select(FastLoaded<Anime>.FromEnumerator)
+						.Select(FastLoaded<IAnime>.FromEnumerator)
 						.ToHashSet();
 
 					while (tasks.Count != 0)
@@ -94,7 +94,7 @@ namespace AMQSongProcessor.Utils
 			}
 		}
 
-		private static async IAsyncEnumerable<Anime> SlowLoadFromFilesAsync(
+		private static async IAsyncEnumerable<IAnime> SlowLoadFromFilesAsync(
 			this ISongLoader loader,
 			IEnumerable<string> files)
 		{

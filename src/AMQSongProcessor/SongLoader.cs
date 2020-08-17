@@ -12,7 +12,7 @@ using AMQSongProcessor.Utils;
 
 namespace AMQSongProcessor
 {
-	public sealed class SongLoader : ISongLoader
+	public class SongLoader : ISongLoader
 	{
 		private readonly ISourceInfoGatherer _Gatherer;
 		private readonly JsonSerializerOptions _Options = new JsonSerializerOptions
@@ -33,7 +33,7 @@ namespace AMQSongProcessor
 			_Options.Converters.Add(new VolumeModifierConverter());
 		}
 
-		public async Task<Anime?> LoadAsync(string file)
+		public async Task<IAnime?> LoadAsync(string file)
 		{
 			var fileInfo = new FileInfo(file);
 			if (!fileInfo.Exists || fileInfo.Length == 0)
@@ -43,10 +43,14 @@ namespace AMQSongProcessor
 
 			using var fs = new FileStream(file, FileMode.Open);
 
-			Anime anime;
+			AnimeModel model;
 			try
 			{
-				anime = await JsonSerializer.DeserializeAsync<Anime>(fs, _Options).CAF();
+				model = await JsonSerializer.DeserializeAsync<AnimeModel>(fs, _Options).CAF();
+				if (RemoveIgnoredSongs)
+				{
+					model.Songs.RemoveAll(x => x.ShouldIgnore);
+				}
 			}
 			catch (JsonException) when ((ExceptionsToIgnore & IgnoreExceptions.Json) != 0)
 			{
@@ -57,41 +61,25 @@ namespace AMQSongProcessor
 				throw new JsonException($"Unable to parse {file}.", e);
 			}
 
-			anime.AbsoluteInfoPath = file;
-			anime.Songs = new SongCollection(anime, anime.Songs);
-			if (RemoveIgnoredSongs)
-			{
-				anime.Songs.RemoveAll(x => x.ShouldIgnore);
-			}
-			if (anime.AbsoluteSourcePath is string source)
-			{
-				try
-				{
-					anime.VideoInfo = await _Gatherer.GetVideoInfoAsync(source).CAF();
-				}
-				catch (Exception) when ((ExceptionsToIgnore & IgnoreExceptions.Video) != 0)
-				{
-				}
-				catch (Exception e)
-				{
-					throw new InvalidOperationException($"Unable to get video info for {source}.", e);
-				}
-			}
-			return anime;
+			return await ConvertFromModelAsync(file, model).CAF();
 		}
 
-		public Task SaveAsync(Anime anime, SaveNewOptions? options = null)
+		public Task<string?> SaveAsync(string path, IAnimeBase anime, SaveNewOptions? options = null)
 		{
+			if (Path.IsPathFullyQualified(path) && !string.IsNullOrEmpty(Path.GetExtension(path)))
+			{
+				return SaveAsync(path, anime);
+			}
 			if (options == null)
 			{
-				return SaveAsync(anime);
+				return SaveAsync(Path.Combine(path, $"info.{Extension}"), anime);
 			}
 
-			var fullDir = options.Directory;
+			var fullDir = path;
 			if (options.AddShowNameDirectory)
 			{
 				var showDir = FileUtils.RemoveInvalidPathChars($"[{anime.Year}] {anime.Name}");
-				fullDir = Path.Combine(options.Directory, showDir);
+				fullDir = Path.Combine(path, showDir);
 			}
 			Directory.CreateDirectory(fullDir);
 
@@ -102,31 +90,59 @@ namespace AMQSongProcessor
 				file = FileUtils.NextAvailableFilename(file);
 				fileExists = false;
 			}
-			anime.AbsoluteInfoPath = file;
 
 			if (fileExists && !options.AllowOverwrite)
 			{
-				return Task.CompletedTask;
+				return Task.FromResult(default(string?));
 			}
-			return SaveAsync(anime);
+			return SaveAsync(file, anime);
 		}
 
-		private async Task SaveAsync(Anime anime)
+		protected virtual async Task<IAnime> ConvertFromModelAsync(string file, AnimeModel model)
 		{
-			if (string.IsNullOrWhiteSpace(anime.AbsoluteInfoPath))
+			var directory = Path.GetDirectoryName(file);
+			var source = FileUtils.EnsureAbsolutePath(directory, model.Source);
+
+			SourceInfo<VideoInfo>? videoInfo = null;
+			if (source != null)
 			{
-				throw new ArgumentNullException(nameof(anime.AbsoluteInfoPath));
+				try
+				{
+					videoInfo = await _Gatherer.GetVideoInfoAsync(source).CAF();
+				}
+				catch (Exception) when ((ExceptionsToIgnore & IgnoreExceptions.Video) != 0)
+				{
+				}
+				catch (Exception e)
+				{
+					throw new InvalidOperationException($"Unable to get video info for {source}.", e);
+				}
+			}
+
+			return new Anime(file, model, videoInfo);
+		}
+
+		protected virtual Task<AnimeModel> ConvertToModelAsync(string file, IAnimeBase anime)
+			=> Task.FromResult(new AnimeModel(anime));
+
+		private async Task<string?> SaveAsync(string file, IAnimeBase anime)
+		{
+			if (string.IsNullOrWhiteSpace(file))
+			{
+				throw new ArgumentNullException(nameof(file));
 			}
 
 			try
 			{
-				using var fs = new FileStream(anime.AbsoluteInfoPath, FileMode.Create);
+				using var fs = new FileStream(file, FileMode.Create);
 
-				await JsonSerializer.SerializeAsync(fs, anime, _Options).CAF();
+				var model = await ConvertToModelAsync(file, anime).CAF();
+				await JsonSerializer.SerializeAsync(fs, model, _Options).CAF();
+				return file;
 			}
 			catch (Exception e)
 			{
-				throw new InvalidOperationException($"Unable to save {anime.Name} to {anime.AbsoluteInfoPath}.", e);
+				throw new InvalidOperationException($"Unable to save {anime.Name} to {file}.", e);
 			}
 		}
 	}

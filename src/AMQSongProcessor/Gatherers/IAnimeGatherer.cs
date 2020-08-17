@@ -8,6 +8,6 @@ namespace AMQSongProcessor.Gatherers
 	{
 		string Name { get; }
 
-		Task<Anime> GetAsync(int id, GatherOptions? options = null);
+		Task<IAnimeBase> GetAsync(int id, GatherOptions? options = null);
 	}
 }

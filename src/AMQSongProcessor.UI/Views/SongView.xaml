@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:models="clr-namespace:AMQSongProcessor.Models;assembly=AMQSongProcessor"
+             xmlns:uimodels="clr-namespace:AMQSongProcessor.UI.Models;assembly=AMQSongProcessor.UI"
              xmlns:controls="clr-namespace:AMQSongProcessor.UI.Controls;assembly=AMQSongProcessor.UI"
              xmlns:converters="clr-namespace:AMQSongProcessor.UI.Converters;assembly=AMQSongProcessor.UI"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="800"
@@ -79,7 +80,7 @@
 
       <TreeView Name="Tree" Items="{Binding Anime}">
         <TreeView.DataTemplates>
-          <TreeDataTemplate DataType="models:Anime" ItemsSource="{Binding Songs}">
+          <TreeDataTemplate DataType="uimodels:ObservableAnime" ItemsSource="{Binding Songs}">
             <TextBlock Classes="anime">
               <TextBlock.ContextMenu>
                 <ContextMenu Classes="notWhenBusy">
@@ -111,7 +112,7 @@
               </TextBlock.ContextMenu>
 
               <TextBlock.Background>
-                <Binding Path="AbsoluteSourcePath"
+                <Binding Path="VideoInfo"
                          Converter="{x:Static converters:MiscConverters.SourceColor}" />
               </TextBlock.Background>
             </TextBlock>

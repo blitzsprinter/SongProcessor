@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
@@ -64,12 +65,14 @@ namespace AMQSongProcessor.Utils
 			return list;
 		}
 
+		[return: MaybeNull]
 		public static T ToObject<T>(this JsonElement element, JsonSerializerOptions? options = null)
 		{
 			var json = element.GetRawText();
 			return JsonSerializer.Deserialize<T>(json, options);
 		}
 
+		[return: MaybeNull]
 		public static T ToObject<T>(this JsonDocument document, JsonSerializerOptions? options = null)
 		{
 			if (document == null)

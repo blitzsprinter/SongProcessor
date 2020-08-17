@@ -19,7 +19,7 @@ namespace AMQSongProcessor.UI.Converters
 		private static readonly IMaybeFunc<SearchTerms, bool>[] _Funcs
 			= new MaybeFuncCollectionBuilder<SearchTerms, bool>()
 			.Add<Song>((song, search) => search.IsVisible(song))
-			.Add<Anime>((anime, search) => search.IsVisible(anime))
+			.Add<IAnime>((anime, search) => search.IsVisible(anime))
 			.Add<IEnumerable<Song>>((songs, search) => search.IsVisible(_Fake) || songs.Any(x => search.IsVisible(x)))
 			.ToArray();
 

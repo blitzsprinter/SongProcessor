@@ -24,7 +24,7 @@ namespace AMQSongProcessor.Utils
 			{
 				return null;
 			}
-			else if (Path.IsPathRooted(path))
+			else if (Path.IsPathFullyQualified(path))
 			{
 				return path;
 			}

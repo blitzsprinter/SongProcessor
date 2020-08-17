@@ -1,10 +1,10 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 
 namespace AMQSongProcessor.UI
 {
-	public class SortedObservableCollection<T> : ObservableCollection<T>
+	public class SortedObservableCollection<T> : ObservableCollectionPlus<T>
 	{
 		public IComparer<T> Comparer { get; }
 
@@ -36,8 +36,7 @@ namespace AMQSongProcessor.UI
 		}
 
 		protected override void MoveItem(int oldIndex, int newIndex)
-		{
-		}
+			=> throw new InvalidOperationException($"Items cannot be moved in a {nameof(SortedObservableCollection<T>)}.");
 
 		protected override void SetItem(int index, T item)
 		{

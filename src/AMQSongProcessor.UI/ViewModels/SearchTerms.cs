@@ -37,7 +37,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		}
 		object IBindableToSelf.Self => this;
 
-		public bool IsVisible(Anime anime)
+		public bool IsVisible(IAnime anime)
 			=> IsVisible(AnimeName, anime.Name);
 
 		public bool IsVisible(Song song)

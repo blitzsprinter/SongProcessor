@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 using AMQSongProcessor.Gatherers;
 using AMQSongProcessor.Models;
+using AMQSongProcessor.UI.Models;
 
 using ReactiveUI;
 
@@ -57,8 +58,8 @@ namespace AMQSongProcessor.UI.ViewModels
 			get => _AddSongs;
 			set => this.RaiseAndSetIfChanged(ref _AddSongs, value);
 		}
-		public ObservableCollection<Anime> Anime { get; } = new ObservableCollection<Anime>();
-		public ReactiveCommand<Anime, Unit> DeleteAnime { get; }
+		public ObservableCollection<IAnime> Anime { get; } = new ObservableCollection<IAnime>();
+		public ReactiveCommand<IAnime, Unit> DeleteAnime { get; }
 		[DataMember]
 		public string? Directory
 		{
@@ -105,7 +106,7 @@ namespace AMQSongProcessor.UI.ViewModels
 				x => x.Id,
 				(directory, id) => System.IO.Directory.Exists(directory) && id > 0);
 			Add = ReactiveCommand.CreateFromTask(PrivateAdd, canAdd);
-			DeleteAnime = ReactiveCommand.CreateFromTask<Anime>(PrivateDeleteAnime);
+			DeleteAnime = ReactiveCommand.CreateFromTask<IAnime>(PrivateDeleteAnime);
 			SelectDirectory = ReactiveCommand.CreateFromTask(PrivateSelectDirectory);
 		}
 
@@ -114,20 +115,20 @@ namespace AMQSongProcessor.UI.ViewModels
 			try
 			{
 				var gatherer = _Gatherers.Single(x => x.Name == SelectedGathererName);
-				var anime = await gatherer.GetAsync(Id, new GatherOptions
+				var model = await gatherer.GetAsync(Id, new GatherOptions
 				{
 					AddSongs = AddSongs,
 					AddEndings = AddEndings,
 					AddInserts = AddInserts,
 					AddOpenings = AddOpenings
 				}).ConfigureAwait(true);
-				await _Loader.SaveAsync(anime, new SaveNewOptions(Directory!)
+				var file = await _Loader.SaveAsync(Directory!, model, new SaveNewOptions
 				{
 					AllowOverwrite = false,
 					CreateDuplicateFile = true,
 					AddShowNameDirectory = true,
 				}).ConfigureAwait(true);
-				Anime.Add(anime);
+				Anime.Add(new ObservableAnime(new Anime(file!, model, null)));
 				Exception = null;
 			}
 			catch (Exception e)
@@ -136,7 +137,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			}
 		}
 
-		private async Task PrivateDeleteAnime(Anime anime)
+		private async Task PrivateDeleteAnime(IAnime anime)
 		{
 			var text = $"Are you sure you want to delete {anime.Name}?";
 			const string TITLE = "Anime Deletion";

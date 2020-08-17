@@ -8,8 +8,8 @@ namespace AMQSongProcessor
 	{
 		string Extension { get; set; }
 
-		Task<Anime?> LoadAsync(string file);
+		Task<IAnime?> LoadAsync(string file);
 
-		Task SaveAsync(Anime anime, SaveNewOptions? options = null);
+		Task<string?> SaveAsync(string directory, IAnimeBase anime, SaveNewOptions? options = null);
 	}
 }

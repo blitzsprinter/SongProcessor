@@ -1,136 +1,42 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.CompilerServices;
-using System.Text.Json.Serialization;
+using System.Linq;
 
 using AMQSongProcessor.Utils;
 
 namespace AMQSongProcessor.Models
 {
 	[DebuggerDisplay("{DebuggerDisplay,nq}")]
-	public class Anime : INotifyPropertyChanged
+	public class Anime : IAnime
 	{
-		private string _AbsoluteInfoPath;
-		private string? _AbsoluteSourcePath;
-		private string _Directory;
-		private int _Id;
-		private string _Name;
-		private IList<Song> _Songs;
-		private string? _Source;
-		private VideoInfo? _VideoInfo;
-		private int _Year;
-
-		[JsonIgnore]
-		public string AbsoluteInfoPath
-		{
-			get => _AbsoluteInfoPath;
-			internal set
-			{
-				//If info file has been changed then update the directory
-				if (RaiseAndSetIfChanged(ref _AbsoluteInfoPath, value))
-				{
-					Directory = Path.GetDirectoryName(AbsoluteInfoPath)
-						?? throw new InvalidOperationException($"{nameof(AbsoluteInfoPath)} must be an absolute path.");
-					AbsoluteSourcePath = FileUtils.EnsureAbsolutePath(Directory, Source);
-				}
-			}
-		}
-		[JsonIgnore]
-		public string? AbsoluteSourcePath
-		{
-			get => _AbsoluteSourcePath;
-			private set => RaiseAndSetIfChanged(ref _AbsoluteSourcePath, value);
-		}
-		[JsonIgnore]
-		public string Directory
-		{
-			get => _Directory;
-			private set => RaiseAndSetIfChanged(ref _Directory, value);
-		}
-		public int Id
-		{
-			get => _Id;
-			set => RaiseAndSetIfChanged(ref _Id, value);
-		}
-		public string Name
-		{
-			get => _Name;
-			set => RaiseAndSetIfChanged(ref _Name, value);
-		}
-		public IList<Song> Songs
-		{
-			get => _Songs;
-			set => RaiseAndSetIfChanged(ref _Songs, value);
-		}
-		public string? Source
-		{
-			get => _Source;
-			set
-			{
-				//If source has been changed then video info is not accurate any more
-				if (RaiseAndSetIfChanged(ref _Source, value))
-				{
-					VideoInfo = null;
-					AbsoluteSourcePath = FileUtils.EnsureAbsolutePath(Directory, Source);
-				}
-			}
-		}
-		[JsonIgnore]
-		public VideoInfo? VideoInfo
-		{
-			get => _VideoInfo;
-			set => RaiseAndSetIfChanged(ref _VideoInfo, value);
-		}
-		public int Year
-		{
-			get => _Year;
-			set => RaiseAndSetIfChanged(ref _Year, value);
-		}
+		public string AbsoluteInfoPath { get; }
+		public int Id { get; }
+		public string Name { get; }
+		public IList<Song> Songs { get; } = new List<Song>();
+		public string? Source => FileUtils.StoreRelativeOrAbsolute(this.GetDirectory(), VideoInfo?.Path);
+		public SourceInfo<VideoInfo>? VideoInfo { get; set; }
+		public int Year { get; }
 		private string DebuggerDisplay => Name;
 
-		public event PropertyChangedEventHandler? PropertyChanged;
-
-		public Anime()
+		public Anime(string file, IAnimeBase other, SourceInfo<VideoInfo>? videoInfo)
 		{
-			_Directory = null!;
-			_AbsoluteInfoPath = null!;
-			_Name = null!;
-			_Songs = new SongCollection(this);
-		}
-
-		public Anime(int year, int id, string name) : this()
-		{
-			_Year = year;
-			_Id = id;
-			_Name = name;
-		}
-
-		public Anime(Anime other) : this(other.Year, other.Id, other.Name)
-		{
-		}
-
-		public void SetSourceFile(string? path, VideoInfo info)
-		{
-			Source = FileUtils.StoreRelativeOrAbsolute(Directory, path);
-			VideoInfo = info;
-		}
-
-		private void OnPropertyChanged([CallerMemberName] string propertyName = "")
-			=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-
-		private bool RaiseAndSetIfChanged<T>(ref T backingField, T newValue, [CallerMemberName] string propertyName = "")
-		{
-			if (EqualityComparer<T>.Default.Equals(backingField, newValue))
+			if (file is null)
 			{
-				return false;
+				throw new ArgumentNullException(nameof(file));
+			}
+			if (Path.GetDirectoryName(file) is null)
+			{
+				throw new ArgumentException("Must be an absolute path.", nameof(file));
 			}
 
-			backingField = newValue;
-			OnPropertyChanged(propertyName);
-			return true;
+			AbsoluteInfoPath = file;
+			Id = other.Id;
+			Name = other.Name;
+			Songs = other.Songs?.ToList() ?? new List<Song>();
+			Year = other.Year;
+			VideoInfo = videoInfo;
 		}
 	}
 }

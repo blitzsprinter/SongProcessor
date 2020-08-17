@@ -6,10 +6,10 @@ namespace AMQSongProcessor
 {
 	public interface ISourceInfoGatherer
 	{
-		Task<AudioInfo> GetAudioInfoAsync(string file, int track = 0);
+		Task<SourceInfo<AudioInfo>> GetAudioInfoAsync(string file, int track = 0);
 
-		Task<VolumeInfo> GetAverageVolumeAsync(string file);
+		Task<SourceInfo<VolumeInfo>> GetAverageVolumeAsync(string file);
 
-		Task<VideoInfo> GetVideoInfoAsync(string file, int track = 0);
+		Task<SourceInfo<VideoInfo>> GetVideoInfoAsync(string file, int track = 0);
 	}
 }

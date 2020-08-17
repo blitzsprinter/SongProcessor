@@ -10,6 +10,7 @@ using AdvorangesUtils;
 
 using AMQSongProcessor.Jobs;
 using AMQSongProcessor.Models;
+using AMQSongProcessor.Utils;
 
 namespace AMQSongProcessor
 {
@@ -19,23 +20,23 @@ namespace AMQSongProcessor
 
 		public event Action<string>? WarningReceived;
 
-		public IReadOnlyList<ISongJob> CreateJobs(IEnumerable<Anime> anime)
+		public IReadOnlyList<ISongJob> CreateJobs(IEnumerable<IAnime> animes)
 		{
 			var jobs = new List<ISongJob>();
-			foreach (var show in anime)
+			foreach (var anime in animes)
 			{
-				if (show.Source == null)
+				if (anime.Source == null)
 				{
-					WarningReceived?.Invoke($"Source is null: {show.Name}");
+					WarningReceived?.Invoke($"Source is null: {anime.Name}");
 					continue;
 				}
-				else if (!File.Exists(show.AbsoluteSourcePath))
+				else if (!File.Exists(anime.GetAbsoluteSourcePath()))
 				{
-					throw new FileNotFoundException($"{show.Name} source does not exist.", show.Source);
+					throw new FileNotFoundException($"{anime.Name} source does not exist.", anime.Source);
 				}
 
-				var resolutions = GetValidResolutions(show);
-				var songs = show.Songs.Where(x =>
+				var resolutions = GetValidResolutions(anime);
+				var songs = anime.Songs.Where(x =>
 				{
 					if (x.ShouldIgnore)
 					{
@@ -49,13 +50,13 @@ namespace AMQSongProcessor
 					}
 					return true;
 				});
-				var validJobs = GetJobs(resolutions, songs).Where(x => !x.AlreadyExists);
+				var validJobs = GetJobs(anime, songs, resolutions).Where(x => !x.AlreadyExists);
 				jobs.AddRange(validJobs);
 			}
 			return jobs;
 		}
 
-		public async Task ExportFixesAsync(string dir, IEnumerable<Anime> anime)
+		public async Task ExportFixesAsync(string dir, IEnumerable<IAnime> animes)
 		{
 			static string FormatTimeSpan(TimeSpan ts)
 			{
@@ -73,54 +74,66 @@ namespace AMQSongProcessor
 				return song.Episode.ToString() + "/" + ts;
 			}
 
-			var songs = anime.SelectMany(x => x.Songs).Where(x => !x.ShouldIgnore).ToArray();
-			if (songs.Length == 0)
+			var matches = new ConcurrentDictionary<string, List<IAnime>>();
+			foreach (var anime in animes)
+			{
+				foreach (var song in anime.Songs)
+				{
+					if (song.ShouldIgnore)
+					{
+						continue;
+					}
+
+					matches.GetOrAdd(song.FullName, _ => new List<IAnime>()).Add(anime);
+				}
+			}
+			if (matches.Count == 0)
 			{
 				return;
-			}
-
-			var matches = new ConcurrentDictionary<string, List<Anime>>();
-			foreach (var song in songs)
-			{
-				matches.GetOrAdd(song.FullName, _ => new List<Anime>()).Add(song.Anime);
 			}
 
 			var file = Path.Combine(dir, FixesFile);
 			using var sw = new StreamWriter(file, append: false);
 
-			foreach (var song in songs)
+			foreach (var anime in animes)
 			{
-				if (song.Status != Status.NotSubmitted)
+				foreach (var song in anime.Songs)
 				{
-					continue;
+					if (song.ShouldIgnore || song.Status != Status.NotSubmitted)
+					{
+						continue;
+					}
+
+					var sb = new StringBuilder();
+					sb.Append("**Anime:** ").AppendLine(anime.Name);
+					sb.Append("**ANNID:** ").AppendLine(anime.Id.ToString());
+					sb.Append("**Song Title:** ").AppendLine(song.Name);
+					sb.Append("**Artist:** ").AppendLine(song.Artist);
+					sb.Append("**Type:** ").AppendLine(song.Type.ToString());
+					sb.Append("**Episode/Timestamp:** ").AppendLine(FormatTimestamp(song));
+					sb.Append("**Length:** ").AppendLine(FormatTimeSpan(song.Length));
+
+					var others = matches[song.FullName]
+						.Select(x => x.Id)
+						.Concat(song.AlsoIn)
+						.Where(x => x != anime.Id)
+						.OrderBy(x => x)
+						.Join(x => x.ToString());
+					if (!string.IsNullOrWhiteSpace(others))
+					{
+						sb.Append("**Duplicate found in:** ").AppendLine(others);
+					}
+
+					sb.AppendLine("**I solemnly swear that I have checked that this song-anime combo isn't in the game already, and I have read and understand all the pins**");
+					await sw.WriteAsync(sb.AppendLine()).CAF();
 				}
-
-				var sb = new StringBuilder();
-				sb.Append("**Anime:** ").AppendLine(song.Anime.Name);
-				sb.Append("**ANNID:** ").AppendLine(song.Anime.Id.ToString());
-				sb.Append("**Song Title:** ").AppendLine(song.Name);
-				sb.Append("**Artist:** ").AppendLine(song.Artist);
-				sb.Append("**Type:** ").AppendLine(song.Type.ToString());
-				sb.Append("**Episode/Timestamp:** ").AppendLine(FormatTimestamp(song));
-				sb.Append("**Length:** ").AppendLine(FormatTimeSpan(song.Length));
-
-				var others = matches[song.FullName]
-					.Select(x => x.Id)
-					.Concat(song.AlsoIn)
-					.Where(x => x != song.Anime.Id)
-					.OrderBy(x => x)
-					.Join(x => x.ToString());
-				if (!string.IsNullOrWhiteSpace(others))
-				{
-					sb.Append("**Duplicate found in:** ").AppendLine(others);
-				}
-
-				sb.AppendLine("**I solemnly swear that I have checked that this song-anime combo isn't in the game already, and I have read and understand all the pins**");
-				await sw.WriteAsync(sb.AppendLine()).CAF();
 			}
 		}
 
-		private IEnumerable<SongJob> GetJobs(IEnumerable<Resolution> resolutions, IEnumerable<Song> songs)
+		private IEnumerable<SongJob> GetJobs(
+			IAnime anime,
+			IEnumerable<Song> songs,
+			IEnumerable<Resolution> resolutions)
 		{
 			foreach (var song in songs)
 			{
@@ -133,17 +146,17 @@ namespace AMQSongProcessor
 
 					if (resolution.IsMp3)
 					{
-						yield return new Mp3SongJob(song);
+						yield return new Mp3SongJob(anime, song);
 					}
 					else
 					{
-						yield return new VideoSongJob(song, resolution.Size);
+						yield return new VideoSongJob(anime, song, resolution.Size);
 					}
 				}
 			}
 		}
 
-		private IReadOnlyList<Resolution> GetValidResolutions(Anime anime)
+		private IReadOnlyList<Resolution> GetValidResolutions(IAnime anime)
 		{
 			var valid = new List<Resolution>(Resolution.Resolutions.Length);
 			foreach (var res in Resolution.Resolutions)
@@ -152,7 +165,7 @@ namespace AMQSongProcessor
 				{
 					WarningReceived?.Invoke($"Video info is null {anime.Name}");
 				}
-				else if (res.Size > anime.VideoInfo?.Height)
+				else if (res.Size > anime.VideoInfo?.Info?.Height)
 				{
 					WarningReceived?.Invoke($"Source is smaller than {res.Size}p: {anime.Name}");
 				}

@@ -11,8 +11,8 @@ namespace AMQSongProcessor
 	{
 		event Action<string> WarningReceived;
 
-		IReadOnlyList<ISongJob> CreateJobs(IEnumerable<Anime> anime);
+		IReadOnlyList<ISongJob> CreateJobs(IEnumerable<IAnime> anime);
 
-		Task ExportFixesAsync(string dir, IEnumerable<Anime> anime);
+		Task ExportFixesAsync(string dir, IEnumerable<IAnime> anime);
 	}
 }

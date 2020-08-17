@@ -19,9 +19,11 @@ namespace AMQSongProcessor.Jobs
 
 		public bool AlreadyExists => File.Exists(GetValidPath());
 		public Song Song { get; }
+		public IAnime Anime { get; }
 
-		protected SongJob(Song song)
+		protected SongJob(IAnime anime, Song song)
 		{
+			Anime = anime;
 			Song = song;
 		}
 

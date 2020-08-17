@@ -41,7 +41,7 @@ namespace AMQSongProcessor.Models
 		public static bool operator ==(SongTypeAndPosition item1, SongTypeAndPosition item2)
 			=> item1.Equals(item2);
 
-		public static SongTypeAndPosition Parse(string s)
+		public static SongTypeAndPosition Parse(string? s)
 		{
 			if (!TryParse(s, out var result))
 			{
@@ -50,7 +50,7 @@ namespace AMQSongProcessor.Models
 			return result;
 		}
 
-		public static bool TryParse(string s, out SongTypeAndPosition result)
+		public static bool TryParse(string? s, out SongTypeAndPosition result)
 		{
 			if (s == null)
 			{

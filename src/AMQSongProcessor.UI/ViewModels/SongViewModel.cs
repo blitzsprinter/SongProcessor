@@ -9,6 +9,7 @@ using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
 using AMQSongProcessor.Models;
+using AMQSongProcessor.UI.Models;
 using AMQSongProcessor.Utils;
 
 using Avalonia.Input.Platform;
@@ -37,14 +38,14 @@ namespace AMQSongProcessor.UI.ViewModels
 		private SearchTerms _Search = new SearchTerms();
 		private SongVisibility _SongVisibility = new SongVisibility();
 
-		public ReactiveCommand<Anime, Unit> AddSong { get; }
-		public ObservableCollection<Anime> Anime { get; }
-			= new SortedObservableCollection<Anime>(new AnimeComparer());
+		public ReactiveCommand<IAnime, Unit> AddSong { get; }
+		public ObservableCollection<IAnime> Anime { get; }
+			= new SortedObservableCollection<IAnime>(new AnimeComparer());
 		public ReactiveCommand<Unit, Unit> CancelProcessing { get; }
 		public IObservable<bool> CanNavigate { get; }
-		public ReactiveCommand<Anime, Unit> ChangeSource { get; }
-		public ReactiveCommand<Anime, Unit> ClearSongs { get; }
-		public ReactiveCommand<Anime, Unit> ClearSource { get; }
+		public ReactiveCommand<IAnime, Unit> ChangeSource { get; }
+		public ReactiveCommand<IAnime, Unit> ClearSongs { get; }
+		public ReactiveCommand<IAnime, Unit> ClearSource { get; }
 		public Clipboard<Song>? ClipboardSong
 		{
 			get => _ClipboardSong;
@@ -58,7 +59,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _CurrentJob, value);
 		}
 		public ReactiveCommand<Song, Unit> CutSong { get; }
-		public ReactiveCommand<Anime, Unit> DeleteAnime { get; }
+		public ReactiveCommand<IAnime, Unit> DeleteAnime { get; }
 		public ReactiveCommand<Song, Unit> DeleteSong { get; }
 		[DataMember]
 		public string? Directory
@@ -66,15 +67,15 @@ namespace AMQSongProcessor.UI.ViewModels
 			get => _Directory;
 			set => this.RaiseAndSetIfChanged(ref _Directory, value);
 		}
-		public ReactiveCommand<Anime, Unit> DuplicateAnime { get; }
+		public ReactiveCommand<IAnime, Unit> DuplicateAnime { get; }
 		public ReactiveCommand<Song, Unit> EditSong { get; }
 		public ReactiveCommand<Unit, Unit> ExportFixes { get; }
-		public ReactiveCommand<Anime, Unit> GetVolumeInfo { get; }
+		public ReactiveCommand<IAnime, Unit> GetVolumeInfo { get; }
 		public IScreen HostScreen => _HostScreen ?? Locator.Current.GetService<IScreen>();
 		public IObservable<bool> IsBusy { get; }
 		public ReactiveCommand<Unit, Unit> Load { get; }
-		public ReactiveCommand<Anime, Unit> OpenInfoFile { get; }
-		public ReactiveCommand<Anime, Unit> PasteSong { get; }
+		public ReactiveCommand<IAnime, Unit> OpenInfoFile { get; }
+		public ReactiveCommand<IAnime, Unit> PasteSong { get; }
 		public ProcessingData? ProcessingData
 		{
 			get => _ProcessingData;
@@ -121,15 +122,15 @@ namespace AMQSongProcessor.UI.ViewModels
 			Load = ReactiveCommand.CreateFromTask(PrivateLoad, validDirectory);
 			Unload = ReactiveCommand.Create(PrivateUnload);
 			CopyANNID = ReactiveCommand.CreateFromTask<int>(PrivateCopyANNID);
-			OpenInfoFile = ReactiveCommand.Create<Anime>(PrivateOpenInfoFile);
-			GetVolumeInfo = ReactiveCommand.CreateFromTask<Anime>(PrivateGetVolumeInfo);
-			DuplicateAnime = ReactiveCommand.CreateFromTask<Anime>(PrivateDuplicateAnime);
-			DeleteAnime = ReactiveCommand.CreateFromTask<Anime>(PrivateDeleteAnime);
-			ClearSongs = ReactiveCommand.CreateFromTask<Anime>(PrivateClearSongs);
-			ChangeSource = ReactiveCommand.CreateFromTask<Anime>(PrivateChangeSource);
-			ClearSource = ReactiveCommand.CreateFromTask<Anime>(PrivateClearSource);
-			AddSong = ReactiveCommand.Create<Anime>(PrivateAddSong);
-			PasteSong = ReactiveCommand.CreateFromTask<Anime>(PrivatePasteSong);
+			OpenInfoFile = ReactiveCommand.Create<IAnime>(PrivateOpenInfoFile);
+			GetVolumeInfo = ReactiveCommand.CreateFromTask<IAnime>(PrivateGetVolumeInfo);
+			DuplicateAnime = ReactiveCommand.CreateFromTask<IAnime>(PrivateDuplicateAnime);
+			DeleteAnime = ReactiveCommand.CreateFromTask<IAnime>(PrivateDeleteAnime);
+			ClearSongs = ReactiveCommand.CreateFromTask<IAnime>(PrivateClearSongs);
+			ChangeSource = ReactiveCommand.CreateFromTask<IAnime>(PrivateChangeSource);
+			ClearSource = ReactiveCommand.CreateFromTask<IAnime>(PrivateClearSource);
+			AddSong = ReactiveCommand.Create<IAnime>(PrivateAddSong);
+			PasteSong = ReactiveCommand.CreateFromTask<IAnime>(PrivatePasteSong);
 			EditSong = ReactiveCommand.Create<Song>(PrivateEditSong);
 			CopySong = ReactiveCommand.Create<Song>(PrivateCopySong);
 			CutSong = ReactiveCommand.Create<Song>(PrivateCutSong);
@@ -149,7 +150,10 @@ namespace AMQSongProcessor.UI.ViewModels
 			CanNavigate = IsBusy.CombineLatest(loaded, (x, y) => !(x || y));
 		}
 
-		private void PrivateAddSong(Anime anime)
+		private IAnime GetAnime(Song search)
+			=> Anime.Single(a => a.Songs.Any(s => ReferenceEquals(s, search)));
+
+		private void PrivateAddSong(IAnime anime)
 		{
 			var song = new Song();
 			var vm = new EditViewModel(anime, song);
@@ -159,20 +163,20 @@ namespace AMQSongProcessor.UI.ViewModels
 		private void PrivateCancelProcessing()
 			=> ProcessingData = null;
 
-		private async Task PrivateChangeSource(Anime anime)
+		private async Task PrivateChangeSource(IAnime anime)
 		{
-			var dir = anime.Directory;
-			var defFile = Path.GetFileName(anime.AbsoluteSourcePath);
+			var dir = anime.GetDirectory();
+			var defFile = Path.GetFileName(anime.GetAbsoluteSourcePath());
 			var result = await _MessageBoxManager.GetFilesAsync(dir, "Source", false, defFile).ConfigureAwait(true);
 			if (!(result.SingleOrDefault() is string path))
 			{
 				return;
 			}
 
-			VideoInfo info;
 			try
 			{
-				info = await _Gatherer.GetVideoInfoAsync(path).ConfigureAwait(true);
+				var cast = (ObservableAnime)anime;
+				cast.VideoInfo = await _Gatherer.GetVideoInfoAsync(path).ConfigureAwait(true);
 			}
 			catch (InvalidFileTypeException)
 			{
@@ -181,11 +185,10 @@ namespace AMQSongProcessor.UI.ViewModels
 				return;
 			}
 
-			anime.SetSourceFile(path, info);
-			await _Loader.SaveAsync(anime).ConfigureAwait(true);
+			await _Loader.SaveAsync(anime.AbsoluteInfoPath, anime).ConfigureAwait(true);
 		}
 
-		private async Task PrivateClearSongs(Anime anime)
+		private async Task PrivateClearSongs(IAnime anime)
 		{
 			var text = $"Are you sure you want to delete all songs {anime.Name}?";
 			const string TITLE = "Song Clearing";
@@ -194,15 +197,15 @@ namespace AMQSongProcessor.UI.ViewModels
 			if (result == Constants.YES)
 			{
 				anime.Songs.Clear();
-				await _Loader.SaveAsync(anime).ConfigureAwait(true);
+				await _Loader.SaveAsync(anime.AbsoluteInfoPath, anime).ConfigureAwait(true);
 			}
 		}
 
-		private async Task PrivateClearSource(Anime anime)
+		private async Task PrivateClearSource(IAnime anime)
 		{
-			anime.Source = null;
-			await _Loader.SaveAsync(anime).ConfigureAwait(true);
-			anime.VideoInfo = null;
+			var cast = (ObservableAnime)anime;
+			cast.VideoInfo = null;
+			await _Loader.SaveAsync(anime.AbsoluteInfoPath, anime).ConfigureAwait(true);
 		}
 
 		private Task PrivateCopyANNID(int id)
@@ -213,15 +216,15 @@ namespace AMQSongProcessor.UI.ViewModels
 
 		private void PrivateCutSong(Song song)
 		{
-			var anime = song.Anime;
+			var anime = GetAnime(song);
 			ClipboardSong = new Clipboard<Song>(song, true, () =>
 			{
 				anime.Songs.Remove(song);
-				return _Loader.SaveAsync(anime);
+				return _Loader.SaveAsync(anime.AbsoluteInfoPath, anime);
 			});
 		}
 
-		private async Task PrivateDeleteAnime(Anime anime)
+		private async Task PrivateDeleteAnime(IAnime anime)
 		{
 			var text = $"Are you sure you want to delete {anime.Name}?";
 			const string TITLE = "Anime Deletion";
@@ -236,7 +239,7 @@ namespace AMQSongProcessor.UI.ViewModels
 
 		private async Task PrivateDeleteSong(Song song)
 		{
-			var anime = song.Anime;
+			var anime = GetAnime(song);
 			var text = $"Are you sure you want to delete \"{song.Name}\" from {anime.Name}?";
 			const string TITLE = "Song Deletion";
 
@@ -244,63 +247,45 @@ namespace AMQSongProcessor.UI.ViewModels
 			if (result == Constants.YES)
 			{
 				anime.Songs.Remove(song);
-				await _Loader.SaveAsync(anime).ConfigureAwait(true);
+				await _Loader.SaveAsync(anime.AbsoluteInfoPath, anime).ConfigureAwait(true);
 			}
 		}
 
-		private async Task PrivateDuplicateAnime(Anime anime)
+		private async Task PrivateDuplicateAnime(IAnime anime)
 		{
-			var duplicate = new Anime(anime);
-			await _Loader.SaveAsync(anime, new SaveNewOptions(anime.Directory)
+			var file = await _Loader.SaveAsync(anime.GetDirectory(), anime, new SaveNewOptions
 			{
 				AllowOverwrite = false,
 				CreateDuplicateFile = true,
 				AddShowNameDirectory = false,
 			}).ConfigureAwait(true);
-
-			for (var i = Anime.Count - 1; i >= 0; --i)
-			{
-				if (Anime[i].Id != duplicate.Id)
-				{
-					continue;
-				}
-
-				if (i == Anime.Count - 1)
-				{
-					Anime.Add(duplicate);
-				}
-				else
-				{
-					Anime.Insert(i + 1, duplicate);
-				}
-				break;
-			}
+			Anime.Add(new ObservableAnime(new Anime(file!, anime, anime.VideoInfo)));
 		}
 
 		private void PrivateEditSong(Song song)
 		{
-			var vm = new EditViewModel(song.Anime, song);
+			var vm = new EditViewModel(GetAnime(song), song);
 			HostScreen.Router.Navigate.Execute(vm);
 		}
 
 		private Task PrivateExportFixes()
 			=> _Processor.ExportFixesAsync(Directory!, Anime);
 
-		private async Task PrivateGetVolumeInfo(Anime anime)
+		private async Task PrivateGetVolumeInfo(IAnime anime)
 		{
-			var dir = anime.Directory;
-			var result = await _MessageBoxManager.GetFilesAsync(dir, "Volume Info", true).ConfigureAwait(true);
-			if (result.Length == 0)
+			var dir = anime.GetDirectory();
+			var paths = await _MessageBoxManager.GetFilesAsync(dir, "Volume Info", true).ConfigureAwait(true);
+			if (paths.Length == 0)
 			{
 				return;
 			}
 
-			foreach (var path in result)
+			foreach (var path in paths)
 			{
-				var info = await _Gatherer.GetAverageVolumeAsync(path).ConfigureAwait(true);
+				var result = await _Gatherer.GetAverageVolumeAsync(path).ConfigureAwait(true);
 				var text = $"Volume information for \"{Path.GetFileName(path)}\":" +
-					$"\nMean volume: {info.MeanVolume}dB" +
-					$"\nMax volume: {info.MaxVolume}dB";
+					$"\nMean volume: {result.Info.MeanVolume}dB" +
+					$"\nMax volume: {result.Info.MaxVolume}dB";
 				_ = Dispatcher.UIThread.InvokeAsync(() => _MessageBoxManager.ShowAsync(text, "Volume Info")).ConfigureAwait(true);
 			}
 		}
@@ -310,11 +295,16 @@ namespace AMQSongProcessor.UI.ViewModels
 			var files = _Loader.GetFiles(Directory!);
 			await foreach (var anime in _Loader.LoadFromFilesAsync(files, 5))
 			{
-				Anime.Add(anime);
+				// Not sure why, but without this sometimes VideoInfo is null
+				if (anime.Source != null && anime.VideoInfo == null)
+				{
+					throw new InvalidOperationException("VideoInfo should not be null at this point.");
+				}
+				Anime.Add(new ObservableAnime(anime));
 			}
 		}
 
-		private void PrivateOpenInfoFile(Anime anime)
+		private void PrivateOpenInfoFile(IAnime anime)
 		{
 			new Process
 			{
@@ -325,11 +315,11 @@ namespace AMQSongProcessor.UI.ViewModels
 			}.Start();
 		}
 
-		private async Task PrivatePasteSong(Anime anime)
+		private async Task PrivatePasteSong(IAnime anime)
 		{
 			var cp = ClipboardSong!.Value;
 			anime.Songs.Add(cp.Value);
-			await _Loader.SaveAsync(anime).ConfigureAwait(true);
+			await _Loader.SaveAsync(anime.AbsoluteInfoPath, anime).ConfigureAwait(true);
 
 			if (cp.OnPasteCallback != null)
 			{

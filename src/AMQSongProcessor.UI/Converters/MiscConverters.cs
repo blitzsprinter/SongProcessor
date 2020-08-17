@@ -10,15 +10,15 @@ namespace AMQSongProcessor.UI.Converters
 	public static class MiscConverters
 	{
 		public static readonly IValueConverter SourceColor =
-			new FuncValueConverter<string, IBrush>(x =>
+			new FuncValueConverter<SourceInfo<VideoInfo>?, IBrush>(x =>
 			{
-				if (File.Exists(x))
-				{
-					return Brushes.Transparent;
-				}
-				if (string.IsNullOrWhiteSpace(x))
+				if (!(x?.Path is string path))
 				{
 					return _Yellow;
+				}
+				if (File.Exists(path))
+				{
+					return Brushes.Transparent;
 				}
 				return _Red;
 			});

@@ -1,13 +1,12 @@
 ﻿using System.Collections.Generic;
-using System.IO;
 
 using AMQSongProcessor.Models;
 
 namespace AMQSongProcessor.UI
 {
-	public sealed class AnimeComparer : Comparer<Anime>
+	public sealed class AnimeComparer : Comparer<IAnime>
 	{
-		public override int Compare(Anime? x, Anime? y)
+		public override int Compare(IAnime? x, IAnime? y)
 		{
 			if (x != null)
 			{
@@ -20,7 +19,7 @@ namespace AMQSongProcessor.UI
 			return y != null ? -1 : 0;
 		}
 
-		private int CompareNonNull(Anime x, Anime y)
+		private int CompareNonNull(IAnime x, IAnime y)
 		{
 			var year = x.Year.CompareTo(y.Year);
 			if (year != 0)
@@ -34,9 +33,7 @@ namespace AMQSongProcessor.UI
 				return name;
 			}
 
-			var xCreated = File.GetCreationTime(x.AbsoluteInfoPath);
-			var yCreated = File.GetCreationTime(y.AbsoluteInfoPath);
-			return xCreated.CompareTo(yCreated);
+			return string.Compare(x.AbsoluteInfoPath, y.AbsoluteInfoPath);
 		}
 	}
 }
