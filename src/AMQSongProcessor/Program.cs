@@ -49,7 +49,13 @@ namespace AMQSongProcessor
 #endif
 			var loader = new SongLoader(new SourceInfoGatherer());
 			await AddNewShowsAsync(loader, dir).CAF();
-			var anime = await loader.LoadFromDirectoryAsync(dir).ToListAsync().CAF();
+
+			var anime = new List<IAnime>();
+			await foreach (var item in loader.LoadFromDirectoryAsync(dir))
+			{
+				item.Songs.RemoveAll(x => x.ShouldIgnore);
+				anime.Add(item);
+			}
 
 			Display(anime);
 

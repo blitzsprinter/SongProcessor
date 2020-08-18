@@ -212,7 +212,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			=> _SystemClipboard.SetTextAsync(id.ToString());
 
 		private void PrivateCopySong(Song song)
-			=> ClipboardSong = new Clipboard<Song>(song.ShallowCopy(), false, null);
+			=> ClipboardSong = new Clipboard<Song>(song.DeepCopy(), false, null);
 
 		private void PrivateCutSong(Song song)
 		{

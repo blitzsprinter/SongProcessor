@@ -34,7 +34,7 @@ namespace AMQSongProcessor.Models
 			AbsoluteInfoPath = file;
 			Id = other.Id;
 			Name = other.Name;
-			Songs = other.Songs?.ToList() ?? new List<Song>();
+			Songs = other.Songs?.Select(x => x.DeepCopy())?.ToList() ?? new List<Song>();
 			Year = other.Year;
 			VideoInfo = videoInfo;
 		}

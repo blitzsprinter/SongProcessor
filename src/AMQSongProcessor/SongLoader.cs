@@ -14,23 +14,23 @@ namespace AMQSongProcessor
 {
 	public class SongLoader : ISongLoader
 	{
-		private readonly ISourceInfoGatherer _Gatherer;
-		private readonly JsonSerializerOptions _Options = new JsonSerializerOptions
+		public IgnoreExceptions ExceptionsToIgnore { get; set; } = IgnoreExceptions.Video;
+		public string Extension { get; set; } = "amq";
+		protected ISourceInfoGatherer Gatherer { get; }
+		protected Type ModelType { get; set; } = typeof(AnimeModel);
+		protected JsonSerializerOptions Options { get; set; } = new JsonSerializerOptions
 		{
 			WriteIndented = true,
 			IgnoreReadOnlyProperties = true,
 		};
-		public IgnoreExceptions ExceptionsToIgnore { get; set; } = IgnoreExceptions.Video;
-		public string Extension { get; set; } = "amq";
-		public bool RemoveIgnoredSongs { get; set; } = true;
 
 		public SongLoader(ISourceInfoGatherer gatherer)
 		{
-			_Gatherer = gatherer;
-			_Options.Converters.Add(new JsonStringEnumConverter());
-			_Options.Converters.Add(new SongTypeAndPositionJsonConverter());
-			_Options.Converters.Add(new TimeSpanJsonConverter());
-			_Options.Converters.Add(new VolumeModifierConverter());
+			Gatherer = gatherer;
+			Options.Converters.Add(new JsonStringEnumConverter());
+			Options.Converters.Add(new SongTypeAndPositionJsonConverter());
+			Options.Converters.Add(new TimeSpanJsonConverter());
+			Options.Converters.Add(new VolumeModifierConverter());
 		}
 
 		public async Task<IAnime?> LoadAsync(string file)
@@ -43,14 +43,14 @@ namespace AMQSongProcessor
 
 			using var fs = new FileStream(file, FileMode.Open);
 
-			AnimeModel model;
 			try
 			{
-				model = await JsonSerializer.DeserializeAsync<AnimeModel>(fs, _Options).CAF();
-				if (RemoveIgnoredSongs)
+				var deserialized = await JsonSerializer.DeserializeAsync(fs, ModelType, Options).CAF();
+				if (!(deserialized is IAnimeBase model))
 				{
-					model.Songs.RemoveAll(x => x.ShouldIgnore);
+					throw new InvalidOperationException("Invalid type supplied for deserializing.");
 				}
+				return await ConvertFromModelAsync(file, model).CAF();
 			}
 			catch (JsonException) when ((ExceptionsToIgnore & IgnoreExceptions.Json) != 0)
 			{
@@ -60,8 +60,6 @@ namespace AMQSongProcessor
 			{
 				throw new JsonException($"Unable to parse {file}.", e);
 			}
-
-			return await ConvertFromModelAsync(file, model).CAF();
 		}
 
 		public Task<string?> SaveAsync(string path, IAnimeBase anime, SaveNewOptions? options = null)
@@ -98,7 +96,7 @@ namespace AMQSongProcessor
 			return SaveAsync(file, anime);
 		}
 
-		protected virtual async Task<IAnime> ConvertFromModelAsync(string file, AnimeModel model)
+		protected virtual async Task<IAnime> ConvertFromModelAsync(string file, IAnimeBase model)
 		{
 			var directory = Path.GetDirectoryName(file);
 			var source = FileUtils.EnsureAbsolutePath(directory, model.Source);
@@ -108,7 +106,7 @@ namespace AMQSongProcessor
 			{
 				try
 				{
-					videoInfo = await _Gatherer.GetVideoInfoAsync(source).CAF();
+					videoInfo = await Gatherer.GetVideoInfoAsync(source).CAF();
 				}
 				catch (Exception) when ((ExceptionsToIgnore & IgnoreExceptions.Video) != 0)
 				{
@@ -122,8 +120,8 @@ namespace AMQSongProcessor
 			return new Anime(file, model, videoInfo);
 		}
 
-		protected virtual Task<AnimeModel> ConvertToModelAsync(string file, IAnimeBase anime)
-			=> Task.FromResult(new AnimeModel(anime));
+		protected virtual Task<IAnimeBase> ConvertToModelAsync(string file, IAnimeBase anime)
+			=> Task.FromResult<IAnimeBase>(new AnimeModel(anime));
 
 		private async Task<string?> SaveAsync(string file, IAnimeBase anime)
 		{
@@ -137,7 +135,7 @@ namespace AMQSongProcessor
 				using var fs = new FileStream(file, FileMode.Create);
 
 				var model = await ConvertToModelAsync(file, anime).CAF();
-				await JsonSerializer.SerializeAsync(fs, model, _Options).CAF();
+				await JsonSerializer.SerializeAsync(fs, model, ModelType, Options).CAF();
 				return file;
 			}
 			catch (Exception e)

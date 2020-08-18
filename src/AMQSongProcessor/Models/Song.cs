@@ -44,6 +44,15 @@ namespace AMQSongProcessor.Models
 			Status = status;
 		}
 
+		public Song DeepCopy()
+		{
+			var clone = (Song)MemberwiseClone();
+			// AlsoIn could be kept as the same list, but could lead to unexpected issues
+			// between restarts (since clones will have the same list until de/serialized)
+			clone.AlsoIn = new HashSet<int>(AlsoIn);
+			return clone;
+		}
+
 		public string? GetCleanSongPath(string directory)
 			=> FileUtils.EnsureAbsolutePath(directory, CleanPath);
 
@@ -58,14 +67,5 @@ namespace AMQSongProcessor.Models
 
 		public void SetCleanPath(string directory, string? path)
 			=> CleanPath = FileUtils.StoreRelativeOrAbsolute(directory, path);
-
-		public Song ShallowCopy()
-		{
-			var clone = (Song)MemberwiseClone();
-			// AlsoIn could be kept as the same list, but could lead to unexpected issues
-			// between restarts (since clones will have the same list until de/serialized)
-			clone.AlsoIn = new HashSet<int>(AlsoIn);
-			return clone;
-		}
 	}
 }
