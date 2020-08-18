@@ -69,30 +69,44 @@ namespace AMQSongProcessor
 
 		private static void Display(IEnumerable<IAnime> anime)
 		{
-			static void DisplayStatusItems(params bool[] items)
+			static void DisplayStatusItems(Status status)
 			{
-				foreach (var item in items)
+				const Status ALL = Status.None | Status.Mp3 | Status.Res480 | Status.Res720;
+
+				static void DisplayStatusItem(Status status, Status item, string rep)
 				{
 					Console.Write(" | ");
 
 					var originalColor = Console.ForegroundColor;
-					Console.ForegroundColor = item ? ConsoleColor.Green : ConsoleColor.Red;
-					Console.Write(item.ToString().PadRight(bool.FalseString.Length));
+					Console.ForegroundColor = (status & item) != 0 ? ConsoleColor.Green : ConsoleColor.Red;
+					Console.Write(rep);
 					Console.ForegroundColor = originalColor;
 				}
+
+				DisplayStatusItem(status, ALL, "Submitted");
+				DisplayStatusItem(status, Status.Mp3, "Mp3");
+				DisplayStatusItem(status, Status.Res480, "480p");
+				DisplayStatusItem(status, Status.Res720, "720p");
 			}
 
-			static ConsoleColor GetBackground(bool submitted, bool mp3, bool r1, bool r2)
+			static ConsoleColor GetBackground(Status status)
 			{
-				if (!submitted)
+				const Status VIDEO = Status.Res480 | Status.Res720;
+				const Status ALL = Status.Mp3 | VIDEO;
+
+				if (status == Status.NotSubmitted)
 				{
 					return ConsoleColor.DarkRed;
 				}
-				else if (mp3 && r1 && r2)
+				else if ((status & ALL) == ALL)
 				{
 					return ConsoleColor.DarkGreen;
 				}
-				else if (mp3 || r1 || r2)
+				else if ((status & VIDEO) != 0)
+				{
+					return ConsoleColor.DarkCyan;
+				}
+				else if ((status & ALL) != 0)
 				{
 					return ConsoleColor.DarkYellow;
 				}
@@ -122,23 +136,18 @@ namespace AMQSongProcessor
 
 				foreach (var song in show.Songs)
 				{
-					var submitted = song.Status != Status.NotSubmitted;
-					var hasMp3 = (song.Status & Status.Mp3) != 0;
-					var has480 = (song.Status & Status.Res480) != 0;
-					var has720 = (song.Status & Status.Res720) != 0;
-
-					Console.BackgroundColor = GetBackground(submitted, hasMp3, has480, has720);
+					Console.BackgroundColor = GetBackground(song.Status);
 
 					const string UNKNOWN = "Unknown ";
-					var songStr = new[]
+					Console.Write("\t" + new[]
 					{
 						song.Name?.PadRight(nameLen) ?? UNKNOWN,
 						song.Artist?.PadRight(artLen) ?? UNKNOWN,
 						song.HasTimeStamp ? song.Start.ToString("hh\\:mm\\:ss") : UNKNOWN,
-						song.HasTimeStamp ? song.Length.ToString("mm\\:ss") : UNKNOWN,
-					}.Join(" | ");
-					Console.Write("\t" + songStr);
-					DisplayStatusItems(submitted, hasMp3, has480, has720);
+						song.HasTimeStamp ? song.Length.ToString("mm\\:ss").PadRight(UNKNOWN.Length) : UNKNOWN,
+					}.Join(" | "));
+					DisplayStatusItems(song.Status);
+
 					Console.BackgroundColor = originalBackground;
 					Console.WriteLine();
 				}
