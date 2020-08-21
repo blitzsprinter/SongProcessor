@@ -9,7 +9,7 @@ namespace AMQSongProcessor
 {
 	public interface ISongProcessor
 	{
-		event Action<string> WarningReceived;
+		event Action<IWarning> WarningReceived;
 
 		IReadOnlyList<ISongJob> CreateJobs(IEnumerable<IAnime> anime);
 

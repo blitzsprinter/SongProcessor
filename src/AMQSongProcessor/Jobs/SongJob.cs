@@ -74,7 +74,7 @@ namespace AMQSongProcessor.Jobs
 			var path = GetPath();
 #pragma warning restore CS0618 // Type or member is obsolete
 			var dir = Path.GetDirectoryName(path)!;
-			var file = FileUtils.RemoveInvalidPathChars(Path.GetFileName(path));
+			var file = FileUtils.SanitizePath(Path.GetFileName(path));
 			return Path.Combine(dir, file);
 		}
 	}

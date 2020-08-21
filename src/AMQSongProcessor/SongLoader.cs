@@ -76,7 +76,7 @@ namespace AMQSongProcessor
 			var fullDir = path;
 			if (options.AddShowNameDirectory)
 			{
-				var showDir = FileUtils.RemoveInvalidPathChars($"[{anime.Year}] {anime.Name}");
+				var showDir = FileUtils.SanitizePath($"[{anime.Year}] {anime.Name}");
 				fullDir = Path.Combine(path, showDir);
 			}
 			Directory.CreateDirectory(fullDir);

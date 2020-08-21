@@ -11,6 +11,7 @@ using AdvorangesUtils;
 using AMQSongProcessor.Jobs;
 using AMQSongProcessor.Models;
 using AMQSongProcessor.Utils;
+using AMQSongProcessor.Warnings;
 
 namespace AMQSongProcessor
 {
@@ -18,7 +19,7 @@ namespace AMQSongProcessor
 	{
 		public string FixesFile { get; set; } = "fixes.txt";
 
-		public event Action<string>? WarningReceived;
+		public event Action<IWarning>? WarningReceived;
 
 		public IReadOnlyList<ISongJob> CreateJobs(IEnumerable<IAnime> animes)
 		{
@@ -27,7 +28,7 @@ namespace AMQSongProcessor
 			{
 				if (anime.Source == null)
 				{
-					WarningReceived?.Invoke($"Source is null: {anime.Name}");
+					WarningReceived?.Invoke(new SourceIsNull(anime));
 					continue;
 				}
 				else if (!File.Exists(anime.GetAbsoluteSourcePath()))
@@ -40,12 +41,12 @@ namespace AMQSongProcessor
 				{
 					if (x.ShouldIgnore)
 					{
-						WarningReceived?.Invoke($"Is ignored: {x.Name}");
+						WarningReceived?.Invoke(new IsIgnored(x));
 						return false;
 					}
 					if (!x.HasTimeStamp)
 					{
-						WarningReceived?.Invoke($"Timestamp is null: {x.Name}");
+						WarningReceived?.Invoke(new TimestampIsNull(x));
 						return false;
 					}
 					return true;
@@ -158,16 +159,17 @@ namespace AMQSongProcessor
 
 		private IReadOnlyList<Resolution> GetValidResolutions(IAnime anime)
 		{
+			var height = anime.VideoInfo?.Info?.Height;
 			var valid = new List<Resolution>(Resolution.Resolutions.Length);
 			foreach (var res in Resolution.Resolutions)
 			{
-				if (anime.VideoInfo == null)
+				if (!height.HasValue)
 				{
-					WarningReceived?.Invoke($"Video info is null {anime.Name}");
+					WarningReceived?.Invoke(new VideoIsNull(anime));
 				}
-				else if (res.Size > anime.VideoInfo?.Info?.Height)
+				else if (res.Size > height.Value)
 				{
-					WarningReceived?.Invoke($"Source is smaller than {res.Size}p: {anime.Name}");
+					WarningReceived?.Invoke(new VideoTooSmall(anime, res.Size));
 				}
 				else
 				{
@@ -175,10 +177,10 @@ namespace AMQSongProcessor
 				}
 			}
 
-			//Smaller than 480p source. Just upscale it ¯\_(ツ)_/¯
-			if (valid.Count == 1 && valid.Single().IsMp3)
+			// Only mp3 is valid, so we have to just use whatever res the source is
+			if (height.HasValue && valid.Count == 1 && valid[0].IsMp3)
 			{
-				valid.Add(Resolution.RES_480);
+				valid.Add(new Resolution(height.Value, Status.Res480));
 			}
 			return valid;
 		}
@@ -200,7 +202,7 @@ namespace AMQSongProcessor
 			public int Size { get; }
 			public Status Status { get; }
 
-			private Resolution(int size, Status status)
+			public Resolution(int size, Status status)
 			{
 				Size = size;
 				Status = status;

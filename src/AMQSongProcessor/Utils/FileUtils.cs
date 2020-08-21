@@ -100,10 +100,10 @@ namespace AMQSongProcessor.Utils
 			return path1 == path2;
 		}
 
-		public static string RemoveInvalidPathChars(string input)
+		public static string SanitizePath(string path)
 		{
 			var sb = new StringBuilder();
-			foreach (var c in input)
+			foreach (var c in path)
 			{
 				if (!InvalidChars.Contains(c))
 				{
