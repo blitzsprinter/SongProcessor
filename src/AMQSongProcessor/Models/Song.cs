@@ -22,7 +22,7 @@ namespace AMQSongProcessor.Models
 		public Status Status { get; set; }
 		public SongTypeAndPosition Type { get; set; }
 		public VolumeModifer? VolumeModifier { get; set; }
-		ISet<int> ISong.AlsoIn => AlsoIn;
+		IReadOnlySet<int> ISong.AlsoIn => AlsoIn;
 		private string DebuggerDisplay => this.GetFullName();
 
 		public Song()

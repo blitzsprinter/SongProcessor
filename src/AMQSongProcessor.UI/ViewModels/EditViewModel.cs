@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using AdvorangesUtils;
 
 using AMQSongProcessor.Models;
+using AMQSongProcessor.UI.Models;
 using AMQSongProcessor.Utils;
 
 using Newtonsoft.Json;
@@ -26,11 +27,11 @@ namespace AMQSongProcessor.UI.ViewModels
 	[JsonConverter(typeof(NewtonsoftJsonSkipThis))]
 	public class EditViewModel : ReactiveObject, IRoutableViewModel, IValidatableViewModel
 	{
-		private readonly IAnime _Anime;
+		private readonly ObservableAnime _Anime;
 		private readonly IScreen? _HostScreen;
 		private readonly ISongLoader _Loader;
 		private readonly IMessageBoxManager _MessageBoxManager;
-		private readonly ISong _Song;
+		private readonly ObservableSong _Song;
 		private string _Artist;
 		private int _AudioTrack;
 		private string _CleanPath;
@@ -141,8 +142,13 @@ namespace AMQSongProcessor.UI.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _VolumeModifier, value);
 		}
 
-		public EditViewModel(IAnime anime, ISong song, IScreen? screen = null)
+		public EditViewModel(ObservableAnime anime, ObservableSong song, IScreen? screen = null)
 		{
+			if (!anime.Songs.Contains(song))
+			{
+				throw new ArgumentException($"Must belong to {anime.Name}.", nameof(song));
+			}
+
 			_HostScreen = screen;
 			_Song = song ?? throw new ArgumentNullException(nameof(song));
 			_Anime = anime ?? throw new ArgumentNullException(nameof(anime));
@@ -222,9 +228,9 @@ namespace AMQSongProcessor.UI.ViewModels
 			{
 				status |= Status.Res720;
 			}
-			if (IsSubmitted && status == Status.NotSubmitted)
+			if (IsSubmitted)
 			{
-				return Status.None;
+				status |= Status.Submitted;
 			}
 			return status;
 		}

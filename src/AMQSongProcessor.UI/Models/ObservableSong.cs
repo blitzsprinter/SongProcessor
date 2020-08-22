@@ -93,7 +93,7 @@ namespace AMQSongProcessor.UI.Models
 			get => _VolumeModifier;
 			set => this.RaiseAndSetIfChanged(ref _VolumeModifier, value);
 		}
-		ISet<int> ISong.AlsoIn => AlsoIn;
+		IReadOnlySet<int> ISong.AlsoIn => AlsoIn;
 		private string DebuggerDisplay => this.GetFullName();
 
 		public ObservableSong(ISong other)

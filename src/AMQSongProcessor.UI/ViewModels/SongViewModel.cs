@@ -38,7 +38,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		private readonly IMessageBoxManager _MessageBoxManager;
 		private readonly ISongProcessor _Processor;
 		private readonly IClipboard _SystemClipboard;
-		private Clipboard<ISong>? _ClipboardSong;
+		private Clipboard<ObservableSong>? _ClipboardSong;
 		private int _CurrentJob;
 		private string? _Directory;
 		private ProcessingData? _ProcessingData;
@@ -47,47 +47,47 @@ namespace AMQSongProcessor.UI.ViewModels
 		private AvaloniaList<object> _SelectedItems = new AvaloniaList<object>();
 		private SongVisibility _SongVisibility = new SongVisibility();
 
-		public ReactiveCommand<IAnime, Unit> AddSong { get; }
-		public ObservableCollection<IAnime> Anime { get; }
-			= new SortedObservableCollection<IAnime>(new AnimeComparer());
+		public ReactiveCommand<ObservableAnime, Unit> AddSong { get; }
+		public ObservableCollection<ObservableAnime> Anime { get; }
+			= new SortedObservableCollection<ObservableAnime>(new AnimeComparer());
 		public ReactiveCommand<Unit, Unit> CancelProcessing { get; }
 		public IObservable<bool> CanNavigate { get; }
 		public ReactiveCommand<ObservableAnime, Unit> ChangeSource { get; }
-		public ReactiveCommand<IAnime, Unit> ClearSongs { get; }
+		public ReactiveCommand<ObservableAnime, Unit> ClearSongs { get; }
 		public ReactiveCommand<ObservableAnime, Unit> ClearSource { get; }
-		public Clipboard<ISong>? ClipboardSong
+		public Clipboard<ObservableSong>? ClipboardSong
 		{
 			get => _ClipboardSong;
 			set => this.RaiseAndSetIfChanged(ref _ClipboardSong, value);
 		}
 		public ReactiveCommand<int, Unit> CopyANNID { get; }
-		public ReactiveCommand<ISong, Unit> CopySong { get; }
+		public ReactiveCommand<ObservableSong, Unit> CopySong { get; }
 		public int CurrentJob
 		{
 			get => _CurrentJob;
 			set => this.RaiseAndSetIfChanged(ref _CurrentJob, value);
 		}
-		public ReactiveCommand<ISong, Unit> CutSong { get; }
-		public ReactiveCommand<IAnime, Unit> DeleteAnime { get; }
-		public ReactiveCommand<ISong, Unit> DeleteSong { get; }
+		public ReactiveCommand<ObservableSong, Unit> CutSong { get; }
+		public ReactiveCommand<ObservableAnime, Unit> DeleteAnime { get; }
+		public ReactiveCommand<ObservableSong, Unit> DeleteSong { get; }
 		[DataMember]
 		public string? Directory
 		{
 			get => _Directory;
 			set => this.RaiseAndSetIfChanged(ref _Directory, value);
 		}
-		public ReactiveCommand<IAnime, Unit> DuplicateAnime { get; }
-		public ReactiveCommand<ISong, Unit> EditSong { get; }
+		public ReactiveCommand<ObservableAnime, Unit> DuplicateAnime { get; }
+		public ReactiveCommand<ObservableSong, Unit> EditSong { get; }
 		public ReactiveCommand<Unit, Unit> ExportFixes { get; }
-		public ReactiveCommand<IAnime, Unit> GetVolumeInfo { get; }
+		public ReactiveCommand<ObservableAnime, Unit> GetVolumeInfo { get; }
 		public IScreen HostScreen => _HostScreen ?? Locator.Current.GetService<IScreen>();
 		public IObservable<bool> IsBusy { get; }
 		public ReactiveCommand<Unit, Unit> Load { get; }
 		public ReactiveCommand<StatusModifier, Unit> ModifyMultipleSongsStatus { get; }
 		public IObservable<bool> MultipleItemsSelected { get; }
 		public IObservable<bool> OnlySongsSelected { get; }
-		public ReactiveCommand<IAnime, Unit> OpenInfoFile { get; }
-		public ReactiveCommand<IAnime, Unit> PasteSong { get; }
+		public ReactiveCommand<ObservableAnime, Unit> OpenInfoFile { get; }
+		public ReactiveCommand<ObservableAnime, Unit> PasteSong { get; }
 		public ProcessingData? ProcessingData
 		{
 			get => _ProcessingData;
@@ -139,19 +139,19 @@ namespace AMQSongProcessor.UI.ViewModels
 			Load = ReactiveCommand.CreateFromTask(PrivateLoad, validDirectory);
 			Unload = ReactiveCommand.Create(PrivateUnload);
 			CopyANNID = ReactiveCommand.CreateFromTask<int>(PrivateCopyANNID);
-			OpenInfoFile = ReactiveCommand.Create<IAnime>(PrivateOpenInfoFile);
-			GetVolumeInfo = ReactiveCommand.CreateFromTask<IAnime>(PrivateGetVolumeInfo);
-			DuplicateAnime = ReactiveCommand.CreateFromTask<IAnime>(PrivateDuplicateAnime);
-			DeleteAnime = ReactiveCommand.CreateFromTask<IAnime>(PrivateDeleteAnime);
-			ClearSongs = ReactiveCommand.CreateFromTask<IAnime>(PrivateClearSongs);
+			OpenInfoFile = ReactiveCommand.Create<ObservableAnime>(PrivateOpenInfoFile);
+			GetVolumeInfo = ReactiveCommand.CreateFromTask<ObservableAnime>(PrivateGetVolumeInfo);
+			DuplicateAnime = ReactiveCommand.CreateFromTask<ObservableAnime>(PrivateDuplicateAnime);
+			DeleteAnime = ReactiveCommand.CreateFromTask<ObservableAnime>(PrivateDeleteAnime);
+			ClearSongs = ReactiveCommand.CreateFromTask<ObservableAnime>(PrivateClearSongs);
 			ChangeSource = ReactiveCommand.CreateFromTask<ObservableAnime>(PrivateChangeSource);
 			ClearSource = ReactiveCommand.CreateFromTask<ObservableAnime>(PrivateClearSource);
-			AddSong = ReactiveCommand.Create<IAnime>(PrivateAddSong);
-			PasteSong = ReactiveCommand.CreateFromTask<IAnime>(PrivatePasteSong);
-			EditSong = ReactiveCommand.Create<ISong>(PrivateEditSong);
-			CopySong = ReactiveCommand.Create<ISong>(PrivateCopySong);
-			CutSong = ReactiveCommand.Create<ISong>(PrivateCutSong);
-			DeleteSong = ReactiveCommand.CreateFromTask<ISong>(PrivateDeleteSong);
+			AddSong = ReactiveCommand.Create<ObservableAnime>(PrivateAddSong);
+			PasteSong = ReactiveCommand.CreateFromTask<ObservableAnime>(PrivatePasteSong);
+			EditSong = ReactiveCommand.Create<ObservableSong>(PrivateEditSong);
+			CopySong = ReactiveCommand.Create<ObservableSong>(PrivateCopySong);
+			CutSong = ReactiveCommand.Create<ObservableSong>(PrivateCutSong);
+			DeleteSong = ReactiveCommand.CreateFromTask<ObservableSong>(PrivateDeleteSong);
 			ExportFixes = ReactiveCommand.CreateFromTask(PrivateExportFixes);
 			ProcessSongs = ReactiveCommand.CreateFromObservable(PrivateProcessSongs);
 			CancelProcessing = ReactiveCommand.Create(PrivateCancelProcessing);
@@ -177,12 +177,12 @@ namespace AMQSongProcessor.UI.ViewModels
 			ModifyMultipleSongsStatus = ReactiveCommand.CreateFromTask<StatusModifier>(PrivateModifyMultipleSongsStatus);
 		}
 
-		private IAnime GetAnime(ISong search)
+		private ObservableAnime GetAnime(ObservableSong search)
 			=> Anime.Single(a => a.Songs.Any(s => ReferenceEquals(s, search)));
 
-		private void PrivateAddSong(IAnime anime)
+		private void PrivateAddSong(ObservableAnime anime)
 		{
-			var song = new Song();
+			var song = new ObservableSong(new Song());
 			var vm = new EditViewModel(anime, song);
 			HostScreen.Router.Navigate.Execute(vm);
 		}
@@ -214,7 +214,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			await _Loader.SaveAsync(anime.AbsoluteInfoPath, anime).ConfigureAwait(true);
 		}
 
-		private async Task PrivateClearSongs(IAnime anime)
+		private async Task PrivateClearSongs(ObservableAnime anime)
 		{
 			var text = $"Are you sure you want to delete all songs {anime.Name}?";
 			const string TITLE = "Song Clearing";
@@ -236,23 +236,23 @@ namespace AMQSongProcessor.UI.ViewModels
 		private Task PrivateCopyANNID(int id)
 			=> _SystemClipboard.SetTextAsync(id.ToString());
 
-		private void PrivateCopySong(ISong song)
+		private void PrivateCopySong(ObservableSong song)
 		{
 			var copy = new ObservableSong(song);
-			ClipboardSong = new Clipboard<ISong>(copy, false, null);
+			ClipboardSong = new Clipboard<ObservableSong>(copy, false, null);
 		}
 
-		private void PrivateCutSong(ISong song)
+		private void PrivateCutSong(ObservableSong song)
 		{
 			var anime = GetAnime(song);
-			ClipboardSong = new Clipboard<ISong>(song, true, () =>
+			ClipboardSong = new Clipboard<ObservableSong>(song, true, () =>
 			{
 				anime.Songs.Remove(song);
 				return _Loader.SaveAsync(anime.AbsoluteInfoPath, anime);
 			});
 		}
 
-		private async Task PrivateDeleteAnime(IAnime anime)
+		private async Task PrivateDeleteAnime(ObservableAnime anime)
 		{
 			var text = $"Are you sure you want to delete {anime.Name}?";
 			const string TITLE = "Anime Deletion";
@@ -265,7 +265,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			}
 		}
 
-		private async Task PrivateDeleteSong(ISong song)
+		private async Task PrivateDeleteSong(ObservableSong song)
 		{
 			var anime = GetAnime(song);
 			var text = $"Are you sure you want to delete \"{song.Name}\" from {anime.Name}?";
@@ -279,7 +279,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			}
 		}
 
-		private async Task PrivateDuplicateAnime(IAnime anime)
+		private async Task PrivateDuplicateAnime(ObservableAnime anime)
 		{
 			var file = await _Loader.SaveAsync(anime.GetDirectory(), anime, new SaveNewOptions
 			{
@@ -290,7 +290,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			Anime.Add(new ObservableAnime(new Anime(file!, anime, anime.VideoInfo)));
 		}
 
-		private void PrivateEditSong(ISong song)
+		private void PrivateEditSong(ObservableSong song)
 		{
 			var vm = new EditViewModel(GetAnime(song), song);
 			HostScreen.Router.Navigate.Execute(vm);
@@ -299,7 +299,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		private Task PrivateExportFixes()
 			=> _Processor.ExportFixesAsync(Directory!, Anime);
 
-		private async Task PrivateGetVolumeInfo(IAnime anime)
+		private async Task PrivateGetVolumeInfo(ObservableAnime anime)
 		{
 			var dir = anime.GetDirectory();
 			var paths = await _MessageBoxManager.GetFilesAsync(dir, "Volume Info", true).ConfigureAwait(true);
@@ -347,7 +347,7 @@ namespace AMQSongProcessor.UI.ViewModels
 				return;
 			}
 
-			foreach (var group in SelectedItems.OfType<ISong>().GroupBy(GetAnime))
+			foreach (var group in SelectedItems.OfType<ObservableSong>().GroupBy(GetAnime))
 			{
 				foreach (var song in group)
 				{
@@ -366,7 +366,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			}
 		}
 
-		private void PrivateOpenInfoFile(IAnime anime)
+		private void PrivateOpenInfoFile(ObservableAnime anime)
 		{
 			new Process
 			{
@@ -377,7 +377,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			}.Start();
 		}
 
-		private async Task PrivatePasteSong(IAnime anime)
+		private async Task PrivatePasteSong(ObservableAnime anime)
 		{
 			var cp = ClipboardSong!.Value;
 			anime.Songs.Add(cp.Value);

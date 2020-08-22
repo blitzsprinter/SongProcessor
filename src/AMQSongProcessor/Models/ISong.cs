@@ -5,18 +5,18 @@ namespace AMQSongProcessor.Models
 {
 	public interface ISong
 	{
-		ISet<int> AlsoIn { get; }
-		string Artist { get; set; }
-		string? CleanPath { get; set; }
-		TimeSpan End { get; set; }
-		int? Episode { get; set; }
-		string Name { get; set; }
-		int OverrideAudioTrack { get; set; }
-		int OverrideVideoTrack { get; set; }
-		bool ShouldIgnore { get; set; }
-		TimeSpan Start { get; set; }
-		Status Status { get; set; }
-		SongTypeAndPosition Type { get; set; }
-		VolumeModifer? VolumeModifier { get; set; }
+		IReadOnlySet<int> AlsoIn { get; }
+		string Artist { get; }
+		string? CleanPath { get; }
+		TimeSpan End { get; }
+		int? Episode { get; }
+		string Name { get; }
+		int OverrideAudioTrack { get; }
+		int OverrideVideoTrack { get; }
+		bool ShouldIgnore { get; }
+		TimeSpan Start { get; }
+		Status Status { get; }
+		SongTypeAndPosition Type { get; }
+		VolumeModifer? VolumeModifier { get; }
 	}
 }

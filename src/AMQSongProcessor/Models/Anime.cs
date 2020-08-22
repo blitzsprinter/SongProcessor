@@ -14,10 +14,11 @@ namespace AMQSongProcessor.Models
 		public string AbsoluteInfoPath { get; }
 		public int Id { get; }
 		public string Name { get; }
-		public IList<ISong> Songs { get; } = new List<ISong>();
+		public List<Song> Songs { get; } = new List<Song>();
 		public string? Source => FileUtils.StoreRelativeOrAbsolute(this.GetDirectory(), VideoInfo?.Path);
 		public SourceInfo<VideoInfo>? VideoInfo { get; set; }
 		public int Year { get; }
+		IEnumerable<ISong> IAnimeBase.Songs => Songs;
 		private string DebuggerDisplay => Name;
 
 		public Anime(string file, IAnimeBase other, SourceInfo<VideoInfo>? videoInfo)
@@ -34,9 +35,13 @@ namespace AMQSongProcessor.Models
 			AbsoluteInfoPath = file;
 			Id = other.Id;
 			Name = other.Name;
-			Songs = other.Songs?.Select(x => new Song(x))?.ToList<ISong>() ?? new List<ISong>();
+			Songs = other.Songs?.Select(x => new Song(x))?.ToList() ?? new List<Song>();
 			Year = other.Year;
 			VideoInfo = videoInfo;
+		}
+
+		public Anime(IAnime anime) : this(anime.AbsoluteInfoPath, anime, anime.VideoInfo)
+		{
 		}
 	}
 }

@@ -6,7 +6,7 @@ namespace AMQSongProcessor.Models
 	{
 		public int Id { get; }
 		public string Name { get; }
-		public IList<ISong> Songs { get; }
+		public IEnumerable<ISong> Songs { get; }
 		public string? Source { get; }
 		public int Year { get; }
 	}
