@@ -14,7 +14,7 @@ namespace AMQSongProcessor.Models
 		public string AbsoluteInfoPath { get; }
 		public int Id { get; }
 		public string Name { get; }
-		public IList<Song> Songs { get; } = new List<Song>();
+		public IList<ISong> Songs { get; } = new List<ISong>();
 		public string? Source => FileUtils.StoreRelativeOrAbsolute(this.GetDirectory(), VideoInfo?.Path);
 		public SourceInfo<VideoInfo>? VideoInfo { get; set; }
 		public int Year { get; }
@@ -34,7 +34,7 @@ namespace AMQSongProcessor.Models
 			AbsoluteInfoPath = file;
 			Id = other.Id;
 			Name = other.Name;
-			Songs = other.Songs?.Select(x => x.DeepCopy())?.ToList() ?? new List<Song>();
+			Songs = other.Songs?.Select(x => new Song(x))?.ToList<ISong>() ?? new List<ISong>();
 			Year = other.Year;
 			VideoInfo = videoInfo;
 		}

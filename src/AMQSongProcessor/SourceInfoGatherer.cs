@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -94,11 +95,14 @@ namespace AMQSongProcessor
 		public Task<SourceInfo<VideoInfo>> GetVideoInfoAsync(string file, int track = 0)
 			=> GetInfoAsync<VideoInfo>('v', file, track, 0);
 
+		private SourceInfoGatheringException Exception(char stream, string file, Exception inner)
+			=> new SourceInfoGatheringException($"Unable to gather {stream} info for {file}.", inner);
+
 		private async Task<SourceInfo<T>> GetInfoAsync<T>(char stream, string file, int track, int attempt)
 		{
 			if (!File.Exists(file))
 			{
-				throw new FileNotFoundException($"File does not exist to gather {stream} info.", file);
+				throw Exception(stream, file, new FileNotFoundException("File does not exist.", file));
 			}
 
 			#region Args
@@ -121,10 +125,13 @@ namespace AMQSongProcessor
 			var sb = new StringBuilder();
 			process.OutputDataReceived += (s, e) => sb.Append(e.Data);
 			await process.RunAsync(false).CAF();
+			// Must call WaitForExit otherwise the json may be incomplete
+			process.WaitForExit();
 
+			var str = sb.ToString();
 			try
 			{
-				using var doc = JsonDocument.Parse(sb.ToString());
+				using var doc = JsonDocument.Parse(str);
 
 				var info = doc.RootElement.GetProperty("streams")[0].ToObject<T>(_Options);
 				if (info != null)
@@ -132,19 +139,23 @@ namespace AMQSongProcessor
 					return new SourceInfo<T>(file, info);
 				}
 
-				throw new JsonException($"Unable to parse {stream} info for {file}.");
+				throw Exception(stream, file, new JsonException("Invalid json supplied."));
 			}
 			catch (KeyNotFoundException knfe) when (sb.Length == 2)
 			{
-				throw new InvalidFileTypeException($"Invalid file for {stream} info gathering.", file, knfe);
+				throw Exception(stream, file, new InvalidFileTypeException("Invalid file type.", knfe));
 			}
-			catch (Exception e) when (!(e is JsonException || e is InvalidFileTypeException))
+			catch (JsonException je) when (str.Length != sb.Length)
+			{
+				throw Exception(stream, file, new JsonException("Process ended before json was fully written.", je));
+			}
+			catch (Exception e) when (!(e is SourceInfoGatheringException))
 			{
 				if (RetryLimit > attempt)
 				{
 					return await GetInfoAsync<T>(stream, file, track, attempt + 1).CAF();
 				}
-				throw new JsonException($"Unable to parse {stream} info for {file}.", e);
+				throw Exception(stream, file, e);
 			}
 		}
 	}

@@ -31,6 +31,7 @@ namespace AMQSongProcessor
 			Options.Converters.Add(new SongTypeAndPositionJsonConverter());
 			Options.Converters.Add(new TimeSpanJsonConverter());
 			Options.Converters.Add(new VolumeModifierConverter());
+			Options.Converters.Add(new InterfaceConverter<Song, ISong>());
 		}
 
 		public async Task<IAnime?> LoadAsync(string file)
@@ -108,10 +109,7 @@ namespace AMQSongProcessor
 				{
 					videoInfo = await Gatherer.GetVideoInfoAsync(source).CAF();
 				}
-				catch (Exception) when ((ExceptionsToIgnore & IgnoreExceptions.Video) != 0)
-				{
-				}
-				catch (Exception e)
+				catch (Exception e) when ((ExceptionsToIgnore & IgnoreExceptions.Video) == 0)
 				{
 					throw new InvalidOperationException($"Unable to get video info for {source}.", e);
 				}

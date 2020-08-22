@@ -4,9 +4,9 @@ namespace AMQSongProcessor.Warnings
 {
 	public sealed class TimestampIsNull : IWarning
 	{
-		public Song Song { get; }
+		public ISong Song { get; }
 
-		public TimestampIsNull(Song song)
+		public TimestampIsNull(ISong song)
 		{
 			Song = song;
 		}

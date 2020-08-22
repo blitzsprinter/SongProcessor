@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-
-using AMQSongProcessor.Utils;
 
 namespace AMQSongProcessor.Models
 {
@@ -12,7 +9,7 @@ namespace AMQSongProcessor.Models
 	{
 		public int Id { get; set; }
 		public string Name { get; set; } = null!;
-		public IList<Song> Songs { get; set; } = new List<Song>();
+		public IList<ISong> Songs { get; set; } = new List<ISong>();
 		public string? Source { get; set; }
 		public int Year { get; set; }
 		private string DebuggerDisplay => Name;
@@ -25,7 +22,7 @@ namespace AMQSongProcessor.Models
 		{
 			Id = other.Id;
 			Name = other.Name;
-			Songs = other.Songs?.ToArray() ?? Array.Empty<Song>();
+			Songs = other.Songs?.Select(x => new Song(x))?.ToList<ISong>() ?? new List<ISong>();
 			Source = other.Source;
 			Year = other.Year;
 		}

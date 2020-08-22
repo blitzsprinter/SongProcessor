@@ -4,9 +4,9 @@ namespace AMQSongProcessor.Warnings
 {
 	public sealed class IsIgnored : IWarning
 	{
-		public Song Song { get; }
+		public ISong Song { get; }
 
-		public IsIgnored(Song song)
+		public IsIgnored(ISong song)
 		{
 			Song = song;
 		}

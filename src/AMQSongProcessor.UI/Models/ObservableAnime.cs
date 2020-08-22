@@ -20,7 +20,7 @@ namespace AMQSongProcessor.UI.Models
 		private string _AbsoluteInfoPath;
 		private int _Id;
 		private string _Name;
-		private ObservableCollection<Song> _Songs;
+		private IList<ISong> _Songs;
 		private SourceInfo<VideoInfo>? _VideoInfo;
 		private int _Year;
 
@@ -39,7 +39,7 @@ namespace AMQSongProcessor.UI.Models
 			get => _Name;
 			set => this.RaiseAndSetIfChanged(ref _Name, value);
 		}
-		public ObservableCollection<Song> Songs
+		public IList<ISong> Songs
 		{
 			get => _Songs;
 			set => this.RaiseAndSetIfChanged(ref _Songs, value);
@@ -61,15 +61,13 @@ namespace AMQSongProcessor.UI.Models
 		}
 		private string DebuggerDisplay => Name;
 
-		IList<Song> IAnimeBase.Songs => Songs;
-
 		public ObservableAnime(IAnime anime)
 		{
 			AbsoluteInfoPath = anime.AbsoluteInfoPath;
 			Id = anime.Id;
 			Name = anime.Name;
-			Songs = new ObservableCollectionPlus<Song>();
-			Songs.AddRange(anime.Songs.Select(x => x.DeepCopy()));
+			Songs = new ObservableCollectionPlus<ISong>();
+			Songs.AddRange(anime.Songs.Select(x => new ObservableSong(x)));
 			VideoInfo = anime.VideoInfo;
 			Year = anime.Year;
 		}

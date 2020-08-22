@@ -49,9 +49,10 @@
     </Style>
     <Style Selector="TextBlock.song">
       <Setter Property="Text">
-        <MultiBinding StringFormat="[{0}] {1}">
+        <MultiBinding StringFormat="[{0}] {1} ({2})">
           <Binding Path="Type" />
-          <Binding Path="FullName" />
+          <Binding Path="Name" />
+          <Binding Path="Artist" />
         </MultiBinding>
       </Setter>
     </Style>

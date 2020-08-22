@@ -40,7 +40,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		public bool IsVisible(IAnime anime)
 			=> IsVisible(AnimeName, anime.Name);
 
-		public bool IsVisible(Song song)
+		public bool IsVisible(ISong song)
 			=> IsVisible(SongName, song.Name) && IsVisible(ArtistName, song.Artist);
 
 		private bool IsVisible(string? search, string actual)

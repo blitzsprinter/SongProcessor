@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
@@ -12,8 +14,14 @@ using AMQSongProcessor.Models;
 using AMQSongProcessor.UI.Models;
 using AMQSongProcessor.Utils;
 
+using Avalonia.Collections;
+using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Threading;
+
+using DynamicData;
+using DynamicData.Binding;
 
 using ReactiveUI;
 
@@ -30,12 +38,13 @@ namespace AMQSongProcessor.UI.ViewModels
 		private readonly IMessageBoxManager _MessageBoxManager;
 		private readonly ISongProcessor _Processor;
 		private readonly IClipboard _SystemClipboard;
-		private Clipboard<Song>? _ClipboardSong;
+		private Clipboard<ISong>? _ClipboardSong;
 		private int _CurrentJob;
 		private string? _Directory;
 		private ProcessingData? _ProcessingData;
 		private int _QueuedJobs;
 		private SearchTerms _Search = new SearchTerms();
+		private AvaloniaList<object> _SelectedItems = new AvaloniaList<object>();
 		private SongVisibility _SongVisibility = new SongVisibility();
 
 		public ReactiveCommand<IAnime, Unit> AddSong { get; }
@@ -46,21 +55,21 @@ namespace AMQSongProcessor.UI.ViewModels
 		public ReactiveCommand<IAnime, Unit> ChangeSource { get; }
 		public ReactiveCommand<IAnime, Unit> ClearSongs { get; }
 		public ReactiveCommand<IAnime, Unit> ClearSource { get; }
-		public Clipboard<Song>? ClipboardSong
+		public Clipboard<ISong>? ClipboardSong
 		{
 			get => _ClipboardSong;
 			set => this.RaiseAndSetIfChanged(ref _ClipboardSong, value);
 		}
 		public ReactiveCommand<int, Unit> CopyANNID { get; }
-		public ReactiveCommand<Song, Unit> CopySong { get; }
+		public ReactiveCommand<ISong, Unit> CopySong { get; }
 		public int CurrentJob
 		{
 			get => _CurrentJob;
 			set => this.RaiseAndSetIfChanged(ref _CurrentJob, value);
 		}
-		public ReactiveCommand<Song, Unit> CutSong { get; }
+		public ReactiveCommand<ISong, Unit> CutSong { get; }
 		public ReactiveCommand<IAnime, Unit> DeleteAnime { get; }
-		public ReactiveCommand<Song, Unit> DeleteSong { get; }
+		public ReactiveCommand<ISong, Unit> DeleteSong { get; }
 		[DataMember]
 		public string? Directory
 		{
@@ -68,12 +77,15 @@ namespace AMQSongProcessor.UI.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _Directory, value);
 		}
 		public ReactiveCommand<IAnime, Unit> DuplicateAnime { get; }
-		public ReactiveCommand<Song, Unit> EditSong { get; }
+		public ReactiveCommand<ISong, Unit> EditSong { get; }
 		public ReactiveCommand<Unit, Unit> ExportFixes { get; }
 		public ReactiveCommand<IAnime, Unit> GetVolumeInfo { get; }
 		public IScreen HostScreen => _HostScreen ?? Locator.Current.GetService<IScreen>();
 		public IObservable<bool> IsBusy { get; }
 		public ReactiveCommand<Unit, Unit> Load { get; }
+		public ReactiveCommand<StatusModifier, Unit> ModifyMultipleSongsStatus { get; }
+		public IObservable<bool> MultipleItemsSelected { get; }
+		public IObservable<bool> OnlySongsSelected { get; }
 		public ReactiveCommand<IAnime, Unit> OpenInfoFile { get; }
 		public ReactiveCommand<IAnime, Unit> PasteSong { get; }
 		public ProcessingData? ProcessingData
@@ -94,6 +106,11 @@ namespace AMQSongProcessor.UI.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _Search, value);
 		}
 		public ReactiveCommand<Unit, Unit> SelectDirectory { get; }
+		public AvaloniaList<object> SelectedItems
+		{
+			get => _SelectedItems;
+			set => this.RaiseAndSetIfChanged(ref _SelectedItems, value);
+		}
 		[DataMember]
 		public SongVisibility SongVisibility
 		{
@@ -131,10 +148,10 @@ namespace AMQSongProcessor.UI.ViewModels
 			ClearSource = ReactiveCommand.CreateFromTask<IAnime>(PrivateClearSource);
 			AddSong = ReactiveCommand.Create<IAnime>(PrivateAddSong);
 			PasteSong = ReactiveCommand.CreateFromTask<IAnime>(PrivatePasteSong);
-			EditSong = ReactiveCommand.Create<Song>(PrivateEditSong);
-			CopySong = ReactiveCommand.Create<Song>(PrivateCopySong);
-			CutSong = ReactiveCommand.Create<Song>(PrivateCutSong);
-			DeleteSong = ReactiveCommand.CreateFromTask<Song>(PrivateDeleteSong);
+			EditSong = ReactiveCommand.Create<ISong>(PrivateEditSong);
+			CopySong = ReactiveCommand.Create<ISong>(PrivateCopySong);
+			CutSong = ReactiveCommand.Create<ISong>(PrivateCutSong);
+			DeleteSong = ReactiveCommand.CreateFromTask<ISong>(PrivateDeleteSong);
 			ExportFixes = ReactiveCommand.CreateFromTask(PrivateExportFixes);
 			ProcessSongs = ReactiveCommand.CreateFromObservable(PrivateProcessSongs);
 			CancelProcessing = ReactiveCommand.Create(PrivateCancelProcessing);
@@ -148,9 +165,19 @@ namespace AMQSongProcessor.UI.ViewModels
 				.WhenAnyValue(x => x.Anime.Count)
 				.Select(x => x != 0);
 			CanNavigate = IsBusy.CombineLatest(loaded, (x, y) => !(x || y));
+
+			MultipleItemsSelected = this
+				.WhenAnyValue(x => x.SelectedItems.Count)
+				.Select(x => x > 1);
+
+			OnlySongsSelected = this
+				.WhenAnyValue(x => x.SelectedItems)
+				.SelectMany(x => x.ToObservableChangeSet<AvaloniaList<object>, object>().ToCollection())
+				.Select(x => x.Count == 0 || x.All(y => y is ISong));
+			ModifyMultipleSongsStatus = ReactiveCommand.CreateFromTask<StatusModifier>(PrivateModifyMultipleSongsStatus);
 		}
 
-		private IAnime GetAnime(Song search)
+		private IAnime GetAnime(ISong search)
 			=> Anime.Single(a => a.Songs.Any(s => ReferenceEquals(s, search)));
 
 		private void PrivateAddSong(IAnime anime)
@@ -211,13 +238,16 @@ namespace AMQSongProcessor.UI.ViewModels
 		private Task PrivateCopyANNID(int id)
 			=> _SystemClipboard.SetTextAsync(id.ToString());
 
-		private void PrivateCopySong(Song song)
-			=> ClipboardSong = new Clipboard<Song>(song.DeepCopy(), false, null);
+		private void PrivateCopySong(ISong song)
+		{
+			var copy = new ObservableSong(song);
+			ClipboardSong = new Clipboard<ISong>(copy, false, null);
+		}
 
-		private void PrivateCutSong(Song song)
+		private void PrivateCutSong(ISong song)
 		{
 			var anime = GetAnime(song);
-			ClipboardSong = new Clipboard<Song>(song, true, () =>
+			ClipboardSong = new Clipboard<ISong>(song, true, () =>
 			{
 				anime.Songs.Remove(song);
 				return _Loader.SaveAsync(anime.AbsoluteInfoPath, anime);
@@ -237,7 +267,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			}
 		}
 
-		private async Task PrivateDeleteSong(Song song)
+		private async Task PrivateDeleteSong(ISong song)
 		{
 			var anime = GetAnime(song);
 			var text = $"Are you sure you want to delete \"{song.Name}\" from {anime.Name}?";
@@ -262,7 +292,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			Anime.Add(new ObservableAnime(new Anime(file!, anime, anime.VideoInfo)));
 		}
 
-		private void PrivateEditSong(Song song)
+		private void PrivateEditSong(ISong song)
 		{
 			var vm = new EditViewModel(GetAnime(song), song);
 			HostScreen.Router.Navigate.Execute(vm);
@@ -301,6 +331,40 @@ namespace AMQSongProcessor.UI.ViewModels
 					throw new InvalidOperationException("VideoInfo should not be null at this point.");
 				}
 				Anime.Add(new ObservableAnime(anime));
+			}
+		}
+
+		private async Task PrivateModifyMultipleSongsStatus(StatusModifier modifier)
+		{
+			var isRemove = modifier < 0;
+			var status = modifier.ToStatus();
+
+			var action = isRemove ? "removing" : "adding";
+			var text = $"Are you sure you want to modify {SelectedItems.Count} songs status' by {action} {status}?";
+			const string TITLE = "Multiple Song Status Modification";
+
+			var result = await _MessageBoxManager.ShowAsync(text, TITLE, Constants.YesNo).ConfigureAwait(true);
+			if (result != Constants.YES)
+			{
+				return;
+			}
+
+			foreach (var group in SelectedItems.OfType<ISong>().GroupBy(GetAnime))
+			{
+				foreach (var song in group)
+				{
+					if (isRemove)
+					{
+						song.Status &= ~status;
+					}
+					else
+					{
+						song.Status |= status;
+					}
+				}
+
+				var anime = group.Key;
+				await _Loader.SaveAsync(anime.AbsoluteInfoPath, anime).ConfigureAwait(true);
 			}
 		}
 

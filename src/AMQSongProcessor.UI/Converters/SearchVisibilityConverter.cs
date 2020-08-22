@@ -11,16 +11,16 @@ namespace AMQSongProcessor.UI.Converters
 	public sealed class SearchVisibilityConverter : BaseConverter
 	{
 		//Fake song is for shows that have no songs so they can show up when no song terms are being searched
-		private static readonly Song _Fake = new Song
+		private static readonly ISong _Fake = new Song
 		{
 			Name = "",
 			Artist = "",
 		};
 		private static readonly IMaybeFunc<SearchTerms, bool>[] _Funcs
 			= new MaybeFuncCollectionBuilder<SearchTerms, bool>()
-			.Add<Song>((song, search) => search.IsVisible(song))
+			.Add<ISong>((song, search) => search.IsVisible(song))
 			.Add<IAnime>((anime, search) => search.IsVisible(anime))
-			.Add<IEnumerable<Song>>((songs, search) => search.IsVisible(_Fake) || songs.Any(x => search.IsVisible(x)))
+			.Add<IEnumerable<ISong>>((songs, search) => search.IsVisible(_Fake) || songs.Any(x => search.IsVisible(x)))
 			.ToArray();
 
 		public override int ExpectedValueCount => 2;

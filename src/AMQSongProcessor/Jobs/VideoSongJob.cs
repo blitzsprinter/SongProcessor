@@ -24,7 +24,7 @@ namespace AMQSongProcessor.Jobs
 
 		public int Resolution { get; }
 
-		public VideoSongJob(IAnime anime, Song song, int resolution) : base(anime, song)
+		public VideoSongJob(IAnime anime, ISong song, int resolution) : base(anime, song)
 		{
 			Resolution = resolution;
 		}

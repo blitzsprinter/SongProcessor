@@ -12,8 +12,8 @@ namespace AMQSongProcessor.UI.Converters
 	{
 		private static readonly IMaybeFunc<SongVisibility, bool>[] _Funcs
 			= new MaybeFuncCollectionBuilder<SongVisibility, bool>()
-			.Add<Song>((song, vis) => vis.IsVisible(song))
-			.Add<IEnumerable<Song>>((songs, vis) => songs.Any(x => vis.IsVisible(x)))
+			.Add<ISong>((song, vis) => vis.IsVisible(song))
+			.Add<IEnumerable<ISong>>((songs, vis) => songs.Any(x => vis.IsVisible(x)))
 			.ToArray();
 
 		public override int ExpectedValueCount => 2;

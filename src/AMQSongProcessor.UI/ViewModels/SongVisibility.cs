@@ -2,6 +2,7 @@
 
 using AMQSongProcessor.Models;
 using AMQSongProcessor.UI.Utils;
+using AMQSongProcessor.Utils;
 
 using ReactiveUI;
 
@@ -50,12 +51,12 @@ namespace AMQSongProcessor.UI.ViewModels
 
 		object IBindableToSelf.Self => this;
 
-		public bool IsVisible(Song song)
+		public bool IsVisible(ISong song)
 		{
 			return (ShowIgnoredSongs || !song.ShouldIgnore)
-				&& ((ShowCompletedSongs && song.IsCompleted)
-				|| (ShowIncompletedSongs && song.IsIncompleted)
-				|| (ShowUnsubmittedSongs && song.IsUnsubmitted));
+				&& ((ShowCompletedSongs && song.IsCompleted())
+				|| (ShowIncompletedSongs && song.IsIncompleted())
+				|| (ShowUnsubmittedSongs && song.IsUnsubmitted()));
 		}
 	}
 }

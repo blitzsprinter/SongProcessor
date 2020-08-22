@@ -18,10 +18,10 @@ namespace AMQSongProcessor.Jobs
 		public event Action<ProcessingData>? ProcessingDataReceived;
 
 		public bool AlreadyExists => File.Exists(GetValidPath());
-		public Song Song { get; }
+		public ISong Song { get; }
 		public IAnime Anime { get; }
 
-		protected SongJob(IAnime anime, Song song)
+		protected SongJob(IAnime anime, ISong song)
 		{
 			Anime = anime;
 			Song = song;
@@ -56,7 +56,7 @@ namespace AMQSongProcessor.Jobs
 
 				if (ffmpegProgressBuilder.IsNextProgressReady(e.Data, out var progress))
 				{
-					ProcessingDataReceived?.Invoke(new ProcessingData(path, Song.Length, progress));
+					ProcessingDataReceived?.Invoke(new ProcessingData(path, Song.GetLength(), progress));
 				}
 			};
 

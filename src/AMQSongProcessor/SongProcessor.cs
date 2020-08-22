@@ -44,7 +44,7 @@ namespace AMQSongProcessor
 						WarningReceived?.Invoke(new IsIgnored(x));
 						return false;
 					}
-					if (!x.HasTimeStamp)
+					if (!x.HasTimeStamp())
 					{
 						WarningReceived?.Invoke(new TimestampIsNull(x));
 						return false;
@@ -65,7 +65,7 @@ namespace AMQSongProcessor
 				return $"`{ts.ToString(format)}`";
 			}
 
-			static string FormatTimestamp(Song song)
+			static string FormatTimestamp(ISong song)
 			{
 				var ts = FormatTimeSpan(song.Start);
 				if (song.Episode == null)
@@ -85,7 +85,7 @@ namespace AMQSongProcessor
 						continue;
 					}
 
-					matches.GetOrAdd(song.FullName, _ => new List<IAnime>()).Add(anime);
+					matches.GetOrAdd(song.GetFullName(), _ => new List<IAnime>()).Add(anime);
 				}
 			}
 			if (matches.Count == 0)
@@ -112,9 +112,9 @@ namespace AMQSongProcessor
 					sb.Append("**Artist:** ").AppendLine(song.Artist);
 					sb.Append("**Type:** ").AppendLine(song.Type.ToString());
 					sb.Append("**Episode/Timestamp:** ").AppendLine(FormatTimestamp(song));
-					sb.Append("**Length:** ").AppendLine(FormatTimeSpan(song.Length));
+					sb.Append("**Length:** ").AppendLine(FormatTimeSpan(song.GetLength()));
 
-					var others = matches[song.FullName]
+					var others = matches[song.GetFullName()]
 						.Select(x => x.Id)
 						.Concat(song.AlsoIn)
 						.Where(x => x != anime.Id)
@@ -133,7 +133,7 @@ namespace AMQSongProcessor
 
 		private IEnumerable<SongJob> GetJobs(
 			IAnime anime,
-			IEnumerable<Song> songs,
+			IEnumerable<ISong> songs,
 			IEnumerable<Resolution> resolutions)
 		{
 			foreach (var song in songs)

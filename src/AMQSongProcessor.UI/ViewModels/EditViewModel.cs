@@ -30,7 +30,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		private readonly IScreen? _HostScreen;
 		private readonly ISongLoader _Loader;
 		private readonly IMessageBoxManager _MessageBoxManager;
-		private readonly Song _Song;
+		private readonly ISong _Song;
 		private string _Artist;
 		private int _AudioTrack;
 		private string _CleanPath;
@@ -141,7 +141,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _VolumeModifier, value);
 		}
 
-		public EditViewModel(IAnime anime, Song song, IScreen? screen = null)
+		public EditViewModel(IAnime anime, ISong song, IScreen? screen = null)
 		{
 			_HostScreen = screen;
 			_Song = song ?? throw new ArgumentNullException(nameof(song));
@@ -233,7 +233,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		{
 			_Song.Artist = Artist;
 			_Song.OverrideAudioTrack = AudioTrack;
-			_Song.SetCleanPath(_Anime.GetDirectory(), GetNullIfEmpty(CleanPath));
+			_Song.CleanPath = FileUtils.StoreRelativeOrAbsolute(_Anime.GetDirectory(), GetNullIfEmpty(CleanPath));
 			_Song.End = TimeSpan.Parse(End);
 			_Song.Episode = GetNullIfZero(Episode);
 			_Song.Name = Name;

@@ -95,7 +95,7 @@ namespace AMQSongProcessor.Gatherers
 			}
 		}
 
-		private static IEnumerable<Song> GetSongs(HtmlDocument doc, GatherOptions? options)
+		private static IEnumerable<ISong> GetSongs(HtmlDocument doc, GatherOptions? options)
 		{
 			const string SONG = "song";
 			const string CREATOR = "creator";

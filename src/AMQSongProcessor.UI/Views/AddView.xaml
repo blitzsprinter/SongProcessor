@@ -36,7 +36,7 @@
           </TextBlock>
         </TreeDataTemplate>
 
-        <DataTemplate DataType="models:Song">
+        <DataTemplate DataType="uimodels:ObservableSong">
           <TextBlock Classes="song" />
         </DataTemplate>
       </TreeView.DataTemplates>

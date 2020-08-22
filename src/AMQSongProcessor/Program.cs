@@ -143,8 +143,8 @@ namespace AMQSongProcessor
 					{
 						song.Name?.PadRight(nameLen) ?? UNKNOWN,
 						song.Artist?.PadRight(artLen) ?? UNKNOWN,
-						song.HasTimeStamp ? song.Start.ToString("hh\\:mm\\:ss") : UNKNOWN,
-						song.HasTimeStamp ? song.Length.ToString("mm\\:ss").PadRight(UNKNOWN.Length) : UNKNOWN,
+						song.HasTimeStamp() ? song.Start.ToString("hh\\:mm\\:ss") : UNKNOWN,
+						song.HasTimeStamp() ? song.GetLength().ToString("mm\\:ss").PadRight(UNKNOWN.Length) : UNKNOWN,
 					}.Join(" | "));
 					DisplayStatusItems(song.Status);
 

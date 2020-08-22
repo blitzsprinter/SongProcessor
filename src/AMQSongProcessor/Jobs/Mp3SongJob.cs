@@ -7,7 +7,7 @@ namespace AMQSongProcessor.Jobs
 {
 	public class Mp3SongJob : SongJob
 	{
-		public Mp3SongJob(IAnime anime, Song song) : base(anime, song)
+		public Mp3SongJob(IAnime anime, ISong song) : base(anime, song)
 		{
 		}
 
@@ -35,7 +35,7 @@ namespace AMQSongProcessor.Jobs
 			else
 			{
 				args =
-					$" -to {Song.Length}" +
+					$" -to {Song.GetLength()}" +
 					$" -i \"{Song.GetCleanSongPath(Anime.GetDirectory())}\"";
 			}
 
