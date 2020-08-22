@@ -52,9 +52,9 @@ namespace AMQSongProcessor.UI.ViewModels
 			= new SortedObservableCollection<IAnime>(new AnimeComparer());
 		public ReactiveCommand<Unit, Unit> CancelProcessing { get; }
 		public IObservable<bool> CanNavigate { get; }
-		public ReactiveCommand<IAnime, Unit> ChangeSource { get; }
+		public ReactiveCommand<ObservableAnime, Unit> ChangeSource { get; }
 		public ReactiveCommand<IAnime, Unit> ClearSongs { get; }
-		public ReactiveCommand<IAnime, Unit> ClearSource { get; }
+		public ReactiveCommand<ObservableAnime, Unit> ClearSource { get; }
 		public Clipboard<ISong>? ClipboardSong
 		{
 			get => _ClipboardSong;
@@ -144,8 +144,8 @@ namespace AMQSongProcessor.UI.ViewModels
 			DuplicateAnime = ReactiveCommand.CreateFromTask<IAnime>(PrivateDuplicateAnime);
 			DeleteAnime = ReactiveCommand.CreateFromTask<IAnime>(PrivateDeleteAnime);
 			ClearSongs = ReactiveCommand.CreateFromTask<IAnime>(PrivateClearSongs);
-			ChangeSource = ReactiveCommand.CreateFromTask<IAnime>(PrivateChangeSource);
-			ClearSource = ReactiveCommand.CreateFromTask<IAnime>(PrivateClearSource);
+			ChangeSource = ReactiveCommand.CreateFromTask<ObservableAnime>(PrivateChangeSource);
+			ClearSource = ReactiveCommand.CreateFromTask<ObservableAnime>(PrivateClearSource);
 			AddSong = ReactiveCommand.Create<IAnime>(PrivateAddSong);
 			PasteSong = ReactiveCommand.CreateFromTask<IAnime>(PrivatePasteSong);
 			EditSong = ReactiveCommand.Create<ISong>(PrivateEditSong);
@@ -190,7 +190,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		private void PrivateCancelProcessing()
 			=> ProcessingData = null;
 
-		private async Task PrivateChangeSource(IAnime anime)
+		private async Task PrivateChangeSource(ObservableAnime anime)
 		{
 			var dir = anime.GetDirectory();
 			var defFile = Path.GetFileName(anime.GetAbsoluteSourcePath());
@@ -202,8 +202,7 @@ namespace AMQSongProcessor.UI.ViewModels
 
 			try
 			{
-				var cast = (ObservableAnime)anime;
-				cast.VideoInfo = await _Gatherer.GetVideoInfoAsync(path).ConfigureAwait(true);
+				anime.VideoInfo = await _Gatherer.GetVideoInfoAsync(path).ConfigureAwait(true);
 			}
 			catch (InvalidFileTypeException)
 			{
@@ -228,10 +227,9 @@ namespace AMQSongProcessor.UI.ViewModels
 			}
 		}
 
-		private async Task PrivateClearSource(IAnime anime)
+		private async Task PrivateClearSource(ObservableAnime anime)
 		{
-			var cast = (ObservableAnime)anime;
-			cast.VideoInfo = null;
+			anime.VideoInfo = null;
 			await _Loader.SaveAsync(anime.AbsoluteInfoPath, anime).ConfigureAwait(true);
 		}
 
