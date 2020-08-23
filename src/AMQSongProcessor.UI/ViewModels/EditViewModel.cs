@@ -109,8 +109,6 @@ namespace AMQSongProcessor.UI.ViewModels
 			get => _Name;
 			set => this.RaiseAndSetIfChanged(ref _Name, value);
 		}
-		public ReactiveCommand<Unit, Unit> Save { get; }
-		public ReactiveCommand<Unit, Unit> SelectCleanPath { get; }
 		public bool ShouldIgnore
 		{
 			get => _ShouldIgnore;
@@ -143,6 +141,11 @@ namespace AMQSongProcessor.UI.ViewModels
 			get => _VolumeModifier;
 			set => this.RaiseAndSetIfChanged(ref _VolumeModifier, value);
 		}
+
+		#region Commands
+		public ReactiveCommand<Unit, Unit> Save { get; }
+		public ReactiveCommand<Unit, Unit> SelectCleanPath { get; }
+		#endregion Commands
 
 		public EditViewModel(ObservableAnime anime, ObservableSong song, IScreen? screen = null)
 		{

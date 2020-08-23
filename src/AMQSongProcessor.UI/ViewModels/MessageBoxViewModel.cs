@@ -22,7 +22,6 @@ namespace AMQSongProcessor.UI.ViewModels
 			get => _ButtonText;
 			set => this.RaiseAndSetIfChanged(ref _ButtonText, value);
 		}
-		public ReactiveCommand<Window, Unit> CloseCommand { get; }
 		public object? CurrentOption
 		{
 			get => _CurrentOption;
@@ -48,6 +47,10 @@ namespace AMQSongProcessor.UI.ViewModels
 			get => _Title;
 			set => this.RaiseAndSetIfChanged(ref _Title, value);
 		}
+
+		#region Commands
+		public ReactiveCommand<Window, Unit> CloseCommand { get; }
+		#endregion Commands
 
 		public MessageBoxViewModel()
 		{

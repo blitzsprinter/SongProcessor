@@ -53,54 +53,35 @@ namespace AMQSongProcessor.UI.ViewModels
 		private AvaloniaList<object> _SelectedItems = new AvaloniaList<object>();
 		private SongVisibility _SongVisibility = new SongVisibility();
 
-		public ReactiveCommand<ObservableAnime, Unit> AddSong { get; }
 		public ObservableCollection<ObservableAnime> Anime { get; }
 			= new SortedObservableCollection<ObservableAnime>(new AnimeComparer());
-		public ReactiveCommand<Unit, Unit> CancelProcessing { get; }
 		public IObservable<bool> CanNavigate { get; }
-		public ReactiveCommand<ObservableAnime, Unit> ChangeSource { get; }
-		public ReactiveCommand<ObservableAnime, Unit> ClearSongs { get; }
-		public ReactiveCommand<ObservableAnime, Unit> ClearSource { get; }
 		public Clipboard<ObservableSong>? ClipboardSong
 		{
 			get => _ClipboardSong;
 			set => this.RaiseAndSetIfChanged(ref _ClipboardSong, value);
 		}
-		public ReactiveCommand<int, Unit> CopyANNID { get; }
-		public ReactiveCommand<ObservableSong, Unit> CopySong { get; }
 		public int CurrentJob
 		{
 			get => _CurrentJob;
 			set => this.RaiseAndSetIfChanged(ref _CurrentJob, value);
 		}
-		public ReactiveCommand<ObservableSong, Unit> CutSong { get; }
-		public ReactiveCommand<ObservableAnime, Unit> DeleteAnime { get; }
-		public ReactiveCommand<ObservableSong, Unit> DeleteSong { get; }
 		[DataMember]
 		public string? Directory
 		{
 			get => _Directory;
 			set => this.RaiseAndSetIfChanged(ref _Directory, value);
 		}
-		public ReactiveCommand<ObservableAnime, Unit> DuplicateAnime { get; }
-		public ReactiveCommand<ObservableSong, Unit> EditSong { get; }
-		public ReactiveCommand<Unit, Unit> ExportFixes { get; }
-		public ReactiveCommand<ObservableAnime, Unit> GetVolumeInfo { get; }
 		public IScreen HostScreen => _HostScreen ?? Locator.Current.GetService<IScreen>();
 		public bool IsBusy => _IsBusy.Value;
 		public bool IsProcessing => _IsProcessing.Value;
-		public ReactiveCommand<Unit, Unit> Load { get; }
-		public ReactiveCommand<StatusModifier, Unit> ModifyMultipleSongsStatus { get; }
 		public bool MultipleItemsSelected => _MultipleItemsSelected.Value;
 		public bool OnlySongsSelected => _OnlySongsSelected.Value;
-		public ReactiveCommand<ObservableAnime, Unit> OpenInfoFile { get; }
-		public ReactiveCommand<ObservableAnime, Unit> PasteSong { get; }
 		public ProcessingData? ProcessingData
 		{
 			get => _ProcessingData;
 			set => this.RaiseAndSetIfChanged(ref _ProcessingData, value);
 		}
-		public ReactiveCommand<Unit, Unit> ProcessSongs { get; }
 		public int QueuedJobs
 		{
 			get => _QueuedJobs;
@@ -112,7 +93,6 @@ namespace AMQSongProcessor.UI.ViewModels
 			get => _Search;
 			set => this.RaiseAndSetIfChanged(ref _Search, value);
 		}
-		public ReactiveCommand<Unit, Unit> SelectDirectory { get; }
 		public AvaloniaList<object> SelectedItems
 		{
 			get => _SelectedItems;
@@ -124,8 +104,31 @@ namespace AMQSongProcessor.UI.ViewModels
 			get => _SongVisibility;
 			set => this.RaiseAndSetIfChanged(ref _SongVisibility, value);
 		}
-		public ReactiveCommand<Unit, Unit> Unload { get; }
 		public string UrlPathSegment => "/songs";
+
+		#region Commands
+		public ReactiveCommand<ObservableAnime, Unit> AddSong { get; }
+		public ReactiveCommand<Unit, Unit> CancelProcessing { get; }
+		public ReactiveCommand<ObservableAnime, Unit> ChangeSource { get; }
+		public ReactiveCommand<ObservableAnime, Unit> ClearSongs { get; }
+		public ReactiveCommand<ObservableAnime, Unit> ClearSource { get; }
+		public ReactiveCommand<int, Unit> CopyANNID { get; }
+		public ReactiveCommand<ObservableSong, Unit> CopySong { get; }
+		public ReactiveCommand<ObservableSong, Unit> CutSong { get; }
+		public ReactiveCommand<ObservableAnime, Unit> DeleteAnime { get; }
+		public ReactiveCommand<ObservableSong, Unit> DeleteSong { get; }
+		public ReactiveCommand<ObservableAnime, Unit> DuplicateAnime { get; }
+		public ReactiveCommand<ObservableSong, Unit> EditSong { get; }
+		public ReactiveCommand<Unit, Unit> ExportFixes { get; }
+		public ReactiveCommand<ObservableAnime, Unit> GetVolumeInfo { get; }
+		public ReactiveCommand<Unit, Unit> Load { get; }
+		public ReactiveCommand<StatusModifier, Unit> ModifyMultipleSongsStatus { get; }
+		public ReactiveCommand<ObservableAnime, Unit> OpenInfoFile { get; }
+		public ReactiveCommand<ObservableAnime, Unit> PasteSong { get; }
+		public ReactiveCommand<Unit, Unit> ProcessSongs { get; }
+		public ReactiveCommand<Unit, Unit> SelectDirectory { get; }
+		public ReactiveCommand<Unit, Unit> Unload { get; }
+		#endregion Commands
 
 		public SongViewModel() : this(null)
 		{

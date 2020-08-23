@@ -35,7 +35,6 @@ namespace AMQSongProcessor.UI.ViewModels
 		private int _Id = 1;
 		private string _SelectedGathererName;
 
-		public ReactiveCommand<Unit, Unit> Add { get; }
 		[DataMember]
 		public bool AddEndings
 		{
@@ -61,7 +60,6 @@ namespace AMQSongProcessor.UI.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _AddSongs, value);
 		}
 		public ObservableCollection<IAnime> Anime { get; } = new ObservableCollection<IAnime>();
-		public ReactiveCommand<IAnime, Unit> DeleteAnime { get; }
 		[DataMember]
 		public string? Directory
 		{
@@ -81,7 +79,6 @@ namespace AMQSongProcessor.UI.ViewModels
 			get => _Id;
 			set => this.RaiseAndSetIfChanged(ref _Id, value);
 		}
-		public ReactiveCommand<Unit, Unit> SelectDirectory { get; }
 		[DataMember]
 		public string SelectedGathererName
 		{
@@ -89,6 +86,12 @@ namespace AMQSongProcessor.UI.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _SelectedGathererName, value);
 		}
 		public string UrlPathSegment => "/add";
+
+		#region Commands
+		public ReactiveCommand<Unit, Unit> Add { get; }
+		public ReactiveCommand<IAnime, Unit> DeleteAnime { get; }
+		public ReactiveCommand<Unit, Unit> SelectDirectory { get; }
+		#endregion Commands
 
 		public AddViewModel() : this(null)
 		{
