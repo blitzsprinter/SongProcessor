@@ -19,6 +19,7 @@ namespace AMQSongProcessor.UI.Models
 		private string? _CleanPath;
 		private TimeSpan _End;
 		private int? _Episode;
+		private bool _IsVisible = true;
 		private string _Name;
 		private int _OverrideAudioTrack;
 		private int _OverrideVideoTrack;
@@ -52,6 +53,11 @@ namespace AMQSongProcessor.UI.Models
 		{
 			get => _Episode;
 			set => this.RaiseAndSetIfChanged(ref _Episode, value);
+		}
+		public bool IsVisible
+		{
+			get => _IsVisible;
+			set => this.RaiseAndSetIfChanged(ref _IsVisible, value);
 		}
 		public string Name
 		{

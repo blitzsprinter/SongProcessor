@@ -3,16 +3,13 @@
 using AdvorangesUtils;
 
 using AMQSongProcessor.Models;
-using AMQSongProcessor.UI.Utils;
 
 using ReactiveUI;
 
 namespace AMQSongProcessor.UI.ViewModels
 {
 	[DataContract]
-#pragma warning disable CS8612 // Nullability of reference types in type doesn't match implicitly implemented member.
-	public sealed class SearchTerms : ReactiveObject, IBindableToSelf<SearchTerms>
-#pragma warning restore CS8612 // Nullability of reference types in type doesn't match implicitly implemented member.
+	public sealed class SearchTerms : ReactiveObject
 	{
 		private string? _AnimeName;
 		private string? _ArtistName;
@@ -22,22 +19,20 @@ namespace AMQSongProcessor.UI.ViewModels
 		public string? AnimeName
 		{
 			get => _AnimeName;
-			set => this.RaiseAndSetIfChangedSelf(ref _AnimeName, value);
+			set => this.RaiseAndSetIfChanged(ref _AnimeName, value);
 		}
 		[DataMember]
 		public string? ArtistName
 		{
 			get => _ArtistName;
-			set => this.RaiseAndSetIfChangedSelf(ref _ArtistName, value);
+			set => this.RaiseAndSetIfChanged(ref _ArtistName, value);
 		}
-		public SearchTerms Self => this;
 		[DataMember]
 		public string? SongName
 		{
 			get => _SongName;
-			set => this.RaiseAndSetIfChangedSelf(ref _SongName, value);
+			set => this.RaiseAndSetIfChanged(ref _SongName, value);
 		}
-		object IBindableToSelf.Self => this;
 
 		public bool IsVisible(IAnime anime)
 			=> IsVisible(AnimeName, anime.Name);

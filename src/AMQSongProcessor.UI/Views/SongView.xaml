@@ -10,13 +10,6 @@
              Name="Me"
              x:Class="AMQSongProcessor.UI.Views.SongView">
 
-  <UserControl.Resources>
-    <!-- SongVisibility must go first, Song(s) must go second. No other values. -->
-    <converters:SongVisibilityConverter x:Key="SongVisibility" />
-    <!-- SearchTerms must go first, Song(s)/Anime(s) must go second. No other values. -->
-    <converters:SearchVisibilityConverter x:Key="SearchVisibility" />
-  </UserControl.Resources>
-
   <UserControl.Styles>
     <Style Selector=":is(InputElement).notWhenBusy">
       <Setter Property="IsEnabled"
@@ -79,8 +72,8 @@
         </ContextMenu>
       </Grid.ContextMenu>
 
-      <TreeView SelectionMode="Multiple" Items="{Binding Anime}"
-                SelectedItems="{Binding SelectedItems}">
+      <TreeView SelectionMode="Multiple" ClipToBounds="True"
+                Items="{Binding Anime}" SelectedItems="{Binding SelectedItems}">
         <TreeView.DataTemplates>
           <TreeDataTemplate DataType="uimodels:ObservableAnime" ItemsSource="{Binding Songs}">
             <TextBlock Classes="anime">
@@ -201,50 +194,20 @@
           </Style>
 
           <Style Selector="TreeView > TreeViewItem">
-            <!-- Expand all the anime items to show all the songs -->
             <Setter Property="IsExpanded"
-                    Value="{Binding ElementName=Me, Path=DataContext.SongVisibility.IsExpanded}" />
-
-            <!-- Don't show the anime if its name doesnt match the anime name search term -->
-            <!-- or if none of its songs match the song name/artist search terms -->
-            <Setter Property="IsVisible">
-              <MultiBinding Converter="{x:Static BoolConverters.And}">
-                <MultiBinding Converter="{StaticResource SearchVisibility}">
-                  <Binding ElementName="Me" Path="DataContext.Search.Self" />
-                  <Binding />
-                </MultiBinding>
-                <MultiBinding Converter="{StaticResource SearchVisibility}">
-                  <Binding ElementName="Me" Path="DataContext.Search.Self" />
-                  <Binding Path="Songs.Items" />
-                </MultiBinding>
-              </MultiBinding>
-            </Setter>
+                    Value="{Binding IsExpanded}" />
+            <Setter Property="IsVisible"
+                    Value="{Binding IsVisible}" />
           </Style>
 
           <Style Selector="TreeView > TreeViewItem > TreeViewItem">
-            <!-- Hide the songs if they are ignored and we don't want to see ignored songs -->
-            <Setter Property="IsVisible">
-              <MultiBinding Converter="{x:Static BoolConverters.And}">
-                <MultiBinding Converter="{StaticResource SongVisibility}">
-                  <Binding ElementName="Me" Path="DataContext.SongVisibility.Self" />
-                  <Binding />
-                </MultiBinding>
-                <MultiBinding Converter="{StaticResource SearchVisibility}">
-                  <Binding ElementName="Me" Path="DataContext.Search.Self" />
-                  <Binding />
-                </MultiBinding>
-              </MultiBinding>
-            </Setter>
+            <Setter Property="IsVisible"
+                    Value="{Binding IsVisible}" />
           </Style>
 
           <Style Selector="TreeView > TreeViewItem /template/ ToggleButton#expander">
-            <!-- Don't show the expand button if all songs are ignored and ignored songs are blocked -->
-            <Setter Property="IsVisible">
-              <MultiBinding Converter="{StaticResource SongVisibility}">
-                <Binding ElementName="Me" Path="DataContext.SongVisibility.Self" />
-                <Binding Path="Songs.Items" />
-              </MultiBinding>
-            </Setter>
+            <Setter Property="IsVisible"
+                    Value="{Binding IsExpanderVisible}" />
           </Style>
         </TreeView.Styles>
       </TreeView>

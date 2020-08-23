@@ -189,6 +189,33 @@ namespace AMQSongProcessor.UI.ViewModels
 				.WhenAnyValue(x => x.Anime.Count)
 				.Select(x => x != 0);
 			CanNavigate = busy.CombineLatest(loaded, (x, y) => !(x || y));
+
+			Search.Changed
+				.Merge(SongVisibility.Changed)
+				.Subscribe(_ =>
+				{
+					foreach (var anime in Anime)
+					{
+						ModifyVisibility(anime);
+					}
+				});
+		}
+
+		private void ModifyVisibility(ObservableAnime anime)
+		{
+			var isExpanderVisible = false;
+			foreach (var song in anime.Songs)
+			{
+				song.IsVisible = Search.IsVisible(song) && SongVisibility.IsVisible(song);
+				if (song.IsVisible)
+				{
+					isExpanderVisible = true;
+				}
+			}
+
+			anime.IsExpanded = SongVisibility.IsExpanded;
+			anime.IsExpanderVisible = isExpanderVisible;
+			anime.IsVisible = Search.IsVisible(anime);
 		}
 
 		private ObservableAnime GetAnime(ObservableSong search)
@@ -339,7 +366,9 @@ namespace AMQSongProcessor.UI.ViewModels
 			var files = _Loader.GetFiles(Directory!);
 			await foreach (var anime in _Loader.LoadFromFilesAsync(files, 5))
 			{
-				Anime.Add(new ObservableAnime(anime));
+				var observable = new ObservableAnime(anime);
+				ModifyVisibility(observable);
+				Anime.Add(observable);
 			}
 		}
 
@@ -442,8 +471,6 @@ namespace AMQSongProcessor.UI.ViewModels
 		}
 
 		public void Clear()
-		{
-			SelectedItems.Clear();
-		}
+			=> SelectedItems.Clear();
 	}
 }

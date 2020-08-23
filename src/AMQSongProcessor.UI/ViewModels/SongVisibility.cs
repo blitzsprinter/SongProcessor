@@ -1,7 +1,6 @@
 ﻿using System.Runtime.Serialization;
 
 using AMQSongProcessor.Models;
-using AMQSongProcessor.UI.Utils;
 using AMQSongProcessor.Utils;
 
 using ReactiveUI;
@@ -9,9 +8,7 @@ using ReactiveUI;
 namespace AMQSongProcessor.UI.ViewModels
 {
 	[DataContract]
-#pragma warning disable CS8612 // Nullability of reference types in type doesn't match implicitly implemented member.
-	public sealed class SongVisibility : ReactiveObject, IBindableToSelf<SongVisibility>
-#pragma warning restore CS8612 // Nullability of reference types in type doesn't match implicitly implemented member.
+	public sealed class SongVisibility : ReactiveObject
 	{
 		private bool _IsExpanded;
 		private bool _ShowCompletedSongs = true;
@@ -23,35 +20,32 @@ namespace AMQSongProcessor.UI.ViewModels
 		public bool IsExpanded
 		{
 			get => _IsExpanded;
-			set => this.RaiseAndSetIfChangedSelf(ref _IsExpanded, value);
+			set => this.RaiseAndSetIfChanged(ref _IsExpanded, value);
 		}
-		public SongVisibility Self => this;
 		[DataMember]
 		public bool ShowCompletedSongs
 		{
 			get => _ShowCompletedSongs;
-			set => this.RaiseAndSetIfChangedSelf(ref _ShowCompletedSongs, value);
+			set => this.RaiseAndSetIfChanged(ref _ShowCompletedSongs, value);
 		}
 		[DataMember]
 		public bool ShowIgnoredSongs
 		{
 			get => _ShowIgnoredSongs;
-			set => this.RaiseAndSetIfChangedSelf(ref _ShowIgnoredSongs, value);
+			set => this.RaiseAndSetIfChanged(ref _ShowIgnoredSongs, value);
 		}
 		[DataMember]
 		public bool ShowIncompletedSongs
 		{
 			get => _ShowIncompletedSongs;
-			set => this.RaiseAndSetIfChangedSelf(ref _ShowIncompletedSongs, value);
+			set => this.RaiseAndSetIfChanged(ref _ShowIncompletedSongs, value);
 		}
 		[DataMember]
 		public bool ShowUnsubmittedSongs
 		{
 			get => _ShowUnsubmittedSongs;
-			set => this.RaiseAndSetIfChangedSelf(ref _ShowUnsubmittedSongs, value);
+			set => this.RaiseAndSetIfChanged(ref _ShowUnsubmittedSongs, value);
 		}
-
-		object IBindableToSelf.Self => this;
 
 		public bool IsVisible(ISong song)
 		{
