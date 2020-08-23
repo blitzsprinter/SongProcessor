@@ -30,12 +30,18 @@ using Splat;
 namespace AMQSongProcessor.UI.ViewModels
 {
 	[DataContract]
-	public class SongViewModel : ReactiveObject, IRoutableViewModel, INavigationController
+#pragma warning disable CS8612 // Nullability of reference types in type doesn't match implicitly implemented member.
+	public class SongViewModel : ReactiveObject, IRoutableViewModel, INavigationController, IClearableViewModel
+#pragma warning restore CS8612 // Nullability of reference types in type doesn't match implicitly implemented member.
 	{
 		private readonly ISourceInfoGatherer _Gatherer;
 		private readonly IScreen? _HostScreen;
+		private readonly ObservableAsPropertyHelper<bool> _IsBusy;
+		private readonly ObservableAsPropertyHelper<bool> _IsProcessing;
 		private readonly ISongLoader _Loader;
 		private readonly IMessageBoxManager _MessageBoxManager;
+		private readonly ObservableAsPropertyHelper<bool> _MultipleItemsSelected;
+		private readonly ObservableAsPropertyHelper<bool> _OnlySongsSelected;
 		private readonly ISongProcessor _Processor;
 		private readonly IClipboard _SystemClipboard;
 		private Clipboard<ObservableSong>? _ClipboardSong;
@@ -81,11 +87,12 @@ namespace AMQSongProcessor.UI.ViewModels
 		public ReactiveCommand<Unit, Unit> ExportFixes { get; }
 		public ReactiveCommand<ObservableAnime, Unit> GetVolumeInfo { get; }
 		public IScreen HostScreen => _HostScreen ?? Locator.Current.GetService<IScreen>();
-		public IObservable<bool> IsBusy { get; }
+		public bool IsBusy => _IsBusy.Value;
+		public bool IsProcessing => _IsProcessing.Value;
 		public ReactiveCommand<Unit, Unit> Load { get; }
 		public ReactiveCommand<StatusModifier, Unit> ModifyMultipleSongsStatus { get; }
-		public IObservable<bool> MultipleItemsSelected { get; }
-		public IObservable<bool> OnlySongsSelected { get; }
+		public bool MultipleItemsSelected => _MultipleItemsSelected.Value;
+		public bool OnlySongsSelected => _OnlySongsSelected.Value;
 		public ReactiveCommand<ObservableAnime, Unit> OpenInfoFile { get; }
 		public ReactiveCommand<ObservableAnime, Unit> PasteSong { get; }
 		public ProcessingData? ProcessingData
@@ -156,25 +163,29 @@ namespace AMQSongProcessor.UI.ViewModels
 			ProcessSongs = ReactiveCommand.CreateFromObservable(PrivateProcessSongs);
 			CancelProcessing = ReactiveCommand.Create(PrivateCancelProcessing);
 			SelectDirectory = ReactiveCommand.CreateFromTask(PrivateSelectDirectory);
+			ModifyMultipleSongsStatus = ReactiveCommand.CreateFromTask<StatusModifier>(PrivateModifyMultipleSongsStatus);
 
 			var loading = Load.IsExecuting;
 			var processing = ProcessSongs.IsExecuting;
-			IsBusy = loading.CombineLatest(processing, (x, y) => x || y);
+			var busy = loading.CombineLatest(processing, (x, y) => x || y);
+
+			_IsProcessing = processing.ToProperty(this, x => x.IsProcessing);
+			_IsBusy = busy.ToProperty(this, x => x.IsBusy);
+
+			var multiple = this
+				.WhenAnyValue(x => x.SelectedItems.Count)
+				.Select(x => x > 1);
+			_MultipleItemsSelected = multiple.ToProperty(this, x => x.MultipleItemsSelected);
+
+			var onlySongs = this
+				.WhenAnyValue(x => x.SelectedItems.Count)
+				.Select(x => x == 0 || SelectedItems.All(y => y is ISong));
+			_OnlySongsSelected = onlySongs.ToProperty(this, x => x.OnlySongsSelected);
 
 			var loaded = this
 				.WhenAnyValue(x => x.Anime.Count)
 				.Select(x => x != 0);
-			CanNavigate = IsBusy.CombineLatest(loaded, (x, y) => !(x || y));
-
-			MultipleItemsSelected = this
-				.WhenAnyValue(x => x.SelectedItems.Count)
-				.Select(x => x > 1);
-
-			OnlySongsSelected = this
-				.WhenAnyValue(x => x.SelectedItems)
-				.SelectMany(x => x.ToObservableChangeSet<AvaloniaList<object>, object>().ToCollection())
-				.Select(x => x.Count == 0 || x.All(y => y is ISong));
-			ModifyMultipleSongsStatus = ReactiveCommand.CreateFromTask<StatusModifier>(PrivateModifyMultipleSongsStatus);
+			CanNavigate = busy.CombineLatest(loaded, (x, y) => !(x || y));
 		}
 
 		private ObservableAnime GetAnime(ObservableSong search)
@@ -183,6 +194,8 @@ namespace AMQSongProcessor.UI.ViewModels
 		private void PrivateAddSong(ObservableAnime anime)
 		{
 			var song = new ObservableSong(new Song());
+			anime.Songs.Add(song);
+
 			var vm = new EditViewModel(anime, song);
 			HostScreen.Router.Navigate.Execute(vm);
 		}
@@ -323,11 +336,6 @@ namespace AMQSongProcessor.UI.ViewModels
 			var files = _Loader.GetFiles(Directory!);
 			await foreach (var anime in _Loader.LoadFromFilesAsync(files, 5))
 			{
-				// Not sure why, but without this sometimes VideoInfo is null
-				if (anime.Source != null && anime.VideoInfo == null)
-				{
-					throw new InvalidOperationException("VideoInfo should not be null at this point.");
-				}
 				Anime.Add(new ObservableAnime(anime));
 			}
 		}
@@ -426,7 +434,13 @@ namespace AMQSongProcessor.UI.ViewModels
 		private void PrivateUnload()
 		{
 			Anime.Clear();
+			SelectedItems.Clear();
 			ClipboardSong = null;
+		}
+
+		public void Clear()
+		{
+			SelectedItems.Clear();
 		}
 	}
 }

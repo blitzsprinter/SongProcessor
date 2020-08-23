@@ -35,16 +35,16 @@ namespace AMQSongProcessor.UI
 			return Observable.Return(Unit.Default);
 		}
 
-		public IObservable<object?> LoadState()
+		public IObservable<object> LoadState()
 		{
 			if (!File.Exists(_File))
 			{
-				return Observable.Return(default(object));
+				return Observable.Return(default(object))!;
 			}
 
 			var lines = File.ReadAllText(_File);
 			var state = JsonConvert.DeserializeObject<object>(lines, _Options);
-			return Observable.Return(state);
+			return Observable.Return(state)!;
 		}
 
 		public IObservable<Unit> SaveState(object state)

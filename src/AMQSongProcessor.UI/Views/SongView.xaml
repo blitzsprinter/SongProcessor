@@ -7,6 +7,7 @@
              xmlns:controls="clr-namespace:AMQSongProcessor.UI.Controls;assembly=AMQSongProcessor.UI"
              xmlns:converters="clr-namespace:AMQSongProcessor.UI.Converters;assembly=AMQSongProcessor.UI"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="800"
+             Name="Me"
              x:Class="AMQSongProcessor.UI.Views.SongView">
 
   <UserControl.Resources>
@@ -19,7 +20,7 @@
   <UserControl.Styles>
     <Style Selector=":is(InputElement).notWhenBusy">
       <Setter Property="IsEnabled"
-              Value="{Binding ElementName=Tree, Path=!DataContext.IsBusy^}" />
+              Value="{Binding ElementName=Me, Path=!DataContext.IsBusy}" />
     </Style>
   </UserControl.Styles>
 
@@ -78,7 +79,7 @@
         </ContextMenu>
       </Grid.ContextMenu>
 
-      <TreeView SelectionMode="Multiple" Name="Tree" Items="{Binding Anime}"
+      <TreeView SelectionMode="Multiple" Items="{Binding Anime}"
                 SelectedItems="{Binding SelectedItems}">
         <TreeView.DataTemplates>
           <TreeDataTemplate DataType="uimodels:ObservableAnime" ItemsSource="{Binding Songs}">
@@ -86,29 +87,29 @@
               <TextBlock.ContextMenu>
                 <ContextMenu Classes="notWhenBusy disallowMultiple">
                   <MenuItem Header="Copy ANNID" CommandParameter="{Binding Id}"
-                            Command="{Binding ElementName=Tree, Path=DataContext.CopyANNID}" />
+                            Command="{Binding ElementName=Me, Path=DataContext.CopyANNID}" />
                   <MenuItem Header="Open Info File" CommandParameter="{Binding}"
-                            Command="{Binding ElementName=Tree, Path=DataContext.OpenInfoFile}" />
+                            Command="{Binding ElementName=Me, Path=DataContext.OpenInfoFile}" />
                   <MenuItem Header="Get Volume Info" CommandParameter="{Binding}"
-                            Command="{Binding ElementName=Tree, Path=DataContext.GetVolumeInfo}" />
+                            Command="{Binding ElementName=Me, Path=DataContext.GetVolumeInfo}" />
                   <MenuItem Header="-" />
                   <MenuItem Header="Duplicate Anime" CommandParameter="{Binding}"
-                            Command="{Binding ElementName=Tree, Path=DataContext.DuplicateAnime}" />
+                            Command="{Binding ElementName=Me, Path=DataContext.DuplicateAnime}" />
                   <MenuItem Header="Delete Anime" CommandParameter="{Binding}"
-                            Command="{Binding ElementName=Tree, Path=DataContext.DeleteAnime}" />
+                            Command="{Binding ElementName=Me, Path=DataContext.DeleteAnime}" />
                   <MenuItem Header="Clear Songs" CommandParameter="{Binding}"
-                            Command="{Binding ElementName=Tree, Path=DataContext.ClearSongs}" />
+                            Command="{Binding ElementName=Me, Path=DataContext.ClearSongs}" />
                   <MenuItem Header="-" />
                   <MenuItem Header="Change Source" CommandParameter="{Binding}"
-                            Command="{Binding ElementName=Tree, Path=DataContext.ChangeSource}" />
+                            Command="{Binding ElementName=Me, Path=DataContext.ChangeSource}" />
                   <MenuItem Header="Clear Source" CommandParameter="{Binding}"
-                            Command="{Binding ElementName=Tree, Path=DataContext.ClearSource}" />
+                            Command="{Binding ElementName=Me, Path=DataContext.ClearSource}" />
                   <MenuItem Header="-" />
                   <MenuItem Header="Add Song" CommandParameter="{Binding}"
-                            Command="{Binding ElementName=Tree, Path=DataContext.AddSong}" />
+                            Command="{Binding ElementName=Me, Path=DataContext.AddSong}" />
                   <MenuItem Header="Paste Song" CommandParameter="{Binding}"
-                            Command="{Binding ElementName=Tree, Path=DataContext.PasteSong}"
-                            IsEnabled="{Binding ElementName=Tree, Path=DataContext.ClipboardSong, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                            Command="{Binding ElementName=Me, Path=DataContext.PasteSong}"
+                            IsEnabled="{Binding ElementName=Me, Path=DataContext.ClipboardSong, Converter={x:Static ObjectConverters.IsNotNull}}" />
                 </ContextMenu>
               </TextBlock.ContextMenu>
 
@@ -126,53 +127,53 @@
                 <ContextMenu Classes="notWhenBusy">
                   <MenuItem Classes="disallowMultiple"
                             Header="Edit Song" CommandParameter="{Binding}"
-                            Command="{Binding ElementName=Tree, Path=DataContext.EditSong}" />
+                            Command="{Binding ElementName=Me, Path=DataContext.EditSong}" />
                   <MenuItem Classes="disallowMultiple"
                             Header="-" />
                   <MenuItem Classes="disallowMultiple"
                             Header="Copy Song" CommandParameter="{Binding}"
-                            Command="{Binding ElementName=Tree, Path=DataContext.CopySong}" />
+                            Command="{Binding ElementName=Me, Path=DataContext.CopySong}" />
                   <MenuItem Classes="disallowMultiple"
                             Header="Cut Song" CommandParameter="{Binding}"
-                            Command="{Binding ElementName=Tree, Path=DataContext.CutSong}" />
+                            Command="{Binding ElementName=Me, Path=DataContext.CutSong}" />
                   <MenuItem Classes="disallowMultiple"
                             Header="Delete Song" CommandParameter="{Binding}"
-                            Command="{Binding ElementName=Tree, Path=DataContext.DeleteSong}" />
+                            Command="{Binding ElementName=Me, Path=DataContext.DeleteSong}" />
 
                   <MenuItem Classes="onlySongs"
                             Header="Set Songs As Submitted"
                             CommandParameter="{x:Static uimodels:StatusModifier.Submitted}"
-                            Command="{Binding ElementName=Tree, Path=DataContext.ModifyMultipleSongsStatus}" />
+                            Command="{Binding ElementName=Me, Path=DataContext.ModifyMultipleSongsStatus}" />
                   <MenuItem Classes="onlySongs"
                             Header="Set Songs As Mp3 Uploaded"
                             CommandParameter="{x:Static uimodels:StatusModifier.Mp3}"
-                            Command="{Binding ElementName=Tree, Path=DataContext.ModifyMultipleSongsStatus}" />
+                            Command="{Binding ElementName=Me, Path=DataContext.ModifyMultipleSongsStatus}" />
                   <MenuItem Classes="onlySongs"
                             Header="Set Songs As 480p Uploaded"
                             CommandParameter="{x:Static uimodels:StatusModifier.Res480}"
-                            Command="{Binding ElementName=Tree, Path=DataContext.ModifyMultipleSongsStatus}" />
+                            Command="{Binding ElementName=Me, Path=DataContext.ModifyMultipleSongsStatus}" />
                   <MenuItem Classes="onlySongs"
                             Header="Set Songs As 720p Uploaded"
                             CommandParameter="{x:Static uimodels:StatusModifier.Res720}"
-                            Command="{Binding ElementName=Tree, Path=DataContext.ModifyMultipleSongsStatus}" />
+                            Command="{Binding ElementName=Me, Path=DataContext.ModifyMultipleSongsStatus}" />
                   <MenuItem Classes="onlySongs"
                             Header="-" />
                   <MenuItem Classes="onlySongs"
                             Header="Unset Songs As Submitted"
                             CommandParameter="{x:Static uimodels:StatusModifier.NotSubmitted}"
-                            Command="{Binding ElementName=Tree, Path=DataContext.ModifyMultipleSongsStatus}" />
+                            Command="{Binding ElementName=Me, Path=DataContext.ModifyMultipleSongsStatus}" />
                   <MenuItem Classes="onlySongs"
                             Header="Unset Songs As Mp3 Uploaded"
                             CommandParameter="{x:Static uimodels:StatusModifier.NotMp3}"
-                            Command="{Binding ElementName=Tree, Path=DataContext.ModifyMultipleSongsStatus}" />
+                            Command="{Binding ElementName=Me, Path=DataContext.ModifyMultipleSongsStatus}" />
                   <MenuItem Classes="onlySongs"
                             Header="Unset Songs As 480p Uploaded"
                             CommandParameter="{x:Static uimodels:StatusModifier.NotRes480}"
-                            Command="{Binding ElementName=Tree, Path=DataContext.ModifyMultipleSongsStatus}" />
+                            Command="{Binding ElementName=Me, Path=DataContext.ModifyMultipleSongsStatus}" />
                   <MenuItem Classes="onlySongs"
                             Header="Unset Songs As 720p Uploaded"
                             CommandParameter="{x:Static uimodels:StatusModifier.NotRes720}"
-                            Command="{Binding ElementName=Tree, Path=DataContext.ModifyMultipleSongsStatus}" />
+                            Command="{Binding ElementName=Me, Path=DataContext.ModifyMultipleSongsStatus}" />
                 </ContextMenu>
               </TextBlock.ContextMenu>
             </TextBlock>
@@ -182,14 +183,14 @@
         <TreeView.Styles>
           <Style Selector=":is(Visual).disallowMultiple">
             <Setter Property="IsVisible"
-                    Value="{Binding ElementName=Tree, Path=!DataContext.MultipleItemsSelected^}" />
+                    Value="{Binding ElementName=Me, Path=!DataContext.MultipleItemsSelected}" />
           </Style>
 
           <Style Selector=":is(Visual).onlySongs">
             <Setter Property="IsVisible">
               <MultiBinding Converter="{x:Static BoolConverters.And}">
-                <Binding ElementName="Tree" Path="DataContext.MultipleItemsSelected^" />
-                <Binding ElementName="Tree" Path="DataContext.OnlySongsSelected^" />
+                <Binding ElementName="Me" Path="DataContext.MultipleItemsSelected" />
+                <Binding ElementName="Me" Path="DataContext.OnlySongsSelected" />
               </MultiBinding>
             </Setter>
           </Style>
@@ -202,18 +203,18 @@
           <Style Selector="TreeView > TreeViewItem">
             <!-- Expand all the anime items to show all the songs -->
             <Setter Property="IsExpanded"
-                    Value="{Binding ElementName=Tree, Path=DataContext.SongVisibility.IsExpanded}" />
+                    Value="{Binding ElementName=Me, Path=DataContext.SongVisibility.IsExpanded}" />
 
             <!-- Don't show the anime if its name doesnt match the anime name search term -->
             <!-- or if none of its songs match the song name/artist search terms -->
             <Setter Property="IsVisible">
               <MultiBinding Converter="{x:Static BoolConverters.And}">
                 <MultiBinding Converter="{StaticResource SearchVisibility}">
-                  <Binding ElementName="Tree" Path="DataContext.Search.Self" />
+                  <Binding ElementName="Me" Path="DataContext.Search.Self" />
                   <Binding />
                 </MultiBinding>
                 <MultiBinding Converter="{StaticResource SearchVisibility}">
-                  <Binding ElementName="Tree" Path="DataContext.Search.Self" />
+                  <Binding ElementName="Me" Path="DataContext.Search.Self" />
                   <Binding Path="Songs.Items" />
                 </MultiBinding>
               </MultiBinding>
@@ -225,11 +226,11 @@
             <Setter Property="IsVisible">
               <MultiBinding Converter="{x:Static BoolConverters.And}">
                 <MultiBinding Converter="{StaticResource SongVisibility}">
-                  <Binding ElementName="Tree" Path="DataContext.SongVisibility.Self" />
+                  <Binding ElementName="Me" Path="DataContext.SongVisibility.Self" />
                   <Binding />
                 </MultiBinding>
                 <MultiBinding Converter="{StaticResource SearchVisibility}">
-                  <Binding ElementName="Tree" Path="DataContext.Search.Self" />
+                  <Binding ElementName="Me" Path="DataContext.Search.Self" />
                   <Binding />
                 </MultiBinding>
               </MultiBinding>
@@ -240,7 +241,7 @@
             <!-- Don't show the expand button if all songs are ignored and ignored songs are blocked -->
             <Setter Property="IsVisible">
               <MultiBinding Converter="{StaticResource SongVisibility}">
-                <Binding ElementName="Tree" Path="DataContext.SongVisibility.Self" />
+                <Binding ElementName="Me" Path="DataContext.SongVisibility.Self" />
                 <Binding Path="Songs.Items" />
               </MultiBinding>
             </Setter>
@@ -255,7 +256,7 @@
                 Command="{Binding ProcessSongs}" />
         <Button Grid.Row="1" Content="Cancel"
                 Command="{Binding CancelProcessing}"
-                IsVisible="{Binding ProcessSongs.IsExecuting^}" />
+                IsVisible="{Binding IsProcessing}" />
 
         <UniformGrid Grid.Row="3" Columns="1" IsVisible="{Binding !!ProcessingData}">
           <UniformGrid.Styles>

@@ -10,7 +10,9 @@ using ReactiveUI;
 namespace AMQSongProcessor.UI.ViewModels
 {
 	[DataContract]
+#pragma warning disable CS8612 // Nullability of reference types in type doesn't match implicitly implemented member.
 	public sealed class SearchTerms : ReactiveObject, IBindableToSelf<SearchTerms>
+#pragma warning restore CS8612 // Nullability of reference types in type doesn't match implicitly implemented member.
 	{
 		private string? _AnimeName;
 		private string? _ArtistName;

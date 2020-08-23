@@ -9,7 +9,9 @@ using ReactiveUI;
 namespace AMQSongProcessor.UI.ViewModels
 {
 	[DataContract]
+#pragma warning disable CS8612 // Nullability of reference types in type doesn't match implicitly implemented member.
 	public sealed class SongVisibility : ReactiveObject, IBindableToSelf<SongVisibility>
+#pragma warning restore CS8612 // Nullability of reference types in type doesn't match implicitly implemented member.
 	{
 		private bool _IsExpanded;
 		private bool _ShowCompletedSongs = true;
