@@ -10,6 +10,8 @@ using System.Reactive.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
+using AdvorangesUtils;
+
 using AMQSongProcessor.Models;
 using AMQSongProcessor.UI.Models;
 using AMQSongProcessor.Utils;
@@ -363,12 +365,32 @@ namespace AMQSongProcessor.UI.ViewModels
 
 		private async Task PrivateLoad()
 		{
-			var files = _Loader.GetFiles(Directory!);
-			await foreach (var anime in _Loader.LoadFromFilesAsync(files, 5))
+			try
 			{
-				var observable = new ObservableAnime(anime);
-				ModifyVisibility(observable);
-				Anime.Add(observable);
+				var files = _Loader.GetFiles(Directory!);
+				await foreach (var anime in _Loader.LoadFromFilesAsync(files, 5))
+				{
+					var observable = new ObservableAnime(anime);
+					ModifyVisibility(observable);
+					Anime.Add(observable);
+				}
+			}
+			catch (Exception e)
+			{
+				static string CreateMessage(Exception e)
+				{
+					var msg = e.Message;
+					if (e.InnerException is null)
+					{
+						return msg;
+					}
+					return msg + "\n" + CreateMessage(e.InnerException);
+				}
+
+				var message = CreateMessage(e);
+				await _MessageBoxManager.ShowAsync(message, "Failed To Load Songs").ConfigureAwait(true);
+
+				throw;
 			}
 		}
 

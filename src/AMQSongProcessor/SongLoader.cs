@@ -109,7 +109,10 @@ namespace AMQSongProcessor
 				{
 					videoInfo = await Gatherer.GetVideoInfoAsync(source).CAF();
 				}
-				catch (Exception e) when ((ExceptionsToIgnore & IgnoreExceptions.Video) == 0)
+				catch (Exception) when ((ExceptionsToIgnore & IgnoreExceptions.Video) != 0)
+				{
+				}
+				catch (Exception e)
 				{
 					throw new InvalidOperationException($"Unable to get video info for {source}.", e);
 				}

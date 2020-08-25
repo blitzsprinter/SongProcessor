@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -51,9 +52,15 @@ namespace AMQSongProcessor.Utils
 
 			ValueTask DisposeEnumeratorAsync(IAsyncEnumerator<IAnime> enumerator)
 			{
-				if (enumerators.TryUpdate(enumerator, true, false))
+				try
 				{
-					return enumerator.DisposeAsync();
+					if (enumerators.TryUpdate(enumerator, true, false))
+					{
+						return enumerator.DisposeAsync();
+					}
+				}
+				catch (NotSupportedException) //When somehow diposed twice
+				{
 				}
 				return new ValueTask();
 			}

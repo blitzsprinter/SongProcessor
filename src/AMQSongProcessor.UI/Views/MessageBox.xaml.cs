@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using AMQSongProcessor.UI.ViewModels;
 
@@ -17,18 +16,11 @@ namespace AMQSongProcessor.UI.Views
 
 		public static Task<T> ShowAsync<T>(
 			Window window,
-			string text,
-			string title,
-			IEnumerable<T>? options)
+			MessageBoxViewModel<T> viewModel)
 		{
 			return new MessageBox
 			{
-				DataContext = new MessageBoxViewModel
-				{
-					Text = text,
-					Title = title,
-					Options = (IEnumerable<object>?)options,
-				},
+				DataContext = viewModel,
 			}.ShowDialog<T>(window);
 		}
 

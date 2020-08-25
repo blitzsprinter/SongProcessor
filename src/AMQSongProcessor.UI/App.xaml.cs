@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+
+using AdvorangesUtils;
 
 using AMQSongProcessor.Gatherers;
 using AMQSongProcessor.UI.ViewModels;
@@ -21,6 +24,8 @@ namespace AMQSongProcessor.UI
 
 		public override void OnFrameworkInitializationCompleted()
 		{
+			AppDomain.CurrentDomain.UnhandledException += (sender, e) => IOUtils.LogUncaughtException(e.ExceptionObject);
+
 			var window = InitializeSystemItems();
 			InitializeSongItems();
 

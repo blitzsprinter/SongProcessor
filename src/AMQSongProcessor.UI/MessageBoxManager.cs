@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
+using AMQSongProcessor.UI.ViewModels;
 using AMQSongProcessor.UI.Views;
 
 using Avalonia.Controls;
@@ -41,6 +42,13 @@ namespace AMQSongProcessor.UI
 		}
 
 		public Task<T> ShowAsync<T>(string text, string title, IEnumerable<T>? options)
-			=> MessageBox.ShowAsync(_Window, text, title, options);
+		{
+			return MessageBox.ShowAsync(_Window, new MessageBoxViewModel<T>
+			{
+				Text = text,
+				Title = title,
+				Options = options,
+			});
+		}
 	}
 }

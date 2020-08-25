@@ -7,8 +7,8 @@
         Name="MsgBox"
         Title="{Binding Title}"
         FontFamily="Courier New"
-        Width="278"
-        Height="133"
+        Width="{Binding Width}"
+        Height="{Binding Height}"
         CanResize="False">
 
   <Grid RowDefinitions="89*,42">
