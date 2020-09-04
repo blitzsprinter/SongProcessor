@@ -220,15 +220,12 @@ namespace AMQSongProcessor.UI.ViewModels
 			anime.IsVisible = Search.IsVisible(anime);
 		}
 
-		private ObservableAnime GetAnime(ObservableSong search)
-			=> Anime.Single(a => a.Songs.Any(s => ReferenceEquals(s, search)));
-
 		private void PrivateAddSong(ObservableAnime anime)
 		{
-			var song = new ObservableSong(new Song());
+			var song = new ObservableSong(anime, new Song());
 			anime.Songs.Add(song);
 
-			var vm = new EditViewModel(anime, song);
+			var vm = new EditViewModel(song);
 			HostScreen.Router.Navigate.Execute(vm);
 		}
 
@@ -279,16 +276,13 @@ namespace AMQSongProcessor.UI.ViewModels
 			=> _SystemClipboard.SetTextAsync(id.ToString());
 
 		private void PrivateCopySong(ObservableSong song)
-		{
-			var copy = new ObservableSong(song);
-			ClipboardSong = new Clipboard<ObservableSong>(copy, false, null);
-		}
+			=> ClipboardSong = new Clipboard<ObservableSong>(song, false, null);
 
 		private void PrivateCutSong(ObservableSong song)
 		{
-			var anime = GetAnime(song);
 			ClipboardSong = new Clipboard<ObservableSong>(song, true, () =>
 			{
+				var anime = song.Parent;
 				anime.Songs.Remove(song);
 				return _Loader.SaveAsync(anime.AbsoluteInfoPath, anime);
 			});
@@ -309,7 +303,7 @@ namespace AMQSongProcessor.UI.ViewModels
 
 		private async Task PrivateDeleteSong(ObservableSong song)
 		{
-			var anime = GetAnime(song);
+			var anime = song.Parent;
 			var text = $"Are you sure you want to delete \"{song.Name}\" from {anime.Name}?";
 			const string TITLE = "Song Deletion";
 
@@ -334,7 +328,7 @@ namespace AMQSongProcessor.UI.ViewModels
 
 		private void PrivateEditSong(ObservableSong song)
 		{
-			var vm = new EditViewModel(GetAnime(song), song);
+			var vm = new EditViewModel(song);
 			HostScreen.Router.Navigate.Execute(vm);
 		}
 
@@ -370,6 +364,12 @@ namespace AMQSongProcessor.UI.ViewModels
 					var observable = new ObservableAnime(anime);
 					ModifyVisibility(observable);
 					Anime.Add(observable);
+
+					observable.Changed.Subscribe(_ => ModifyVisibility(observable));
+					observable.Songs
+						.ToObservableChangeSet()
+						.WhenAnyPropertyChanged()
+						.Subscribe(_ => ModifyVisibility(observable));
 				}
 			}
 			catch (Exception e)
@@ -406,7 +406,7 @@ namespace AMQSongProcessor.UI.ViewModels
 				return;
 			}
 
-			foreach (var group in SelectedItems.OfType<ObservableSong>().GroupBy(GetAnime))
+			foreach (var group in SelectedItems.OfType<ObservableSong>().GroupBy(x => x.Parent))
 			{
 				foreach (var song in group)
 				{
@@ -439,7 +439,8 @@ namespace AMQSongProcessor.UI.ViewModels
 		private async Task PrivatePasteSong(ObservableAnime anime)
 		{
 			var cp = ClipboardSong!.Value;
-			anime.Songs.Add(cp.Value);
+			var song = new ObservableSong(anime, cp!.Value);
+			anime.Songs.Add(song);
 			await _Loader.SaveAsync(anime.AbsoluteInfoPath, anime).ConfigureAwait(true);
 
 			if (cp.OnPasteCallback != null)

@@ -29,6 +29,7 @@ namespace AMQSongProcessor.UI.Models
 		private SongTypeAndPosition _Type;
 		private VolumeModifer? _VolumeModifier;
 
+		public ObservableAnime Parent { get; }
 		public HashSet<int> AlsoIn
 		{
 			get => _AlsoIn;
@@ -102,8 +103,9 @@ namespace AMQSongProcessor.UI.Models
 		IReadOnlySet<int> ISong.AlsoIn => AlsoIn;
 		private string DebuggerDisplay => this.GetFullName();
 
-		public ObservableSong(ISong other)
+		public ObservableSong(ObservableAnime parent, ISong other)
 		{
+			Parent = parent;
 			AlsoIn = new HashSet<int>(other.AlsoIn);
 			Artist = other.Artist;
 			CleanPath = other.CleanPath;

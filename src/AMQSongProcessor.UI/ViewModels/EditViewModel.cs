@@ -147,16 +147,11 @@ namespace AMQSongProcessor.UI.ViewModels
 		public ReactiveCommand<Unit, Unit> SelectCleanPath { get; }
 		#endregion Commands
 
-		public EditViewModel(ObservableAnime anime, ObservableSong song, IScreen? screen = null)
+		public EditViewModel(ObservableSong song, IScreen? screen = null)
 		{
-			if (!anime.Songs.Contains(song))
-			{
-				throw new ArgumentException($"Must belong to {anime.Name}.", nameof(song));
-			}
-
 			_HostScreen = screen;
 			_Song = song ?? throw new ArgumentNullException(nameof(song));
-			_Anime = anime ?? throw new ArgumentNullException(nameof(anime));
+			_Anime = song.Parent ?? throw new ArgumentNullException(nameof(song.Parent));
 			_Loader = Locator.Current.GetService<ISongLoader>();
 			_MessageBoxManager = Locator.Current.GetService<IMessageBoxManager>();
 

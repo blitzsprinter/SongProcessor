@@ -85,7 +85,7 @@ namespace AMQSongProcessor.UI.Models
 			Id = anime.Id;
 			Name = anime.Name;
 			Songs = new ObservableCollectionPlus<ObservableSong>();
-			Songs.AddRange(anime.Songs.Select(x => new ObservableSong(x)));
+			Songs.AddRange(anime.Songs.Select(x => new ObservableSong(this, x)));
 			IsExpanderVisible = Songs.Count > 0;
 			VideoInfo = anime.VideoInfo;
 			Year = anime.Year;
