@@ -11,11 +11,9 @@ namespace AMQSongProcessor.Utils
 	public static class FileUtils
 	{
 		private const string NUMBER_PATTERN = "_({0})";
-
 		private static readonly HashSet<char> InvalidChars =
 			new HashSet<char>(Path.GetInvalidFileNameChars().Concat(Path.GetInvalidPathChars()));
-
-		private static readonly bool IsWindows =
+		public static bool IsWindows { get; } =
 			Environment.OSVersion.Platform.ToString().CaseInsContains("win");
 
 		public static string? EnsureAbsolutePath(string? directory, string? path)

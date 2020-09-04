@@ -15,11 +15,13 @@ namespace AMQSongProcessor.Jobs
 		public const int FILE_ALREADY_EXISTS = 183;
 		public static readonly AspectRatio SquareSAR = new AspectRatio(1, 1);
 
-		public event Action<ProcessingData>? ProcessingDataReceived;
+		public bool AlreadyExists => File.Exists(GetSanitizedPath());
 
-		public bool AlreadyExists => File.Exists(GetValidPath());
-		public ISong Song { get; }
 		public IAnime Anime { get; }
+
+		public ISong Song { get; }
+
+		public event Action<ProcessingData>? ProcessingDataReceived;
 
 		protected SongJob(IAnime anime, ISong song)
 		{
@@ -29,7 +31,7 @@ namespace AMQSongProcessor.Jobs
 
 		public async Task<int> ProcessAsync(CancellationToken? token = null)
 		{
-			var path = GetValidPath();
+			var path = GetSanitizedPath();
 			if (File.Exists(path))
 			{
 				return FILE_ALREADY_EXISTS;
@@ -65,17 +67,14 @@ namespace AMQSongProcessor.Jobs
 
 		protected abstract string GenerateArgs();
 
-		[Obsolete("Implement this, but use " + nameof(GetValidPath) + " instead")]
-		protected abstract string GetPath();
-
-		protected string GetValidPath()
+		protected string GetSanitizedPath()
 		{
-#pragma warning disable CS0618 // Type or member is obsolete
-			var path = GetPath();
-#pragma warning restore CS0618 // Type or member is obsolete
+			var path = GetUnsanitizedPath();
 			var dir = Path.GetDirectoryName(path)!;
 			var file = FileUtils.SanitizePath(Path.GetFileName(path));
 			return Path.Combine(dir, file);
 		}
+
+		protected abstract string GetUnsanitizedPath();
 	}
 }

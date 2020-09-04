@@ -96,8 +96,10 @@ namespace AMQSongProcessor
 			var file = Path.Combine(dir, FixesFile);
 			using var sw = new StreamWriter(file, append: false);
 
+			var count = 0;
 			foreach (var anime in animes)
 			{
+				var writtenSongs = 0;
 				foreach (var song in anime.Songs)
 				{
 					if (song.ShouldIgnore || song.Status != Status.NotSubmitted)
@@ -125,10 +127,20 @@ namespace AMQSongProcessor
 						sb.Append("**Duplicate found in:** ").AppendLine(others);
 					}
 
-					sb.AppendLine("**I solemnly swear that I have checked that this song-anime combo isn't in the game already, and I have read and understand all the pins**");
 					await sw.WriteAsync(sb.AppendLine()).CAF();
+					++writtenSongs;
+				}
+
+				if (writtenSongs > 0)
+				{
+					++count;
 				}
 			}
+
+			var text = count > 1
+				? "**I solemnly swear that I have checked that these song-anime combos aren't in the game already, and I have read and understand all the pins**"
+				: "**I solemnly swear that I have checked that this song-anime combo isn't in the game already, and I have read and understand all the pins**";
+			await sw.WriteAsync(text).CAF();
 		}
 
 		private IEnumerable<SongJob> GetJobs(

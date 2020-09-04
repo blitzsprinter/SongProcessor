@@ -100,11 +100,10 @@ namespace AMQSongProcessor.Jobs
 				args += $" -filter:a \"volume={Song.VolumeModifier}\"";
 			}
 
-			return args + $" \"{GetValidPath()}\"";
+			return args + $" \"{GetSanitizedPath()}\"";
 		}
 
-		[Obsolete]
-		protected override string GetPath()
+		protected override string GetUnsanitizedPath()
 			=> Song.GetVideoPath(Anime.GetDirectory(), Anime.Id, Resolution);
 	}
 }

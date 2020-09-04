@@ -45,11 +45,10 @@ namespace AMQSongProcessor.Jobs
 			}
 
 			args += ARGS;
-			return args + $" \"{GetValidPath()}\"";
+			return args + $" \"{GetSanitizedPath()}\"";
 		}
 
-		[Obsolete]
-		protected override string GetPath()
+		protected override string GetUnsanitizedPath()
 			=> Song.GetMp3Path(Anime.GetDirectory(), Anime.Id);
 	}
 }

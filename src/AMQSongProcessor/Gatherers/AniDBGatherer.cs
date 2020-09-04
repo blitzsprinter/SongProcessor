@@ -179,8 +179,12 @@ namespace AMQSongProcessor.Gatherers
 			try
 			{
 				var span = doc.DocumentNode.Descendants("span");
-				var datePublished = span.Single(x => x.GetAttributeValue("itemprop", null) == "datePublished");
-				var content = datePublished.GetAttributeValue("content", null);
+				var date = span.Single(x =>
+				{
+					var itemProp = x.GetAttributeValue("itemprop", null);
+					return itemProp == "datePublished" || itemProp == "startDate";
+				});
+				var content = date.GetAttributeValue("content", null);
 				return DateTime.Parse(content).Year;
 			}
 			catch (Exception e)

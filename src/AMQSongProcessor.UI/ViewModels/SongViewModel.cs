@@ -166,7 +166,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			DeleteSong = ReactiveCommand.CreateFromTask<ObservableSong>(PrivateDeleteSong);
 			ExportFixes = ReactiveCommand.CreateFromTask(PrivateExportFixes);
 			ProcessSongs = ReactiveCommand.CreateFromObservable(PrivateProcessSongs);
-			CancelProcessing = ReactiveCommand.Create(PrivateCancelProcessing);
+			CancelProcessing = ReactiveCommand.Create(() => { });
 			SelectDirectory = ReactiveCommand.CreateFromTask(PrivateSelectDirectory);
 			ModifyMultipleSongsStatus = ReactiveCommand.CreateFromTask<StatusModifier>(PrivateModifyMultipleSongsStatus);
 
@@ -231,9 +231,6 @@ namespace AMQSongProcessor.UI.ViewModels
 			var vm = new EditViewModel(anime, song);
 			HostScreen.Router.Navigate.Execute(vm);
 		}
-
-		private void PrivateCancelProcessing()
-			=> ProcessingData = null;
 
 		private async Task PrivateChangeSource(ObservableAnime anime)
 		{
@@ -467,10 +464,16 @@ namespace AMQSongProcessor.UI.ViewModels
 						++CurrentJob;
 					}
 					ProcessingData = x;
-				}, token).ConfigureAwait(true);
 
+					TaskbarProgress.UpdateTaskbarProgress(x.Percentage);
+				}, token).ConfigureAwait(true);
+			})
+			.Finally(() =>
+			{
 				ProcessingData = null;
-			}).TakeUntil(CancelProcessing);
+				TaskbarProgress.UpdateTaskbarProgress(null);
+			})
+			.TakeUntil(CancelProcessing);
 		}
 
 		private async Task PrivateSelectDirectory()
