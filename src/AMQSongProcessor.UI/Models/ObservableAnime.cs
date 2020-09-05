@@ -76,7 +76,7 @@ namespace AMQSongProcessor.UI.Models
 			get => _Year;
 			set => this.RaiseAndSetIfChanged(ref _Year, value);
 		}
-		IEnumerable<ISong> IAnimeBase.Songs => Songs;
+		IReadOnlyList<ISong> IAnimeBase.Songs => Songs;
 		private string DebuggerDisplay => Name;
 
 		public ObservableAnime(IAnime anime)

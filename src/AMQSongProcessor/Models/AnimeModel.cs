@@ -12,7 +12,7 @@ namespace AMQSongProcessor.Models
 		public List<Song> Songs { get; set; } = new List<Song>();
 		public string? Source { get; set; }
 		public int Year { get; set; }
-		IEnumerable<ISong> IAnimeBase.Songs => Songs;
+		IReadOnlyList<ISong> IAnimeBase.Songs => Songs;
 		private string DebuggerDisplay => Name;
 
 		public AnimeModel()

@@ -145,10 +145,6 @@ namespace AMQSongProcessor.UI.ViewModels
 			_SystemClipboard = Locator.Current.GetService<IClipboard>();
 			_MessageBoxManager = Locator.Current.GetService<IMessageBoxManager>();
 
-			var validDirectory = this
-				.WhenAnyValue(x => x.Directory)
-				.Select(System.IO.Directory.Exists);
-			Load = ReactiveCommand.CreateFromTask(PrivateLoad, validDirectory);
 			Unload = ReactiveCommand.Create(PrivateUnload);
 			CopyANNID = ReactiveCommand.CreateFromTask<int>(PrivateCopyANNID);
 			OpenInfoFile = ReactiveCommand.Create<ObservableAnime>(PrivateOpenInfoFile);
@@ -159,7 +155,6 @@ namespace AMQSongProcessor.UI.ViewModels
 			ChangeSource = ReactiveCommand.CreateFromTask<ObservableAnime>(PrivateChangeSource);
 			ClearSource = ReactiveCommand.CreateFromTask<ObservableAnime>(PrivateClearSource);
 			AddSong = ReactiveCommand.Create<ObservableAnime>(PrivateAddSong);
-			PasteSong = ReactiveCommand.CreateFromTask<ObservableAnime>(PrivatePasteSong);
 			EditSong = ReactiveCommand.Create<ObservableSong>(PrivateEditSong);
 			CopySong = ReactiveCommand.Create<ObservableSong>(PrivateCopySong);
 			CutSong = ReactiveCommand.Create<ObservableSong>(PrivateCutSong);
@@ -169,6 +164,16 @@ namespace AMQSongProcessor.UI.ViewModels
 			CancelProcessing = ReactiveCommand.Create(() => { });
 			SelectDirectory = ReactiveCommand.CreateFromTask(PrivateSelectDirectory);
 			ModifyMultipleSongsStatus = ReactiveCommand.CreateFromTask<StatusModifier>(PrivateModifyMultipleSongsStatus);
+
+			var validDirectory = this
+				.WhenAnyValue(x => x.Directory)
+				.Select(System.IO.Directory.Exists);
+			Load = ReactiveCommand.CreateFromTask(PrivateLoad, validDirectory);
+
+			var validClipboard = this
+				.WhenAnyValue(x => x.ClipboardSong)
+				.Select(x => x != null);
+			PasteSong = ReactiveCommand.CreateFromTask<ObservableAnime>(PrivatePasteSong, validClipboard);
 
 			var loading = Load.IsExecuting;
 			var processing = ProcessSongs.IsExecuting;

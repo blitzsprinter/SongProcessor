@@ -18,7 +18,7 @@ namespace AMQSongProcessor.Models
 		public string? Source => FileUtils.StoreRelativeOrAbsolute(this.GetDirectory(), VideoInfo?.Path);
 		public SourceInfo<VideoInfo>? VideoInfo { get; set; }
 		public int Year { get; }
-		IEnumerable<ISong> IAnimeBase.Songs => Songs;
+		IReadOnlyList<ISong> IAnimeBase.Songs => Songs;
 		private string DebuggerDisplay => Name;
 
 		public Anime(string file, IAnimeBase other, SourceInfo<VideoInfo>? videoInfo)

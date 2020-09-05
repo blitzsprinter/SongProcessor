@@ -35,39 +35,39 @@
     <Grid Grid.Row="1" ColumnDefinitions="9*,1*">
       <Grid.ContextMenu>
         <ContextMenu>
-          <HeaderedContentControl Header="Search by anime name">
+          <HeaderedContentControl Header="Search By Anime Name">
             <TextBox Text="{Binding Search.AnimeName}" />
           </HeaderedContentControl>
-          <HeaderedContentControl Header="Search by song name">
+          <HeaderedContentControl Header="Search By Song Name">
             <TextBox Text="{Binding Search.SongName}" />
           </HeaderedContentControl>
-          <HeaderedContentControl Header="Search by artist name">
+          <HeaderedContentControl Header="Search By Artist Name">
             <TextBox Text="{Binding Search.ArtistName}" />
           </HeaderedContentControl>
           <MenuItem Header="-" />
-          <MenuItem Header="Expand all">
+          <MenuItem Header="Expand All">
             <MenuItem.Icon>
               <CheckBox IsChecked="{Binding SongVisibility.IsExpanded}" />
             </MenuItem.Icon>
           </MenuItem>
           <MenuItem Header="-" />
-          <MenuItem Header="Show ignored songs">
+          <MenuItem Header="Show Ignored Songs">
             <MenuItem.Icon>
               <CheckBox IsChecked="{Binding SongVisibility.ShowIgnoredSongs}" />
             </MenuItem.Icon>
           </MenuItem>
           <MenuItem Header="-" />
-          <MenuItem Header="Show unsubmitted songs">
+          <MenuItem Header="Show Unsubmitted Songs">
             <MenuItem.Icon>
               <CheckBox IsChecked="{Binding SongVisibility.ShowUnsubmittedSongs}" />
             </MenuItem.Icon>
           </MenuItem>
-          <MenuItem Header="Show incompleted songs">
+          <MenuItem Header="Show Incompleted Songs">
             <MenuItem.Icon>
               <CheckBox IsChecked="{Binding SongVisibility.ShowIncompletedSongs}" />
             </MenuItem.Icon>
           </MenuItem>
-          <MenuItem Header="Show completed songs">
+          <MenuItem Header="Show Completed Songs">
             <MenuItem.Icon>
               <CheckBox IsChecked="{Binding SongVisibility.ShowCompletedSongs}" />
             </MenuItem.Icon>
@@ -104,8 +104,7 @@
                   <MenuItem Header="Add Song" CommandParameter="{Binding}"
                             Command="{Binding ElementName=Me, Path=DataContext.AddSong}" />
                   <MenuItem Header="Paste Song" CommandParameter="{Binding}"
-                            Command="{Binding ElementName=Me, Path=DataContext.PasteSong}"
-                            IsEnabled="{Binding ElementName=Me, Path=DataContext.ClipboardSong, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                            Command="{Binding ElementName=Me, Path=DataContext.PasteSong}" />
                 </ContextMenu>
               </TextBlock.ContextMenu>
 
