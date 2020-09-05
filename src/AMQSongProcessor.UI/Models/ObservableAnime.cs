@@ -1,6 +1,7 @@
 ﻿#pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
 
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 
@@ -22,7 +23,7 @@ namespace AMQSongProcessor.UI.Models
 		private bool _IsExpanderVisible;
 		private bool _IsVisible = true;
 		private string _Name;
-		private ObservableCollectionPlus<ObservableSong> _Songs;
+		private ObservableCollection<ObservableSong> _Songs;
 		private SourceInfo<VideoInfo>? _VideoInfo;
 		private int _Year;
 
@@ -56,7 +57,7 @@ namespace AMQSongProcessor.UI.Models
 			get => _Name;
 			set => this.RaiseAndSetIfChanged(ref _Name, value);
 		}
-		public ObservableCollectionPlus<ObservableSong> Songs
+		public ObservableCollection<ObservableSong> Songs
 		{
 			get => _Songs;
 			set => this.RaiseAndSetIfChanged(ref _Songs, value);
@@ -84,7 +85,7 @@ namespace AMQSongProcessor.UI.Models
 			AbsoluteInfoPath = anime.AbsoluteInfoPath;
 			Id = anime.Id;
 			Name = anime.Name;
-			Songs = new ObservableCollectionPlus<ObservableSong>();
+			Songs = new SortedObservableCollection<ObservableSong>(new SongComparer());
 			Songs.AddRange(anime.Songs.Select(x => new ObservableSong(this, x)));
 			IsExpanderVisible = Songs.Count > 0;
 			VideoInfo = anime.VideoInfo;

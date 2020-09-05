@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 using AMQSongProcessor.Models;
 
@@ -6,6 +7,8 @@ namespace AMQSongProcessor.UI
 {
 	public sealed class AnimeComparer : Comparer<IAnime>
 	{
+		private readonly SongComparer _SongComparer = new SongComparer();
+
 		public override int Compare(IAnime? x, IAnime? y)
 		{
 			if (x != null)
@@ -31,6 +34,17 @@ namespace AMQSongProcessor.UI
 			if (name != 0)
 			{
 				return name;
+			}
+
+			var song = 0;
+			var count = Math.Min(x.Songs.Count, y.Songs.Count);
+			for (var i = 0; i < count && song == 0; ++i)
+			{
+				song = _SongComparer.Compare(x.Songs[i], y.Songs[i]);
+			}
+			if (song != 0)
+			{
+				return song;
 			}
 
 			return string.Compare(x.AbsoluteInfoPath, y.AbsoluteInfoPath);
