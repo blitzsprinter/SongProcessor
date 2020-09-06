@@ -87,7 +87,7 @@ namespace AMQSongProcessor
 				};
 				f(info);
 			};
-			await process.RunAsync(false).CAF();
+			await process.RunAsync(OutputMode.Async).CAF();
 
 			return new SourceInfo<VolumeInfo>(file, info);
 		}
@@ -122,32 +122,27 @@ namespace AMQSongProcessor
 				process.Dispose();
 			}, _ => { });
 
-			var sb = new StringBuilder();
-			process.OutputDataReceived += (s, e) => sb.Append(e.Data);
-			await process.RunAsync(false).CAF();
+			await process.RunAsync(OutputMode.Sync).CAF();
 			// Must call WaitForExit otherwise the json may be incomplete
 			process.WaitForExit();
 
-			var str = sb.ToString();
 			try
 			{
-				using var doc = JsonDocument.Parse(str);
-
-				var info = doc.RootElement.GetProperty("streams")[0].ToObject<T>(_Options);
-				if (info != null)
+				using var doc = await JsonDocument.ParseAsync(process.StandardOutput.BaseStream).CAF();
+				if (!doc.RootElement.TryGetProperty("streams", out var property))
 				{
-					return new SourceInfo<T>(file, info);
+					throw Exception(stream, file, new InvalidFileTypeException("Invalid file type."));
 				}
-
-				throw Exception(stream, file, new JsonException("Invalid json supplied."));
+				var info = property[0].ToObject<T>(_Options);
+				if (info == null)
+				{
+					throw Exception(stream, file, new JsonException("Invalid json supplied."));
+				}
+				return new SourceInfo<T>(file, info);
 			}
-			catch (KeyNotFoundException knfe) when (sb.Length == 2)
+			catch (JsonException je)
 			{
-				throw Exception(stream, file, new InvalidFileTypeException("Invalid file type.", knfe));
-			}
-			catch (JsonException je) when (str.Length != sb.Length)
-			{
-				throw Exception(stream, file, new JsonException("Process ended before json was fully written.", je));
+				throw Exception(stream, file, new JsonException("Unable to parse JSON. Possibly attempted to parse before stream was fully written to.", je));
 			}
 			catch (Exception e) when (!(e is SourceInfoGatheringException))
 			{

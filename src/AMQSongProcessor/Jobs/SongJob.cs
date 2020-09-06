@@ -62,7 +62,7 @@ namespace AMQSongProcessor.Jobs
 				}
 			};
 
-			return await process.RunAsync(false).CAF();
+			return await process.RunAsync(OutputMode.Async).CAF();
 		}
 
 		protected abstract string GenerateArgs();

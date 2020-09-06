@@ -12,6 +12,13 @@ using AdvorangesUtils;
 
 namespace AMQSongProcessor.Utils
 {
+	[Flags]
+	public enum OutputMode : uint
+	{
+		Sync = 0,
+		Async = 1U << 0,
+	}
+
 	public readonly struct Program
 	{
 		public string Path { get; }
@@ -49,18 +56,12 @@ namespace AMQSongProcessor.Utils
 			};
 		}
 
-		public static Task<int> RunAsync(this Process process, bool write)
+		public static Task<int> RunAsync(this Process process, OutputMode mode)
 		{
 			var tcs = new TaskCompletionSource<int>();
 
 			process.EnableRaisingEvents = true;
 			process.WithCleanUp((s, e) => { }, c => tcs.SetResult(c));
-
-			if (write)
-			{
-				process.OutputDataReceived += (s, e) => Console.WriteLine(e.Data);
-				process.ErrorDataReceived += (s, e) => Console.WriteLine(e.Data);
-			}
 
 			var started = process.Start();
 			if (!started)
@@ -68,8 +69,11 @@ namespace AMQSongProcessor.Utils
 				throw new InvalidOperationException("Could not start process: " + process);
 			}
 
-			process.BeginOutputReadLine();
-			process.BeginErrorReadLine();
+			if ((mode & OutputMode.Async) != 0)
+			{
+				process.BeginOutputReadLine();
+				process.BeginErrorReadLine();
+			}
 
 			return tcs.Task;
 		}
