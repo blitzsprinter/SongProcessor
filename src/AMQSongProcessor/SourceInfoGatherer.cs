@@ -116,6 +116,7 @@ namespace AMQSongProcessor
 			#endregion Args
 
 			using var process = ProcessUtils.FFprobe.CreateProcess(args);
+			process.StartInfo.StandardOutputEncoding = Encoding.UTF8;
 			process.WithCleanUp((s, e) =>
 			{
 				process.Kill();
