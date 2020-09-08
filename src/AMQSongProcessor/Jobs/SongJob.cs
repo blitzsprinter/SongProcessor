@@ -45,7 +45,7 @@ namespace AMQSongProcessor.Jobs
 				//Without this sleep the file is not released in time and an exception happens
 				Thread.Sleep(25);
 				File.Delete(path);
-			}, _ => { }, token);
+			}, null, token);
 
 			//ffmpeg will output the information we want to std:out
 			var ffmpegProgressBuilder = new FfmpegProgressBuilder();

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -68,8 +69,12 @@ namespace AMQSongProcessor.Utils
 		[return: MaybeNull]
 		public static T ToObject<T>(this JsonElement element, JsonSerializerOptions? options = null)
 		{
-			var json = element.GetRawText();
-			return JsonSerializer.Deserialize<T>(json, options);
+			var bufferWriter = new ArrayBufferWriter<byte>();
+			using (var writer = new Utf8JsonWriter(bufferWriter))
+			{
+				element.WriteTo(writer);
+			}
+			return JsonSerializer.Deserialize<T>(bufferWriter.WrittenSpan, options);
 		}
 
 		[return: MaybeNull]

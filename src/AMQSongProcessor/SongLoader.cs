@@ -42,11 +42,14 @@ namespace AMQSongProcessor
 				return null;
 			}
 
-			using var fs = new FileStream(file, FileMode.Open);
-
 			try
 			{
-				var deserialized = await JsonSerializer.DeserializeAsync(fs, ModelType, Options).CAF();
+				object? deserialized;
+				using (var fs = new FileStream(file, FileMode.Open))
+				{
+					deserialized = await JsonSerializer.DeserializeAsync(fs, ModelType, Options).CAF();
+				}
+
 				if (!(deserialized is IAnimeBase model))
 				{
 					throw new InvalidOperationException("Invalid type supplied for deserializing.");

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,11 +17,6 @@ namespace AMQSongProcessor
 	public static class Program
 	{
 		private static string? _Current;
-
-		static Program()
-		{
-			Console.SetBufferSize(Console.BufferWidth, short.MaxValue - 1);
-		}
 
 		private static async Task Main()
 		{
@@ -58,6 +54,8 @@ namespace AMQSongProcessor
 				anime.Add(modifiable);
 			}
 
+			Console.SetBufferSize(Console.BufferWidth, short.MaxValue - 1);
+			Console.OutputEncoding = Encoding.UTF8;
 			Display(anime);
 
 			var processor = new SongProcessor();

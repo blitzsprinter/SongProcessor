@@ -54,7 +54,7 @@ namespace AMQSongProcessor
 			{
 				process.Kill();
 				process.Dispose();
-			}, _ => { });
+			}, null);
 
 			var info = new VolumeInfo();
 			process.ErrorDataReceived += (s, e) =>
@@ -117,11 +117,12 @@ namespace AMQSongProcessor
 
 			using var process = ProcessUtils.FFprobe.CreateProcess(args);
 			process.StartInfo.StandardOutputEncoding = Encoding.UTF8;
+			process.StartInfo.RedirectStandardOutput = true;
 			process.WithCleanUp((s, e) =>
 			{
 				process.Kill();
 				process.Dispose();
-			}, _ => { });
+			}, null);
 
 			await process.RunAsync(OutputMode.Sync).CAF();
 			// Must call WaitForExit otherwise the json may be incomplete

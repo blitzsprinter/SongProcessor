@@ -36,6 +36,8 @@ namespace AMQSongProcessor.Utils
 	{
 		private static readonly bool IsWindows =
 			Environment.OSVersion.Platform.ToString().CaseInsContains("win");
+		private static readonly IReadOnlyList<Environment.SpecialFolder> SpecialFolders =
+			GetValues<Environment.SpecialFolder>();
 		public static Program FFmpeg { get; } = FindProgram("ffmpeg");
 		public static Program FFprobe { get; } = FindProgram("ffprobe");
 
@@ -61,7 +63,7 @@ namespace AMQSongProcessor.Utils
 			var tcs = new TaskCompletionSource<int>();
 
 			process.EnableRaisingEvents = true;
-			process.WithCleanUp((s, e) => { }, c => tcs.SetResult(c));
+			process.WithCleanUp(null, c => tcs.SetResult(c));
 
 			var started = process.Start();
 			if (!started)
@@ -80,8 +82,8 @@ namespace AMQSongProcessor.Utils
 
 		public static Process WithCleanUp(
 			this Process process,
-			EventHandler onCancel,
-			Action<int> onComplete,
+			EventHandler? onCancel,
+			Action<int>? onComplete,
 			CancellationToken? token = null)
 		{
 			if (!process.EnableRaisingEvents)
@@ -98,7 +100,7 @@ namespace AMQSongProcessor.Utils
 				}
 
 				isCanceled = true;
-				onCancel(sender, args);
+				onCancel?.Invoke(sender, args);
 			}
 
 			//If the program gets shut down, make sure it also shuts down the process
@@ -112,7 +114,7 @@ namespace AMQSongProcessor.Utils
 				AppDomain.CurrentDomain.ProcessExit -= Cancel;
 				AppDomain.CurrentDomain.UnhandledException -= Cancel;
 				registration?.Dispose();
-				onComplete(process.ExitCode);
+				onComplete?.Invoke(process.ExitCode);
 			};
 			return process;
 		}
@@ -137,17 +139,6 @@ namespace AMQSongProcessor.Utils
 
 		private static IEnumerable<string> GetDirectories(string program)
 		{
-			static IReadOnlyList<T> GetValues<T>() where T : Enum
-			{
-				var uncast = Enum.GetValues(typeof(T));
-				var cast = new T[uncast.Length];
-				for (var i = 0; i < uncast.Length; ++i)
-				{
-					cast[i] = (T)uncast.GetValue(i)!;
-				}
-				return cast;
-			}
-
 			//Check where the program is stored
 			if (Assembly.GetExecutingAssembly().Location is string assembly)
 			{
@@ -162,10 +153,21 @@ namespace AMQSongProcessor.Utils
 				}
 			}
 			//Check every special folder
-			foreach (var folder in GetValues<Environment.SpecialFolder>())
+			foreach (var folder in SpecialFolders)
 			{
 				yield return Path.Combine(Environment.GetFolderPath(folder), program);
 			}
+		}
+
+		private static IReadOnlyList<T> GetValues<T>() where T : Enum
+		{
+			var uncast = Enum.GetValues(typeof(T));
+			var cast = new T[uncast.Length];
+			for (var i = 0; i < uncast.Length; ++i)
+			{
+				cast[i] = (T)uncast.GetValue(i)!;
+			}
+			return cast;
 		}
 
 		private static bool TryGetProgram(
