@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 using AMQSongProcessor.Models;
 
-namespace AMQSongProcessor.UI
+namespace AMQSongProcessor
 {
 	public sealed class AnimeComparer : Comparer<IAnime>
 	{

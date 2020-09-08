@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 using AMQSongProcessor.Models;
 using AMQSongProcessor.Utils;
 
-namespace AMQSongProcessor.UI
+namespace AMQSongProcessor
 {
 	public sealed class SongComparer : Comparer<ISong>
 	{

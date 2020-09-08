@@ -43,19 +43,20 @@ namespace AMQSongProcessor
 				Console.WriteLine("Invalid directory provided; enter a valid one: ");
 			}
 #endif
+			Console.SetBufferSize(Console.BufferWidth, short.MaxValue - 1);
+			Console.OutputEncoding = Encoding.UTF8;
+
 			var loader = new SongLoader(new SourceInfoGatherer());
 			await AddNewShowsAsync(loader, dir).CAF();
 
-			var anime = new List<Anime>();
-			await foreach (var item in loader.LoadFromDirectoryAsync(dir))
+			var anime = new SortedSet<Anime>(new AnimeComparer());
+			await foreach (var item in loader.LoadFromDirectoryAsync(dir, 5))
 			{
 				var modifiable = new Anime(item);
 				modifiable.Songs.RemoveAll(x => x.ShouldIgnore);
 				anime.Add(modifiable);
 			}
 
-			Console.SetBufferSize(Console.BufferWidth, short.MaxValue - 1);
-			Console.OutputEncoding = Encoding.UTF8;
 			Display(anime);
 
 			var processor = new SongProcessor();
