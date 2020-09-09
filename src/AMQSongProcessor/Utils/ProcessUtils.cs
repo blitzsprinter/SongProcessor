@@ -103,6 +103,8 @@ namespace AMQSongProcessor.Utils
 				onCancel?.Invoke(sender, args);
 			}
 
+			//If the program gets canceled, shut down the process
+			Console.CancelKeyPress += Cancel;
 			//If the program gets shut down, make sure it also shuts down the process
 			AppDomain.CurrentDomain.ProcessExit += Cancel;
 			//If an unhandled exception occurs, also attempt to shut down the process
@@ -111,6 +113,7 @@ namespace AMQSongProcessor.Utils
 			var registration = token?.Register(() => Cancel(token, EventArgs.Empty));
 			process.Exited += (s, e) =>
 			{
+				Console.CancelKeyPress -= Cancel;
 				AppDomain.CurrentDomain.ProcessExit -= Cancel;
 				AppDomain.CurrentDomain.UnhandledException -= Cancel;
 				registration?.Dispose();

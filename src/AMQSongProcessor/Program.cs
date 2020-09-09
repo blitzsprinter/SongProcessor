@@ -69,6 +69,9 @@ namespace AMQSongProcessor
 
 		private static void Display(IEnumerable<IAnime> anime)
 		{
+			const string UNKNOWN = "Unknown ";
+			const string JOINER = " | ";
+
 			static void DisplayStatusItems(Status status)
 			{
 				const Status ALL = Status.None | Status.Mp3 | Status.Res480 | Status.Res720;
@@ -113,15 +116,40 @@ namespace AMQSongProcessor
 				return ConsoleColor.DarkRed;
 			}
 
+			static int GetConsoleLength(string? value)
+			{
+				if (value is null)
+				{
+					return 0;
+				}
+
+				var start = Console.CursorLeft;
+				Console.Write(value);
+				var end = Console.CursorLeft;
+				Console.CursorLeft = start;
+
+				return end - start;
+			}
+
+			static void ConsoleWritePadded(string value, int totalWidth)
+			{
+				var start = Console.CursorLeft;
+				Console.Write(value.PadRight(totalWidth));
+				var end = Console.CursorLeft;
+
+				var diff = end - start - totalWidth;
+				if (diff > 0)
+				{
+					Console.CursorLeft -= diff;
+				}
+			}
+
 			var nameLen = int.MinValue;
 			var artLen = int.MinValue;
-			foreach (var show in anime)
+			foreach (var song in anime.SelectMany(x => x.Songs))
 			{
-				foreach (var song in show.Songs)
-				{
-					nameLen = Math.Max(nameLen, song.Name.Length);
-					artLen = Math.Max(artLen, song.Artist.Length);
-				}
+				nameLen = Math.Max(nameLen, GetConsoleLength(song.Name));
+				artLen = Math.Max(artLen, GetConsoleLength(song.Artist));
 			}
 
 			var originalBackground = Console.BackgroundColor;
@@ -136,22 +164,24 @@ namespace AMQSongProcessor
 
 				foreach (var song in show.Songs)
 				{
+					var ts = song.HasTimeStamp();
 					Console.BackgroundColor = GetBackground(song.Status);
+					Console.Write('\t');
 
-					const string UNKNOWN = "Unknown ";
-					Console.Write("\t" + new[]
-					{
-						song.Name?.PadRight(nameLen) ?? UNKNOWN,
-						song.Artist?.PadRight(artLen) ?? UNKNOWN,
-						song.HasTimeStamp() ? song.Start.ToString("hh\\:mm\\:ss") : UNKNOWN,
-						song.HasTimeStamp() ? song.GetLength().ToString("mm\\:ss").PadRight(UNKNOWN.Length) : UNKNOWN,
-					}.Join(" | "));
+					ConsoleWritePadded(song.Name ?? UNKNOWN, nameLen);
+					Console.Write(JOINER);
+					ConsoleWritePadded(song.Artist ?? UNKNOWN, artLen);
+					Console.Write(JOINER);
+					Console.Write(ts ? song.Start.ToString("hh\\:mm\\:ss") : UNKNOWN);
+					Console.Write(JOINER);
+					Console.Write(ts ? song.GetLength().ToString("mm\\:ss").PadRight(UNKNOWN.Length) : UNKNOWN);
 					DisplayStatusItems(song.Status);
 
 					Console.BackgroundColor = originalBackground;
 					Console.WriteLine();
 				}
 			}
+			Console.WriteLine();
 		}
 
 		private static void OnProcessingReceived(ProcessingData value)
