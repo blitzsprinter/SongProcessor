@@ -248,7 +248,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			{
 				anime.VideoInfo = await _Gatherer.GetVideoInfoAsync(path).ConfigureAwait(true);
 			}
-			catch (InvalidFileTypeException)
+			catch (Exception)
 			{
 				var text = $"\"{path}\" is an invalid file for a video source.";
 				await Dispatcher.UIThread.InvokeAsync(() => _MessageBoxManager.ShowAsync(text, "Invalid File")).ConfigureAwait(true);
