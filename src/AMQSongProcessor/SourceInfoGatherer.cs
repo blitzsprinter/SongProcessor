@@ -126,7 +126,7 @@ namespace AMQSongProcessor
 
 			await process.RunAsync(OutputMode.Sync).CAF();
 			// Must call WaitForExit otherwise the json may be incomplete
-			process.WaitForExit();
+			await process.WaitForExitAsync().CAF();
 
 			try
 			{
