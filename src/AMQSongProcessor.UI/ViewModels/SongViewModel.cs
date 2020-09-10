@@ -44,6 +44,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		private readonly IMessageBoxManager _MessageBoxManager;
 		private readonly ObservableAsPropertyHelper<bool> _MultipleItemsSelected;
 		private readonly ObservableAsPropertyHelper<bool> _OnlySongsSelected;
+		private readonly List<IDisposable> _Subscriptions = new List<IDisposable>();
 		private readonly ISongProcessor _Processor;
 		private readonly IClipboard _SystemClipboard;
 		private Clipboard<ObservableSong>? _ClipboardSong;
@@ -55,8 +56,8 @@ namespace AMQSongProcessor.UI.ViewModels
 		private AvaloniaList<object> _SelectedItems = new AvaloniaList<object>();
 		private SongVisibility _SongVisibility = new SongVisibility();
 
-		public ObservableCollection<ObservableAnime> Anime { get; }
-			= new SortedObservableCollection<ObservableAnime>(new AnimeComparer());
+		public ObservableCollection<ObservableAnime> Anime { get; } =
+			new SortedObservableCollection<ObservableAnime>(new AnimeComparer());
 		public IObservable<bool> CanNavigate { get; }
 		public Clipboard<ObservableSong>? ClipboardSong
 		{
@@ -196,16 +197,6 @@ namespace AMQSongProcessor.UI.ViewModels
 				.WhenAnyValue(x => x.Anime.Count)
 				.Select(x => x != 0);
 			CanNavigate = busy.CombineLatest(loaded, (x, y) => !(x || y));
-
-			Search.Changed
-				.Merge(SongVisibility.Changed)
-				.Subscribe(_ =>
-				{
-					foreach (var anime in Anime)
-					{
-						ModifyVisibility(anime);
-					}
-				});
 		}
 
 		private void ModifyVisibility(ObservableAnime anime)
@@ -366,16 +357,28 @@ namespace AMQSongProcessor.UI.ViewModels
 				var files = _Loader.GetFiles(Directory!);
 				await foreach (var anime in _Loader.LoadFromFilesAsync(files, 5))
 				{
-					var observable = new ObservableAnime(anime);
-					ModifyVisibility(observable);
-					Anime.Add(observable);
+					var o = new ObservableAnime(anime);
+					ModifyVisibility(o);
+					Anime.Add(o);
 
-					observable.Changed.Subscribe(_ => ModifyVisibility(observable));
-					observable.Songs
+					_Subscriptions.Add(o.Changed.Subscribe(_ => ModifyVisibility(o)));
+					_Subscriptions.Add(o.Songs
 						.ToObservableChangeSet()
 						.WhenAnyPropertyChanged()
-						.Subscribe(_ => ModifyVisibility(observable));
+						.Subscribe(_ => ModifyVisibility(o))
+					);
 				}
+
+				_Subscriptions.Add(Search.Changed
+					.Merge(SongVisibility.Changed)
+					.Subscribe(_ =>
+					{
+						foreach (var anime in Anime)
+						{
+							ModifyVisibility(anime);
+						}
+					})
+				);
 			}
 			catch (Exception e)
 			{
@@ -496,6 +499,11 @@ namespace AMQSongProcessor.UI.ViewModels
 
 		private void PrivateUnload()
 		{
+			foreach (var subscription in _Subscriptions)
+			{
+				subscription.Dispose();
+			}
+
 			Anime.Clear();
 			SelectedItems.Clear();
 			ClipboardSong = null;

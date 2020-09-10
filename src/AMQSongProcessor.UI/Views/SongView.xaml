@@ -195,6 +195,7 @@
             <Setter Property="HorizontalAlignment" Value="Left" />
           </Style>
 
+          <!-- Anime -->
           <Style Selector="TreeView > TreeViewItem">
             <Setter Property="IsExpanded"
                     Value="{Binding IsExpanded}" />
@@ -202,14 +203,16 @@
                     Value="{Binding IsVisible}" />
           </Style>
 
-          <Style Selector="TreeView > TreeViewItem > TreeViewItem">
-            <Setter Property="IsVisible"
-                    Value="{Binding IsVisible}" />
-          </Style>
-
+          <!-- Anime -->
           <Style Selector="TreeView > TreeViewItem /template/ ToggleButton#expander">
             <Setter Property="IsVisible"
                     Value="{Binding IsExpanderVisible}" />
+          </Style>
+
+          <!-- Song -->
+          <Style Selector="TreeView > TreeViewItem > TreeViewItem">
+            <Setter Property="IsVisible"
+                    Value="{Binding IsVisible}" />
           </Style>
         </TreeView.Styles>
       </TreeView>
