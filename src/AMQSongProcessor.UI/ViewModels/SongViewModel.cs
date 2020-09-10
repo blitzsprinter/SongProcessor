@@ -33,7 +33,7 @@ namespace AMQSongProcessor.UI.ViewModels
 {
 	[DataContract]
 #pragma warning disable CS8612 // Nullability of reference types in type doesn't match implicitly implemented member.
-	public class SongViewModel : ReactiveObject, IRoutableViewModel, INavigationController, IClearableViewModel
+	public class SongViewModel : ReactiveObject, IRoutableViewModel, INavigationController
 #pragma warning restore CS8612 // Nullability of reference types in type doesn't match implicitly implemented member.
 	{
 		private readonly ISourceInfoGatherer _Gatherer;
@@ -500,8 +500,5 @@ namespace AMQSongProcessor.UI.ViewModels
 			SelectedItems.Clear();
 			ClipboardSong = null;
 		}
-
-		public void Clear()
-			=> SelectedItems.Clear();
 	}
 }

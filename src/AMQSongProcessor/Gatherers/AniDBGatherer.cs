@@ -105,7 +105,7 @@ namespace AMQSongProcessor.Gatherers
 			var count = 1;
 			foreach (var tr in doc.DocumentNode.Descendants("tr"))
 			{
-				var dict = new Dictionary<string, HtmlNode?>(2)
+				var dict = new Dictionary<string, string?>(2)
 				{
 					[SONG] = null,
 					[CREATOR] = null,
@@ -123,7 +123,7 @@ namespace AMQSongProcessor.Gatherers
 								{
 									throw new InvalidOperationException($"Duplicate {@class}.");
 								}
-								dict[@class] = td;
+								dict[@class] = td.InnerText.Trim();
 							}
 							else if (@class == RELTYPE)
 							{
@@ -152,8 +152,8 @@ namespace AMQSongProcessor.Gatherers
 				yield return new Song
 				{
 					Type = new SongTypeAndPosition(type.Value, count++),
-					Name = dict[SONG]!.InnerText.Trim(),
-					Artist = dict[CREATOR]!.InnerText.Trim(),
+					Name = dict[SONG]!,
+					Artist = dict[CREATOR]!,
 				};
 			}
 		}

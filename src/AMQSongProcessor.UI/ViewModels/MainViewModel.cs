@@ -31,11 +31,6 @@ namespace AMQSongProcessor.UI.ViewModels
 			Add = CreateViewModelCommand<AddViewModel>();
 			GoBack = ReactiveCommand.Create(() =>
 			{
-				var previous = Router.NavigationStack[^2];
-				if (previous is IClearableViewModel clearable)
-				{
-					clearable.Clear();
-				}
 				Router.NavigateBack.Execute();
 			}, CanGoBack());
 		}
