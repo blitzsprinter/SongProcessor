@@ -446,8 +446,8 @@ namespace AMQSongProcessor.UI.ViewModels
 
 		private async Task PrivatePasteSong(ObservableAnime anime)
 		{
-			var cp = ClipboardSong!.Value;
-			var song = new ObservableSong(anime, cp!.Value);
+			var cp = ClipboardSong!;
+			var song = new ObservableSong(anime, cp.Value);
 			anime.Songs.Add(song);
 			await _Loader.SaveAsync(anime.AbsoluteInfoPath, anime).ConfigureAwait(true);
 

@@ -35,18 +35,18 @@ namespace AMQSongProcessor.Jobs
 				" -v quiet" +
 				" -stats" +
 				" -progress pipe:1" +
-				" -sn" + //No subtitles
-				" -map_metadata -1" + //No metadata
-				" -map_chapters -1" + //No chapters
+				" -sn" + // No subtitles
+				" -map_metadata -1" + // No metadata
+				" -map_chapters -1" + // No chapters
 				" -shortest" +
-				" -c:a libopus" + //Set the audio codec to libopus
-				" -b:a 320k" + //Set the audio bitrate to 320k
-				" -c:v " + LIB + //Set the video codec to whatever we're using
-				" -b:v 0" + //Constant bitrate = 0 so only the variable one is used
-				" -crf 20" + //Variable bitrate, 20 should look lossless
-				" -pix_fmt yuv420p" + //Set the pixel format to yuv420p
+				" -c:a libopus" + // Set the audio codec to libopus
+				" -b:a 320k" + // Set the audio bitrate to 320k
+				" -c:v " + LIB + // Set the video codec to whatever we're using
+				" -b:v 0" + // Constant bitrate = 0 so only the variable one is used
+				" -crf 20" + // Variable bitrate, 20 should look lossless
+				" -pix_fmt yuv420p" + // Set the pixel format to yuv420p
 				" -deadline good" +
-				" -cpu-used 1" + //With -deadline good, 0 = slow/quality, 5 = fast/sloppy
+				" -cpu-used 1" + // With -deadline good, 0 = slow/quality, 5 = fast/sloppy
 				" -tile-columns 2" +
 				" -tile-rows 2" +
 				" -row-mt 1" +
@@ -54,31 +54,31 @@ namespace AMQSongProcessor.Jobs
 				" -ac 2";
 
 			var args =
-				$" -ss {Song.Start}" + //Starting time
-				$" -to {Song.End}" + //Ending time
-				$" -i \"{Anime.GetAbsoluteSourcePath()}\""; //Video source
+				$" -ss {Song.Start}" + // Starting time
+				$" -to {Song.End}" + // Ending time
+				$" -i \"{Anime.GetAbsoluteSourcePath()}\""; // Video source
 
 			if (Song.CleanPath == null)
 			{
 				args +=
-					$" -map 0:v:{Song.OverrideVideoTrack}" + //Use the first input's video
-					$" -map 0:a:{Song.OverrideAudioTrack}"; //Use the first input's audio
+					$" -map 0:v:{Song.OverrideVideoTrack}" + // Use the first input's video
+					$" -map 0:a:{Song.OverrideAudioTrack}"; // Use the first input's audio
 			}
 			else
 			{
 				args +=
-					$" -i \"{Song.GetCleanSongPath(Anime.GetDirectory())}\"" + //Audio source
-					$" -map 0:v:{Song.OverrideVideoTrack}" + //Use the first input's video
-					" -map 1:a"; //Use the second input's audio
+					$" -i \"{Song.GetCleanSongPath(Anime.GetDirectory())}\"" + // Audio source
+					$" -map 0:v:{Song.OverrideVideoTrack}" + // Use the first input's video
+					" -map 1:a"; // Use the second input's audio
 			}
 
-			args += ARGS; //Add in the constant args, like quality + cpu usage
+			args += ARGS; // Add in the constant args, like quality + cpu usage
 
 			if (Anime.VideoInfo?.Info is VideoInfo info)
 			{
 				var width = -1;
 				var videoFilterParts = new List<string>();
-				//Resize video if needed
+				// Resize video if needed
 				if (info.SAR != SquareSAR)
 				{
 					videoFilterParts.Add($"setsar={SquareSAR.ToString('/')}");

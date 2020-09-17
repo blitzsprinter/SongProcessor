@@ -31,12 +31,6 @@ namespace AMQSongProcessor.Utils
 		public static bool HasTimeStamp(this ISong song)
 			=> song.Start > TimeSpan.FromSeconds(0);
 
-		public static bool IsCompleted(this ISong song)
-			=> !song.IsMissing(Status.Res480 | Status.Res720);
-
-		public static bool IsIncompleted(this ISong song)
-			=> !song.IsCompleted() && !song.IsUnsubmitted();
-
 		public static bool IsMissing(this ISong song, Status status)
 			=> (song.Status & status) == 0;
 

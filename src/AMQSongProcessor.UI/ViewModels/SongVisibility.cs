@@ -13,7 +13,9 @@ namespace AMQSongProcessor.UI.ViewModels
 		private bool _IsExpanded;
 		private bool _ShowCompletedSongs = true;
 		private bool _ShowIgnoredSongs = true;
-		private bool _ShowIncompletedSongs = true;
+		private bool _ShowMissing480pSongs = true;
+		private bool _ShowMissing720pSongs = true;
+		private bool _ShowMissingMp3Songs = true;
 		private bool _ShowUnsubmittedSongs = true;
 
 		[DataMember]
@@ -35,10 +37,22 @@ namespace AMQSongProcessor.UI.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _ShowIgnoredSongs, value);
 		}
 		[DataMember]
-		public bool ShowIncompletedSongs
+		public bool ShowMissing480pSongs
 		{
-			get => _ShowIncompletedSongs;
-			set => this.RaiseAndSetIfChanged(ref _ShowIncompletedSongs, value);
+			get => _ShowMissing480pSongs;
+			set => this.RaiseAndSetIfChanged(ref _ShowMissing480pSongs, value);
+		}
+		[DataMember]
+		public bool ShowMissing720pSongs
+		{
+			get => _ShowMissing720pSongs;
+			set => this.RaiseAndSetIfChanged(ref _ShowMissing720pSongs, value);
+		}
+		[DataMember]
+		public bool ShowMissingMp3Songs
+		{
+			get => _ShowMissingMp3Songs;
+			set => this.RaiseAndSetIfChanged(ref _ShowMissingMp3Songs, value);
 		}
 		[DataMember]
 		public bool ShowUnsubmittedSongs
@@ -49,10 +63,18 @@ namespace AMQSongProcessor.UI.ViewModels
 
 		public bool IsVisible(ISong song)
 		{
-			return (ShowIgnoredSongs || !song.ShouldIgnore)
-				&& ((ShowCompletedSongs && song.IsCompleted())
-				|| (ShowIncompletedSongs && song.IsIncompleted())
-				|| (ShowUnsubmittedSongs && song.IsUnsubmitted()));
+			const Status COMPLETED = Status.Mp3 | Status.Res480 | Status.Res720;
+
+			if (song.ShouldIgnore)
+			{
+				return ShowIgnoredSongs;
+			}
+
+			return (ShowUnsubmittedSongs && song.IsUnsubmitted())
+				|| (ShowCompletedSongs && (song.Status & COMPLETED) == COMPLETED)
+				|| (ShowMissingMp3Songs && (song.Status & Status.Mp3) == 0)
+				|| (ShowMissing480pSongs && (song.Status & Status.Res480) == 0)
+				|| (ShowMissing720pSongs && (song.Status & Status.Res720) == 0);
 		}
 	}
 }

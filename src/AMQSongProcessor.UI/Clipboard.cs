@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace AMQSongProcessor.UI
 {
-	public readonly struct Clipboard<T>
+	public sealed class Clipboard<T>
 	{
 		public bool IsCopy => !IsCut;
 		public bool IsCut { get; }

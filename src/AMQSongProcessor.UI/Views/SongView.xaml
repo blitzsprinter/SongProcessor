@@ -62,9 +62,19 @@
               <CheckBox IsChecked="{Binding SongVisibility.ShowUnsubmittedSongs}" />
             </MenuItem.Icon>
           </MenuItem>
-          <MenuItem Header="Show Incompleted Songs">
+          <MenuItem Header="Show Missing Mp3 Songs">
             <MenuItem.Icon>
-              <CheckBox IsChecked="{Binding SongVisibility.ShowIncompletedSongs}" />
+              <CheckBox IsChecked="{Binding SongVisibility.ShowMissingMp3Songs}" />
+            </MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="Show Missing 480p Songs">
+            <MenuItem.Icon>
+              <CheckBox IsChecked="{Binding SongVisibility.ShowMissing480pSongs}" />
+            </MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="Show Missing 720p Songs">
+            <MenuItem.Icon>
+              <CheckBox IsChecked="{Binding SongVisibility.ShowMissing720pSongs}" />
             </MenuItem.Icon>
           </MenuItem>
           <MenuItem Header="Show Completed Songs">
@@ -79,7 +89,8 @@
                 Items="{Binding Anime}" SelectedItems="{Binding SelectedItems}">
         <TreeView.DataTemplates>
           <TreeDataTemplate DataType="uimodels:ObservableAnime" ItemsSource="{Binding Songs}">
-            <TextBlock Classes="anime">
+            <TextBlock Classes="anime"
+                       Background="{Binding VideoInfo, Converter={x:Static converters:MiscConverters.SourceColor}}">
               <TextBlock.ContextMenu>
                 <ContextMenu Classes="notWhenBusy disallowMultiple">
                   <MenuItem Header="Copy ANNID" CommandParameter="{Binding Id}"
@@ -107,11 +118,6 @@
                             Command="{Binding ElementName=Me, Path=DataContext.PasteSong}" />
                 </ContextMenu>
               </TextBlock.ContextMenu>
-
-              <TextBlock.Background>
-                <Binding Path="VideoInfo"
-                         Converter="{x:Static converters:MiscConverters.SourceColor}" />
-              </TextBlock.Background>
             </TextBlock>
           </TreeDataTemplate>
 
