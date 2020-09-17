@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "AMQSongProcessor.UI": {
-      "commandName": "Project",
-      "nativeDebugging": true
-    }
-  }
-}
