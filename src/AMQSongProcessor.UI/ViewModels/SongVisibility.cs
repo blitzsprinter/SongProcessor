@@ -65,16 +65,12 @@ namespace AMQSongProcessor.UI.ViewModels
 		{
 			const Status COMPLETED = Status.Mp3 | Status.Res480 | Status.Res720;
 
-			if (song.ShouldIgnore)
-			{
-				return ShowIgnoredSongs;
-			}
-
-			return (ShowUnsubmittedSongs && song.IsUnsubmitted())
+			var ignored = !song.ShouldIgnore || ShowIgnoredSongs;
+			return ignored && ((ShowUnsubmittedSongs && song.IsUnsubmitted())
 				|| (ShowCompletedSongs && (song.Status & COMPLETED) == COMPLETED)
 				|| (ShowMissingMp3Songs && (song.Status & Status.Mp3) == 0)
 				|| (ShowMissing480pSongs && (song.Status & Status.Res480) == 0)
-				|| (ShowMissing720pSongs && (song.Status & Status.Res720) == 0);
+				|| (ShowMissing720pSongs && (song.Status & Status.Res720) == 0));
 		}
 	}
 }
