@@ -131,7 +131,7 @@ namespace AMQSongProcessor.Gatherers
 								if (Enum.TryParse<SongType>(s, true, out var temp))
 								{
 									type = temp;
-									count = 0;
+									count = 1;
 								}
 							}
 						}
