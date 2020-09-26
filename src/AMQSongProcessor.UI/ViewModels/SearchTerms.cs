@@ -1,4 +1,5 @@
-﻿using System.Runtime.Serialization;
+﻿using System.Linq;
+using System.Runtime.Serialization;
 
 using AdvorangesUtils;
 
@@ -35,7 +36,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		}
 
 		public bool IsVisible(IAnime anime)
-			=> IsVisible(AnimeName, anime.Name);
+			=> IsVisible(AnimeName, anime.Name) && anime.Songs.Any(IsVisible);
 
 		public bool IsVisible(ISong song)
 			=> IsVisible(SongName, song.Name) && IsVisible(ArtistName, song.Artist);
