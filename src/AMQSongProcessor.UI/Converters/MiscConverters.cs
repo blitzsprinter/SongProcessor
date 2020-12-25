@@ -10,9 +10,9 @@ namespace AMQSongProcessor.UI.Converters
 	public static class MiscConverters
 	{
 		public static readonly IValueConverter SourceColor =
-			new FuncValueConverter<SourceInfo<VideoInfo>?, IBrush>(x =>
+			new FuncValueConverter<SourceInfo<VideoInfo>?, IBrush?>(x =>
 			{
-				if (!(x?.Path is string path))
+				if (x?.Path is not string path)
 				{
 					return _Yellow;
 				}
@@ -23,7 +23,7 @@ namespace AMQSongProcessor.UI.Converters
 				return _Red;
 			});
 		public static readonly IValueConverter StatusColor =
-			new FuncValueConverter<Status, IBrush>(x =>
+			new FuncValueConverter<Status, IBrush?>(x =>
 			{
 				if ((x & Status.Res720) != 0)
 				{

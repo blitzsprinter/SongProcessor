@@ -19,7 +19,7 @@ namespace AMQSongProcessor.UI.Converters
 
 		public TRet ConvertNextValue<TRet>()
 		{
-			if (!(_Values[_Index++] is TRet t))
+			if (_Values[_Index++] is not TRet t)
 			{
 				throw InvalidType(new[] { typeof(TRet) });
 			}

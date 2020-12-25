@@ -151,7 +151,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		{
 			_HostScreen = screen;
 			_Song = song ?? throw new ArgumentNullException(nameof(song));
-			_Anime = song.Parent ?? throw new ArgumentNullException(nameof(song.Parent));
+			_Anime = song.Parent ?? throw new ArgumentException("Parent cannot be null.", nameof(song));
 			_Loader = Locator.Current.GetService<ISongLoader>();
 			_MessageBoxManager = Locator.Current.GetService<IMessageBoxManager>();
 
@@ -257,7 +257,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		{
 			var dir = _Anime.GetDirectory();
 			var result = await _MessageBoxManager.GetFilesAsync(dir, "Clean Path", false).ConfigureAwait(true);
-			if (!(result.SingleOrDefault() is string path))
+			if (result.SingleOrDefault() is not string path)
 			{
 				return;
 			}

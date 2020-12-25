@@ -95,7 +95,7 @@ namespace AMQSongProcessor
 		public Task<SourceInfo<VideoInfo>> GetVideoInfoAsync(string file, int track = 0)
 			=> GetInfoAsync<VideoInfo>('v', file, track, 0);
 
-		private SourceInfoGatheringException Exception(char stream, string file, Exception inner)
+		private static SourceInfoGatheringException Exception(char stream, string file, Exception inner)
 			=> new SourceInfoGatheringException($"Unable to gather {stream} info for {file}.", inner);
 
 		private async Task<SourceInfo<T>> GetInfoAsync<T>(char stream, string file, int track, int attempt)

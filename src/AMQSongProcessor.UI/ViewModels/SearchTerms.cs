@@ -41,7 +41,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		public bool IsVisible(ISong song)
 			=> IsVisible(SongName, song.Name) && IsVisible(ArtistName, song.Artist);
 
-		private bool IsVisible(string? search, string actual)
+		private static bool IsVisible(string? search, string actual)
 			=> string.IsNullOrWhiteSpace(search) || actual.CaseInsContains(search);
 	}
 }

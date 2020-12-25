@@ -20,7 +20,7 @@ namespace AMQSongProcessor
 			return y != null ? -1 : 0;
 		}
 
-		private int CompareNonNull(ISong x, ISong y)
+		private static int CompareNonNull(ISong x, ISong y)
 		{
 			// Every song has a type, so we can safely always sort by that
 			var type = x.Type.CompareTo(y.Type);

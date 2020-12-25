@@ -43,7 +43,10 @@ namespace AMQSongProcessor
 				Console.WriteLine("Invalid directory provided; enter a valid one: ");
 			}
 #endif
-			Console.SetBufferSize(Console.BufferWidth, short.MaxValue - 1);
+			if (OperatingSystem.IsWindows())
+			{
+				Console.SetBufferSize(Console.BufferWidth, short.MaxValue - 1);
+			}
 			Console.OutputEncoding = Encoding.UTF8;
 
 			var loader = new SongLoader(new SourceInfoGatherer());

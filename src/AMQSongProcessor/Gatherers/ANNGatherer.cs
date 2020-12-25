@@ -67,7 +67,13 @@ namespace AMQSongProcessor.Gatherers
 
 			foreach (var element in doc.Descendants("info"))
 			{
-				var type = element.Attribute("type").Value.ToLower();
+				var attr = element.Attribute("type");
+				if (attr is null)
+				{
+					continue;
+				}
+
+				var type = attr.Value.ToLower();
 				try
 				{
 					switch (type)

@@ -88,7 +88,7 @@ namespace AMQSongProcessor
 					matches.GetOrAdd(song.GetFullName(), _ => new List<IAnime>()).Add(anime);
 				}
 			}
-			if (matches.Count == 0)
+			if (matches.IsEmpty)
 			{
 				return;
 			}
@@ -143,7 +143,7 @@ namespace AMQSongProcessor
 			await sw.WriteAsync(text).CAF();
 		}
 
-		private IEnumerable<SongJob> GetJobs(
+		private static IEnumerable<SongJob> GetJobs(
 			IAnime anime,
 			IEnumerable<ISong> songs,
 			IEnumerable<Resolution> resolutions)

@@ -230,7 +230,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			var dir = anime.GetDirectory();
 			var defFile = Path.GetFileName(anime.GetAbsoluteSourcePath());
 			var result = await _MessageBoxManager.GetFilesAsync(dir, "Source", false, defFile).ConfigureAwait(true);
-			if (!(result.SingleOrDefault() is string path))
+			if (result.SingleOrDefault() is not string path)
 			{
 				return;
 			}

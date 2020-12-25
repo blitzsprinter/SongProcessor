@@ -42,7 +42,7 @@ namespace AMQSongProcessor.UI
 			return window;
 		}
 
-		private void InitializeSongItems()
+		private static void InitializeSongItems()
 		{
 			var gatherer = new SourceInfoGatherer
 			{

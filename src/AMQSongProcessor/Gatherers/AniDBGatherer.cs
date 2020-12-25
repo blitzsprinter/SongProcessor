@@ -4,6 +4,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.Web;
 
 using AdvorangesUtils;
 
@@ -123,7 +124,7 @@ namespace AMQSongProcessor.Gatherers
 								{
 									throw new InvalidOperationException($"Duplicate {@class}.");
 								}
-								dict[@class] = td.InnerText.Trim();
+								dict[@class] = HttpUtility.HtmlDecode(td.InnerText.Trim());
 							}
 							else if (@class == RELTYPE)
 							{
