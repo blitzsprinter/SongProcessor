@@ -25,9 +25,7 @@ namespace AMQSongProcessor.UI.ViewModels
 {
 	//Never serialize this view/viewmodel since this data is related to folder structure
 	[JsonConverter(typeof(NewtonsoftJsonSkipThis))]
-#pragma warning disable CS8612 // Nullability of reference types in type doesn't match implicitly implemented member.
 	public class EditViewModel : ReactiveObject, IRoutableViewModel, IValidatableViewModel
-#pragma warning restore CS8612 // Nullability of reference types in type doesn't match implicitly implemented member.
 	{
 		private readonly ObservableAnime _Anime;
 		private readonly IScreen? _HostScreen;
@@ -197,8 +195,8 @@ namespace AMQSongProcessor.UI.ViewModels
 				})
 				.Select(x => x.ValidStart && x.ValidEnd && x.Start <= x.End);
 			this.ValidationRule(
-				_ => validTimes,
-				(_, state) => !state ? "Invalid times supplied or start is less than end." : "");
+				validTimes,
+				"Invalid times supplied or start is less than end.");
 
 			Save = ReactiveCommand.CreateFromTask(PrivateSave, this.IsValid());
 			SelectCleanPath = ReactiveCommand.CreateFromTask(PrivateSelectCleanPath);

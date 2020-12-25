@@ -32,9 +32,7 @@ using Splat;
 namespace AMQSongProcessor.UI.ViewModels
 {
 	[DataContract]
-#pragma warning disable CS8612 // Nullability of reference types in type doesn't match implicitly implemented member.
 	public class SongViewModel : ReactiveObject, IRoutableViewModel, INavigationController
-#pragma warning restore CS8612 // Nullability of reference types in type doesn't match implicitly implemented member.
 	{
 		private readonly ISourceInfoGatherer _Gatherer;
 		private readonly IScreen? _HostScreen;
@@ -44,8 +42,8 @@ namespace AMQSongProcessor.UI.ViewModels
 		private readonly IMessageBoxManager _MessageBoxManager;
 		private readonly ObservableAsPropertyHelper<bool> _MultipleItemsSelected;
 		private readonly ObservableAsPropertyHelper<bool> _OnlySongsSelected;
-		private readonly List<IDisposable> _Subscriptions = new List<IDisposable>();
 		private readonly ISongProcessor _Processor;
+		private readonly List<IDisposable> _Subscriptions = new List<IDisposable>();
 		private readonly IClipboard _SystemClipboard;
 		private Clipboard<ObservableSong>? _ClipboardSong;
 		private int _CurrentJob;

@@ -18,9 +18,7 @@ using Splat;
 namespace AMQSongProcessor.UI.ViewModels
 {
 	[DataContract]
-#pragma warning disable CS8612 // Nullability of reference types in type doesn't match implicitly implemented member.
 	public class AddViewModel : ReactiveObject, IRoutableViewModel
-#pragma warning restore CS8612 // Nullability of reference types in type doesn't match implicitly implemented member.
 	{
 		private readonly IEnumerable<IAnimeGatherer> _Gatherers;
 		private readonly IScreen? _HostScreen;
