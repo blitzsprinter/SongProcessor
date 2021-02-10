@@ -44,22 +44,21 @@ namespace AMQSongProcessor.Utils
 			IEnumerable<string> files,
 			int filesPerTask)
 		{
-			var enumerators = new ConcurrentDictionary<IAsyncEnumerator<IAnime>, bool>(files
+			var enumerators = new ConcurrentDictionary<IAsyncEnumerator<IAnime>, byte>(files
 				.GroupInto(filesPerTask)
 				.Select(x => loader.SlowLoadFromFilesAsync(x).GetAsyncEnumerator())
-				.ToDictionary(x => x, _ => false));
-			var processed = 0;
+				.ToDictionary(x => x, _ => (byte)0));
 
 			ValueTask DisposeEnumeratorAsync(IAsyncEnumerator<IAnime> enumerator)
 			{
 				try
 				{
-					if (enumerators.TryUpdate(enumerator, true, false))
+					if (enumerators.TryRemove(enumerator, out var _))
 					{
 						return enumerator.DisposeAsync();
 					}
 				}
-				catch (NotSupportedException) //When somehow diposed twice
+				catch (NotSupportedException) // When somehow diaposed twice
 				{
 				}
 				return new ValueTask();
@@ -67,27 +66,29 @@ namespace AMQSongProcessor.Utils
 
 			try
 			{
-				while (enumerators.Count - processed > 0)
+				var processed = 0;
+				var tasks = new HashSet<Task<FastLoaded<IAnime>>>(enumerators.Count + 1);
+				while (!enumerators.IsEmpty)
 				{
-					var tasks = enumerators
-						.Keys
-						.Select(FastLoaded<IAnime>.FromEnumerator)
-						.ToHashSet();
+					foreach (var enumerator in enumerators.Keys)
+					{
+						tasks.Add(FastLoaded<IAnime>.FromEnumerator(enumerator));
+					}
 
 					while (tasks.Count != 0)
 					{
 						var task = await Task.WhenAny(tasks).CAF();
 						tasks.Remove(task);
-						var fastLoaded = await task.CAF();
+						var result = await task.CAF();
 
-						if (fastLoaded.HasItem)
+						if (result.HasItem)
 						{
-							yield return fastLoaded.Item!;
+							yield return result.Item!;
 						}
 						else
 						{
 							Interlocked.Increment(ref processed);
-							await DisposeEnumeratorAsync(fastLoaded.Enumerator).CAF();
+							await DisposeEnumeratorAsync(result.Enumerator).CAF();
 						}
 					}
 				}

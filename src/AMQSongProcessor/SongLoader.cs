@@ -34,9 +34,9 @@ namespace AMQSongProcessor
 			Options.Converters.Add(new InterfaceConverter<Song, ISong>());
 		}
 
-		public async Task<IAnime?> LoadAsync(string file)
+		public async Task<IAnime?> LoadAsync(string path)
 		{
-			var fileInfo = new FileInfo(file);
+			var fileInfo = new FileInfo(path);
 			if (!fileInfo.Exists || fileInfo.Length == 0)
 			{
 				return null;
@@ -45,16 +45,16 @@ namespace AMQSongProcessor
 			try
 			{
 				object? deserialized;
-				using (var fs = new FileStream(file, FileMode.Open))
+				using (var fs = new FileStream(path, FileMode.Open))
 				{
 					deserialized = await JsonSerializer.DeserializeAsync(fs, ModelType, Options).CAF();
 				}
 
-				if (!(deserialized is IAnimeBase model))
+				if (deserialized is not IAnimeBase model)
 				{
 					throw new InvalidOperationException("Invalid type supplied for deserializing.");
 				}
-				return await ConvertFromModelAsync(file, model).CAF();
+				return await ConvertFromModelAsync(path, model).CAF();
 			}
 			catch (JsonException) when ((ExceptionsToIgnore & IgnoreExceptions.Json) != 0)
 			{
@@ -62,7 +62,7 @@ namespace AMQSongProcessor
 			}
 			catch (Exception e)
 			{
-				throw new JsonException($"Unable to parse {file}.", e);
+				throw new JsonException($"Unable to parse {path}.", e);
 			}
 		}
 
@@ -136,10 +136,12 @@ namespace AMQSongProcessor
 
 			try
 			{
-				using var fs = new FileStream(file, FileMode.Create);
-
 				var model = await ConvertToModelAsync(file, anime).CAF();
-				await JsonSerializer.SerializeAsync(fs, model, ModelType, Options).CAF();
+				using (var fs = new FileStream(file, FileMode.Create))
+				{
+					await JsonSerializer.SerializeAsync(fs, model, ModelType, Options).CAF();
+				}
+
 				return file;
 			}
 			catch (Exception e)

@@ -12,7 +12,7 @@ namespace AMQSongProcessor.Converters
 
 		public override AspectRatio Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
 		{
-			if (!(reader.GetString() is string s))
+			if (reader.GetString() is not string s)
 			{
 				return default;
 			}
