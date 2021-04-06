@@ -58,7 +58,7 @@ namespace AMQSongProcessor.Utils
 						return enumerator.DisposeAsync();
 					}
 				}
-				catch (NotSupportedException) // When somehow diaposed twice
+				catch (NotSupportedException) // When somehow disposed twice
 				{
 				}
 				return new ValueTask();
