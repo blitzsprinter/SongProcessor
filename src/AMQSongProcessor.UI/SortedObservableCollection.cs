@@ -36,12 +36,9 @@ namespace AMQSongProcessor.UI
 		}
 
 		protected override void MoveItem(int oldIndex, int newIndex)
-			=> throw new InvalidOperationException($"Items cannot be moved in a {nameof(SortedObservableCollection<T>)}.");
+			=> throw new NotSupportedException($"Items cannot be moved in a {nameof(SortedObservableCollection<T>)}.");
 
 		protected override void SetItem(int index, T item)
-		{
-			index = GetSortedIndex(item);
-			base.SetItem(index, item);
-		}
+			=> throw new NotSupportedException($"Items cannot be set in a {nameof(SortedObservableCollection<T>)}.");
 	}
 }

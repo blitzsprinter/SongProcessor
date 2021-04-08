@@ -51,15 +51,9 @@ namespace AMQSongProcessor.Utils
 
 			ValueTask DisposeEnumeratorAsync(IAsyncEnumerator<IAnime> enumerator)
 			{
-				try
+				if (enumerators.TryRemove(enumerator, out var _))
 				{
-					if (enumerators.TryRemove(enumerator, out var _))
-					{
-						return enumerator.DisposeAsync();
-					}
-				}
-				catch (NotSupportedException) // When somehow disposed twice
-				{
+					return enumerator.DisposeAsync();
 				}
 				return new ValueTask();
 			}
@@ -67,12 +61,12 @@ namespace AMQSongProcessor.Utils
 			try
 			{
 				var processed = 0;
-				var tasks = new HashSet<Task<FastLoaded<IAnime>>>(enumerators.Count + 1);
+				var tasks = new HashSet<Task<FastLoad<IAnime>>>(enumerators.Count + 1);
 				while (!enumerators.IsEmpty)
 				{
 					foreach (var enumerator in enumerators.Keys)
 					{
-						tasks.Add(FastLoaded<IAnime>.FromEnumerator(enumerator));
+						tasks.Add(FastLoad<IAnime>.FromEnumerator(enumerator));
 					}
 
 					while (tasks.Count != 0)
@@ -116,25 +110,25 @@ namespace AMQSongProcessor.Utils
 			}
 		}
 
-		private struct FastLoaded<T> where T : class
+		private struct FastLoad<T> where T : class
 		{
 			public IAsyncEnumerator<T> Enumerator { get; }
 			public bool HasItem => Item != null;
 			public T? Item { get; }
 
-			public FastLoaded(IAsyncEnumerator<T> enumerator, T? item)
+			public FastLoad(IAsyncEnumerator<T> enumerator, T? item)
 			{
 				Enumerator = enumerator;
 				Item = item;
 			}
 
-			public static async Task<FastLoaded<T>> FromEnumerator(IAsyncEnumerator<T> enumerator)
+			public static async Task<FastLoad<T>> FromEnumerator(IAsyncEnumerator<T> enumerator)
 			{
 				if (await enumerator.MoveNextAsync().CAF())
 				{
-					return new FastLoaded<T>(enumerator, enumerator.Current);
+					return new FastLoad<T>(enumerator, enumerator.Current);
 				}
-				return new FastLoaded<T>(enumerator, null);
+				return new FastLoad<T>(enumerator, null);
 			}
 		}
 	}

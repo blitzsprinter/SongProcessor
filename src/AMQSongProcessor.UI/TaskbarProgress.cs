@@ -25,21 +25,24 @@ namespace AMQSongProcessor.UI
 				return;
 			}
 
-			var handle = Process.GetCurrentProcess().MainWindowHandle;
 			if (percentage is null)
 			{
-				SetState(handle, TaskbarStates.NoProgress);
+				var hwnd = Process.GetCurrentProcess().MainWindowHandle;
+				SetState(hwnd, TaskbarStates.NoProgress);
 				return;
 			}
 
-			var cast = (ulong)(percentage.Value * 100);
-			if (cast > 100)
+			const ulong MAX = 100U;
+
+			var cast = (ulong)(percentage.Value * MAX);
+			if (cast > MAX)
 			{
-				throw new ArgumentOutOfRangeException(nameof(percentage), "Must be between 0.00 and 1.00.");
+				throw new ArgumentOutOfRangeException(nameof(percentage), "Must be between 0.00 and 1.00 or null.");
 			}
 
+			var handle = Process.GetCurrentProcess().MainWindowHandle;
 			SetState(handle, TaskbarStates.Normal);
-			SetValue(handle, cast, 100U);
+			SetValue(handle, cast, MAX);
 		}
 
 		private static void SetState(IntPtr hwnd, TaskbarStates taskbarState)
