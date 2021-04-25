@@ -34,6 +34,7 @@ namespace AMQSongProcessor.UI.ViewModels
 	[DataContract]
 	public class SongViewModel : ReactiveObject, IRoutableViewModel, INavigationController
 	{
+		private readonly List<IDisposable> _Disposables = new List<IDisposable>();
 		private readonly ISourceInfoGatherer _Gatherer;
 		private readonly IScreen? _HostScreen;
 		private readonly ObservableAsPropertyHelper<bool> _IsBusy;
@@ -43,7 +44,6 @@ namespace AMQSongProcessor.UI.ViewModels
 		private readonly ObservableAsPropertyHelper<bool> _MultipleItemsSelected;
 		private readonly ObservableAsPropertyHelper<bool> _OnlySongsSelected;
 		private readonly ISongProcessor _Processor;
-		private readonly List<IDisposable> _Subscriptions = new List<IDisposable>();
 		private readonly IClipboard _SystemClipboard;
 		private Clipboard<ObservableSong>? _ClipboardSong;
 		private int _CurrentJob;
@@ -359,15 +359,15 @@ namespace AMQSongProcessor.UI.ViewModels
 					ModifyVisibility(o);
 					Anime.Add(o);
 
-					_Subscriptions.Add(o.Changed.Subscribe(_ => ModifyVisibility(o)));
-					_Subscriptions.Add(o.Songs
+					_Disposables.Add(o.Changed.Subscribe(_ => ModifyVisibility(o)));
+					_Disposables.Add(o.Songs
 						.ToObservableChangeSet()
 						.WhenAnyPropertyChanged()
 						.Subscribe(_ => ModifyVisibility(o))
 					);
 				}
 
-				_Subscriptions.Add(Search.Changed
+				_Disposables.Add(Search.Changed
 					.Merge(SongVisibility.Changed)
 					.Subscribe(_ =>
 					{
@@ -497,7 +497,7 @@ namespace AMQSongProcessor.UI.ViewModels
 
 		private void PrivateUnload()
 		{
-			foreach (var subscription in _Subscriptions)
+			foreach (var subscription in _Disposables)
 			{
 				subscription.Dispose();
 			}
