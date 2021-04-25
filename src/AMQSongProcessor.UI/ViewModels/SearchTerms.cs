@@ -36,12 +36,22 @@ namespace AMQSongProcessor.UI.ViewModels
 		}
 
 		public bool IsVisible(IAnime anime)
-			=> IsVisible(AnimeName, anime.Name) && anime.Songs.Any(IsVisible);
+		{
+			// First check if the name of the anime allows it to be shown
+			return IsVisible(AnimeName, anime.Name)
+				// Then check if any of the songs are allowed to be shown
+				&& (anime.Songs.Any(IsVisible)
+				// If no songs, make sure we're not searching for any songs/artists
+				|| (IsEmpty(SongName) && IsEmpty(ArtistName) && anime.Songs.Count == 0));
+		}
 
 		public bool IsVisible(ISong song)
 			=> IsVisible(SongName, song.Name) && IsVisible(ArtistName, song.Artist);
 
+		private static bool IsEmpty(string? search)
+			=> string.IsNullOrWhiteSpace(search);
+
 		private static bool IsVisible(string? search, string actual)
-			=> string.IsNullOrWhiteSpace(search) || actual.CaseInsContains(search);
+			=> IsEmpty(search) || actual.CaseInsContains(search);
 	}
 }
