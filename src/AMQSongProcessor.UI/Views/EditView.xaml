@@ -19,9 +19,14 @@
           <Button Grid.Column="1" Content="Select" Command="{Binding SelectCleanPath}" />
         </Grid>
       </HeaderedContentControl>
-      <HeaderedContentControl Header="Override Video Track">
-        <NumericUpDown Minimum="0" Value="{Binding VideoTrack}" />
-      </HeaderedContentControl>
+      <UniformGrid Columns="2">
+        <HeaderedContentControl Header="Override Video Track">
+          <NumericUpDown Minimum="0" Value="{Binding VideoTrack}" />
+        </HeaderedContentControl>
+        <HeaderedContentControl Header="Override Audio Track">
+          <NumericUpDown Minimum="0" Value="{Binding AudioTrack}" />
+        </HeaderedContentControl>
+      </UniformGrid>
       <HeaderedContentControl Header="Episode Number">
         <NumericUpDown Minimum="0" Value="{Binding Episode}" />
       </HeaderedContentControl>
@@ -39,8 +44,8 @@
           <NumericUpDown Grid.Column="1" Minimum="0" Value="{Binding SongPosition}" />
         </Grid>
       </HeaderedContentControl>
-      <HeaderedContentControl Header="Override Audio Track">
-        <NumericUpDown Minimum="0" Value="{Binding AudioTrack}" />
+      <HeaderedContentControl Header="Override Aspect Ratio">
+        <ComboBox Items="{Binding AspectRatios}" SelectedItem="{Binding AspectRatio}" />
       </HeaderedContentControl>
       <HeaderedContentControl Header="Volume Modifier">
         <NumericUpDown Value="{Binding VolumeModifier}" />

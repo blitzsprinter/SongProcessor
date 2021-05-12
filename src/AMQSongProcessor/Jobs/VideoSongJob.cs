@@ -3,8 +3,8 @@
 
 #undef AV1
 
-using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using AdvorangesUtils;
 
@@ -76,22 +76,24 @@ namespace AMQSongProcessor.Jobs
 
 			if (Anime.VideoInfo?.Info is VideoInfo info)
 			{
-				var width = -1;
-				var videoFilterParts = new List<string>();
+				var dar = Song.OverrideAspectRatio is AspectRatio ratio ? ratio : info.DAR;
+				var videoFilterParts = new Dictionary<string, string>
+				{
+					["setsar"] = SquareSAR.ToString('/'),
+					["setdar"] = dar.ToString('/'),
+				};
+
 				// Resize video if needed
-				if (info.SAR != SquareSAR)
+				if (info.Height != Resolution || info.SAR != SquareSAR)
 				{
-					videoFilterParts.Add($"setsar={SquareSAR.ToString('/')}");
-					videoFilterParts.Add($"setdar={info.DAR.ToString('/')}");
-					width = (int)(Resolution * info.DAR.Ratio);
+					var width = (int)(Resolution * dar.Ratio);
+					videoFilterParts["scale"] = $"{width}:{Resolution}";
 				}
-				if (info.Height != Resolution || width != -1)
-				{
-					videoFilterParts.Add($"scale={width}:{Resolution}");
-				}
+
 				if (videoFilterParts.Count > 0)
 				{
-					args += $" -filter:v \"{videoFilterParts.Join(",")}\"";
+					var joined = videoFilterParts.Select(x => $"{x.Key}={x.Value}").Join(",");
+					args += $" -filter:v \"{joined}\"";
 				}
 			}
 

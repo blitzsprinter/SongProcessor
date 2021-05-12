@@ -31,6 +31,7 @@ namespace AMQSongProcessor
 			Options.Converters.Add(new SongTypeAndPositionJsonConverter());
 			Options.Converters.Add(new TimeSpanJsonConverter());
 			Options.Converters.Add(new VolumeModifierConverter());
+			Options.Converters.Add(new AspectRatioJsonConverter());
 			Options.Converters.Add(new InterfaceConverter<Song, ISong>());
 		}
 

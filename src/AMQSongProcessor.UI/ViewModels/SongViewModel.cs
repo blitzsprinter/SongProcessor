@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -10,15 +9,11 @@ using System.Reactive.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
-using AdvorangesUtils;
-
 using AMQSongProcessor.Models;
 using AMQSongProcessor.UI.Models;
 using AMQSongProcessor.Utils;
 
 using Avalonia.Collections;
-using Avalonia.Controls;
-using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Threading;
 

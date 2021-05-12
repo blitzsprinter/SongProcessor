@@ -1,6 +1,4 @@
-﻿using System;
-
-using AMQSongProcessor.Models;
+﻿using AMQSongProcessor.Models;
 using AMQSongProcessor.Utils;
 
 namespace AMQSongProcessor.Jobs

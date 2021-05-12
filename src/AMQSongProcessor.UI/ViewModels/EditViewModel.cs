@@ -33,6 +33,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		private readonly IMessageBoxManager _MessageBoxManager;
 		private readonly ObservableSong _Song;
 		private string _Artist;
+		private AspectRatio _AspectRatio;
 		private int _AudioTrack;
 		private string _CleanPath;
 		private string _End;
@@ -49,7 +50,13 @@ namespace AMQSongProcessor.UI.ViewModels
 		private int _VideoTrack;
 		private int _VolumeModifier;
 
-		public static IReadOnlyCollection<SongType> SongTypes { get; } = new[]
+		public static IReadOnlyList<AspectRatio> AspectRatios { get; } = new[]
+		{
+			new AspectRatio(0, 0),
+			new AspectRatio(4, 3),
+			new AspectRatio(16, 9),
+		};
+		public static IReadOnlyList<SongType> SongTypes { get; } = new[]
 		{
 			SongType.Opening,
 			SongType.Ending,
@@ -60,6 +67,11 @@ namespace AMQSongProcessor.UI.ViewModels
 		{
 			get => _Artist;
 			set => this.RaiseAndSetIfChanged(ref _Artist, value);
+		}
+		public AspectRatio AspectRatio
+		{
+			get => _AspectRatio;
+			set => this.RaiseAndSetIfChanged(ref _AspectRatio, value);
 		}
 		public int AudioTrack
 		{
@@ -154,6 +166,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			_MessageBoxManager = Locator.Current.GetService<IMessageBoxManager>();
 
 			_Artist = _Song.Artist;
+			_AspectRatio = _Song.OverrideAspectRatio ?? AspectRatios[0];
 			_AudioTrack = _Song.OverrideAudioTrack;
 			_CleanPath = _Song.CleanPath!;
 			_End = _Song.End.ToString();
@@ -202,8 +215,11 @@ namespace AMQSongProcessor.UI.ViewModels
 			SelectCleanPath = ReactiveCommand.CreateFromTask(PrivateSelectCleanPath);
 		}
 
+		private static AspectRatio? GetAspectRatio(AspectRatio ratio)
+			=> ratio.Width == 0 || ratio.Height == 0 ? null : ratio;
+
 		private static string? GetNullIfEmpty(string str)
-			=> string.IsNullOrEmpty(str) ? null : str;
+					=> string.IsNullOrEmpty(str) ? null : str;
 
 		private static int? GetNullIfZero(int? num)
 			=> num == 0 ? null : num;
@@ -236,6 +252,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		private async Task PrivateSave()
 		{
 			_Song.Artist = Artist;
+			_Song.OverrideAspectRatio = GetAspectRatio(AspectRatio);
 			_Song.OverrideAudioTrack = AudioTrack;
 			_Song.CleanPath = FileUtils.StoreRelativeOrAbsolute(_Anime.GetDirectory(), GetNullIfEmpty(CleanPath));
 			_Song.End = TimeSpan.Parse(End);

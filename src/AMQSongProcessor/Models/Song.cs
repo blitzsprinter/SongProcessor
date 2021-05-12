@@ -15,6 +15,7 @@ namespace AMQSongProcessor.Models
 		public TimeSpan End { get; set; }
 		public int? Episode { get; set; }
 		public string Name { get; set; }
+		public AspectRatio? OverrideAspectRatio { get; set; }
 		public int OverrideAudioTrack { get; set; }
 		public int OverrideVideoTrack { get; set; }
 		public bool ShouldIgnore { get; set; }
@@ -39,6 +40,7 @@ namespace AMQSongProcessor.Models
 			End = other.End;
 			Episode = other.Episode;
 			Name = other.Name;
+			OverrideAspectRatio = other.OverrideAspectRatio;
 			OverrideAudioTrack = other.OverrideAudioTrack;
 			OverrideVideoTrack = other.OverrideVideoTrack;
 			ShouldIgnore = other.ShouldIgnore;

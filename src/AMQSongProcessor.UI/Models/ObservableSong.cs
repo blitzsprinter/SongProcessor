@@ -23,6 +23,7 @@ namespace AMQSongProcessor.UI.Models
 		private string _Name;
 		private int _OverrideAudioTrack;
 		private int _OverrideVideoTrack;
+		private AspectRatio? _OverrideAspectRatio;
 		private bool _ShouldIgnore;
 		private TimeSpan _Start;
 		private Status _Status;
@@ -75,6 +76,11 @@ namespace AMQSongProcessor.UI.Models
 			get => _OverrideVideoTrack;
 			set => this.RaiseAndSetIfChanged(ref _OverrideVideoTrack, value);
 		}
+		public AspectRatio? OverrideAspectRatio
+		{
+			get => _OverrideAspectRatio;
+			set => this.RaiseAndSetIfChanged(ref _OverrideAspectRatio, value);
+		}
 		public bool ShouldIgnore
 		{
 			get => _ShouldIgnore;
@@ -112,6 +118,7 @@ namespace AMQSongProcessor.UI.Models
 			End = other.End;
 			Episode = other.Episode;
 			Name = other.Name;
+			OverrideAspectRatio = other.OverrideAspectRatio;
 			OverrideAudioTrack = other.OverrideAudioTrack;
 			OverrideVideoTrack = other.OverrideVideoTrack;
 			ShouldIgnore = other.ShouldIgnore;

@@ -11,6 +11,7 @@ namespace AMQSongProcessor.Models
 		TimeSpan End { get; }
 		int? Episode { get; }
 		string Name { get; }
+		AspectRatio? OverrideAspectRatio { get; }
 		int OverrideAudioTrack { get; }
 		int OverrideVideoTrack { get; }
 		bool ShouldIgnore { get; }
