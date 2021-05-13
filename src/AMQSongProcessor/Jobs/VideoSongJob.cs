@@ -69,12 +69,18 @@ namespace AMQSongProcessor.Jobs
 				args +=
 					$" -i \"{Song.GetCleanSongPath(Anime.GetDirectory())}\"" + // Audio source
 					$" -map 0:v:{Song.OverrideVideoTrack}" + // Use the first input's video
-					" -map 1:a"; // Use the second input's audio
+					$" -map 1:a:{Song.OverrideAudioTrack}"; // Use the second input's audio
 			}
 
 			args += ARGS; // Add in the constant args, like quality + cpu usage
 
-			if (Anime.VideoInfo?.Info is VideoInfo info)
+			// Resize video if needed
+			if (Anime.VideoInfo?.Info is VideoInfo info
+				&& (info.Height != Resolution
+					|| info.SAR != SquareSAR
+					|| (Song.OverrideAspectRatio is AspectRatio r && info.DAR != r)
+				)
+			)
 			{
 				var dar = Song.OverrideAspectRatio is AspectRatio ratio ? ratio : info.DAR;
 				var videoFilterParts = new Dictionary<string, string>
@@ -83,18 +89,17 @@ namespace AMQSongProcessor.Jobs
 					["setdar"] = dar.ToString('/'),
 				};
 
-				// Resize video if needed
-				if (info.Height != Resolution || info.SAR != SquareSAR)
+				var width = (int)(Resolution * dar.Ratio);
+				// Make sure width is always even, otherwise sometimes things can break
+				if (width % 2 != 0)
 				{
-					var width = (int)(Resolution * dar.Ratio);
-					videoFilterParts["scale"] = $"{width}:{Resolution}";
+					++width;
 				}
 
-				if (videoFilterParts.Count > 0)
-				{
-					var joined = videoFilterParts.Select(x => $"{x.Key}={x.Value}").Join(",");
-					args += $" -filter:v \"{joined}\"";
-				}
+				videoFilterParts["scale"] = $"{width}:{Resolution}";
+
+				var joined = videoFilterParts.Select(x => $"{x.Key}={x.Value}").Join(",");
+				args += $" -filter:v \"{joined}\"";
 			}
 
 			if (Song.VolumeModifier != null)

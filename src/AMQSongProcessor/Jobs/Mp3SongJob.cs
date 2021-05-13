@@ -34,7 +34,8 @@ namespace AMQSongProcessor.Jobs
 			{
 				args =
 					$" -to {Song.GetLength()}" +
-					$" -i \"{Song.GetCleanSongPath(Anime.GetDirectory())}\"";
+					$" -i \"{Song.GetCleanSongPath(Anime.GetDirectory())}\"" +
+					$" -map 0:a:{Song.OverrideAudioTrack}";
 			}
 
 			if (Song.VolumeModifier != null)
