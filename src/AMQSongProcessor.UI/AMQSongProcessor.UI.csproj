@@ -27,11 +27,11 @@
     <None Remove="Views\SongView.xaml" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="0.10.999-cibuild0013089-beta" />
-    <PackageReference Include="Avalonia.Desktop" Version="0.10.999-cibuild0013089-beta" />
-    <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.999-cibuild0013089-beta" />
-    <PackageReference Include="DynamicData" Version="7.1.1" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.32" />
+    <PackageReference Include="Avalonia" Version="0.10.999-cibuild0014036-beta" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.10.999-cibuild0014036-beta" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.999-cibuild0014036-beta" />
+    <PackageReference Include="DynamicData" Version="7.2.1" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.34" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="ReactiveUI.Validation" Version="2.1.1" />
   </ItemGroup>
