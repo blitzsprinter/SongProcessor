@@ -17,18 +17,19 @@ namespace AMQSongProcessor.Gatherers
 		private const string ARTIST = "artist";
 		private const string NAME = "name";
 		private const string POSITION = "position";
+		private const string SongPattern =
+			$@"(?<{POSITION}>\d*?)" + //Some openings/endings will have a position
+			"(: )?" + //The position will be followed up with a colon and space
+			$@"""(?<{NAME}>.+?)""" + //The name will be in quotes
+			".+?by " + //The name may have a translation in parans, and will be followed with by
+			$"(?<{ARTIST}>.+?)" + //The artist is just a simple match of any characters
+			@"( \(eps|$)";
 		private const string URL = "https://cdn.animenewsnetwork.com/encyclopedia/api.xml?anime=";
 
-		private static readonly string SongPattern =
-			$@"(?<{POSITION}>\d*?)" + //Some openings/endings will have a position
-			  "(: )?" + //The position will be followed up with a colon and space
-			$@"""(?<{NAME}>.+?)""" + //The name will be in quotes
-			  ".+?by " + //The name may have a translation in parans, and will be followed with by
-			 $"(?<{ARTIST}>.+?)" + //The artist is just a simple match of any characters
-			 @"( \(eps|$)"; //The artist ends at (eps ###-###) or the end of the line
+		//The artist ends at (eps ###-###) or the end of the line
 
 		private static readonly Regex SongRegex =
-			new Regex(SongPattern, RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+			new(SongPattern, RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 
 		private static readonly string[] VintageFormats = new[]
 		{
@@ -117,7 +118,7 @@ namespace AMQSongProcessor.Gatherers
 				&& int.TryParse(a.Value, out var temp) ? temp : default(int?);
 			anime.Songs.Add(new Song
 			{
-				Type = new SongTypeAndPosition(type, position),
+				Type = new(type, position),
 				Name = match.Groups[NAME].Value,
 				Artist = match.Groups[ARTIST].Value,
 			});

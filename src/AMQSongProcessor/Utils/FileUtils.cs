@@ -12,7 +12,7 @@ namespace AMQSongProcessor.Utils
 	{
 		private const string NUMBER_PATTERN = "_({0})";
 		private static readonly HashSet<char> InvalidChars =
-			new HashSet<char>(Path.GetInvalidFileNameChars().Concat(Path.GetInvalidPathChars()));
+			new(Path.GetInvalidFileNameChars().Concat(Path.GetInvalidPathChars()));
 		public static bool IsWindows { get; } =
 			Environment.OSVersion.Platform.ToString().CaseInsContains("win");
 

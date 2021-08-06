@@ -57,7 +57,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			get => _AddSongs;
 			set => this.RaiseAndSetIfChanged(ref _AddSongs, value);
 		}
-		public ObservableCollection<IAnime> Anime { get; } = new ObservableCollection<IAnime>();
+		public ObservableCollection<IAnime> Anime { get; } = new();
 		[DataMember]
 		public string? Directory
 		{

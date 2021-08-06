@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace AMQSongProcessor.Models
 {
-	[DebuggerDisplay("{DebuggerDisplay,nq}")]
+	[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
 	public readonly struct SongTypeAndPosition : IEquatable<SongTypeAndPosition>, IComparable<SongTypeAndPosition>
 	{
 		public string LongType => Type switch
@@ -77,7 +77,7 @@ namespace AMQSongProcessor.Models
 				position = parsed;
 			}
 
-			result = new SongTypeAndPosition(type, position);
+			result = new(type, position);
 			return true;
 		}
 

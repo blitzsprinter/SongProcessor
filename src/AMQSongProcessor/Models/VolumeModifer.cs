@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace AMQSongProcessor.Models
 {
-	[DebuggerDisplay("{DebuggerDisplay,nq}")]
+	[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
 	public readonly struct VolumeModifer
 	{
 		private const string DB = "dB";
@@ -19,10 +19,10 @@ namespace AMQSongProcessor.Models
 		}
 
 		public static VolumeModifer FromDecibels(double dbs)
-			=> new VolumeModifer(null, dbs);
+			=> new(null, dbs);
 
 		public static VolumeModifer FromPercentage(double percentage)
-			=> new VolumeModifer(percentage, null);
+			=> new(percentage, null);
 
 		public static VolumeModifer Parse(string s)
 		{

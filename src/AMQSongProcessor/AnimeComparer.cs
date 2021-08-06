@@ -7,7 +7,7 @@ namespace AMQSongProcessor
 {
 	public sealed class AnimeComparer : Comparer<IAnime>
 	{
-		private readonly SongComparer _SongComparer = new SongComparer();
+		private readonly SongComparer _SongComparer = new();
 
 		public override int Compare(IAnime? x, IAnime? y)
 		{

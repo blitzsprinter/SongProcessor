@@ -152,7 +152,7 @@ namespace AMQSongProcessor.Gatherers
 
 				yield return new Song
 				{
-					Type = new SongTypeAndPosition(type.Value, count++),
+					Type = new(type.Value, count++),
 					Name = dict[SONG]!,
 					Artist = dict[CREATOR]!,
 				};

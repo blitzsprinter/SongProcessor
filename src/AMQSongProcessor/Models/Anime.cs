@@ -8,13 +8,13 @@ using AMQSongProcessor.Utils;
 
 namespace AMQSongProcessor.Models
 {
-	[DebuggerDisplay("{DebuggerDisplay,nq}")]
+	[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
 	public class Anime : IAnime
 	{
 		public string AbsoluteInfoPath { get; }
 		public int Id { get; }
 		public string Name { get; }
-		public List<Song> Songs { get; } = new List<Song>();
+		public List<Song> Songs { get; } = new();
 		public string? Source => FileUtils.StoreRelativeOrAbsolute(this.GetDirectory(), VideoInfo?.Path);
 		public SourceInfo<VideoInfo>? VideoInfo { get; set; }
 		public int Year { get; }

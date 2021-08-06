@@ -4,12 +4,12 @@ using System.Linq;
 
 namespace AMQSongProcessor.Models
 {
-	[DebuggerDisplay("{DebuggerDisplay,nq}")]
+	[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
 	public class AnimeModel : IAnimeBase
 	{
 		public int Id { get; set; }
 		public string Name { get; set; } = null!;
-		public List<Song> Songs { get; set; } = new List<Song>();
+		public List<Song> Songs { get; set; } = new();
 		public string? Source { get; set; }
 		public int Year { get; set; }
 		IReadOnlyList<ISong> IAnimeBase.Songs => Songs;
@@ -23,7 +23,7 @@ namespace AMQSongProcessor.Models
 		{
 			Id = other.Id;
 			Name = other.Name;
-			Songs = other.Songs?.Select(x => new Song(x))?.ToList() ?? new List<Song>();
+			Songs = other.Songs?.Select(x => new Song(x))?.ToList() ?? new();
 			Source = other.Source;
 			Year = other.Year;
 		}

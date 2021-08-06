@@ -13,12 +13,10 @@ namespace AMQSongProcessor.Jobs
 	public abstract class SongJob : ISongJob
 	{
 		public const int FILE_ALREADY_EXISTS = 183;
-		public static readonly AspectRatio SquareSAR = new AspectRatio(1, 1);
+		public static readonly AspectRatio SquareSAR = new(1, 1);
 
 		public bool AlreadyExists => File.Exists(GetSanitizedPath());
-
 		public IAnime Anime { get; }
-
 		public ISong Song { get; }
 
 		public event Action<ProcessingData>? ProcessingDataReceived;
@@ -42,12 +40,12 @@ namespace AMQSongProcessor.Jobs
 			{
 				process.Kill();
 				process.Dispose();
-				//Without this sleep the file is not released in time and an exception happens
+				// Without this sleep the file is not released in time and an exception happens
 				Thread.Sleep(25);
 				File.Delete(path);
 			}, null, token);
 
-			//ffmpeg will output the information we want to std:out
+			// ffmpeg will output the information we want to std:out
 			var ffmpegProgressBuilder = new FfmpegProgressBuilder();
 			process.OutputDataReceived += (s, e) =>
 			{

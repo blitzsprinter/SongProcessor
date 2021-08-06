@@ -23,7 +23,7 @@ namespace AMQSongProcessor.UI.Controls
 			AvaloniaProperty.RegisterAttached<DynamicFontSizeGrid, Control, double>("OverrideDynamicFontSize");
 
 		private static readonly ConcurrentDictionary<TemplatedControl, IDisposable> _Bindings
-			= new ConcurrentDictionary<TemplatedControl, IDisposable>();
+			= new();
 
 		public double DynamicFontSize
 		{
@@ -103,7 +103,7 @@ namespace AMQSongProcessor.UI.Controls
 				var binding = new Binding
 				{
 					Path = nameof(Height),
-					RelativeSource = new RelativeSource
+					RelativeSource = new()
 					{
 						Mode = RelativeSourceMode.FindAncestor,
 						AncestorType = typeof(Window),

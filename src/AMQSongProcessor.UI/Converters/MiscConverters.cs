@@ -46,6 +46,6 @@ namespace AMQSongProcessor.UI.Converters
 		private static readonly SolidColorBrush _Yellow = GetBrush(Brushes.Yellow);
 
 		private static SolidColorBrush GetBrush(ISolidColorBrush brush)
-			=> new SolidColorBrush(brush.Color, .25);
+			=> new(brush.Color, .25);
 	}
 }

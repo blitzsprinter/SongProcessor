@@ -18,7 +18,7 @@ namespace AMQSongProcessor.UI.Converters
 
 	public class MaybeFuncCollectionBuilder<TParam, TRet>
 	{
-		private readonly List<IMaybeFunc<TParam, TRet>> _Funcs = new List<IMaybeFunc<TParam, TRet>>();
+		private readonly List<IMaybeFunc<TParam, TRet>> _Funcs = new();
 
 		public MaybeFuncCollectionBuilder<TParam, TRet> Add<TObj>(Func<TObj, TParam, TRet> func)
 		{

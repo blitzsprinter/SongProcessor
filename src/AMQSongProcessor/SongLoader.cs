@@ -18,7 +18,7 @@ namespace AMQSongProcessor
 		public string Extension { get; set; } = "amq";
 		protected ISourceInfoGatherer Gatherer { get; }
 		protected Type ModelType { get; set; } = typeof(AnimeModel);
-		protected JsonSerializerOptions Options { get; set; } = new JsonSerializerOptions
+		protected JsonSerializerOptions Options { get; set; } = new()
 		{
 			WriteIndented = true,
 			IgnoreReadOnlyProperties = true,

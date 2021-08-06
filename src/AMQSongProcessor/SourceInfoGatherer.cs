@@ -14,7 +14,7 @@ namespace AMQSongProcessor
 {
 	public sealed class SourceInfoGatherer : ISourceInfoGatherer
 	{
-		private static readonly JsonSerializerOptions _Options = new JsonSerializerOptions();
+		private static readonly JsonSerializerOptions _Options = new();
 		private static readonly char[] _SplitChars = new[] { '_', 'd' };
 
 		public int RetryLimit { get; set; } = 0;
@@ -94,7 +94,7 @@ namespace AMQSongProcessor
 			=> GetInfoAsync<VideoInfo>('v', file, track, 0);
 
 		private static SourceInfoGatheringException Exception(char stream, string file, Exception inner)
-			=> new SourceInfoGatheringException($"Unable to gather {stream} info for {file}.", inner);
+			=> new($"Unable to gather {stream} info for {file}.", inner);
 
 		private async Task<SourceInfo<T>> GetInfoAsync<T>(char stream, string file, int track, int attempt)
 		{

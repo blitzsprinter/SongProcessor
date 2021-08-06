@@ -29,7 +29,7 @@ namespace AMQSongProcessor.UI.ViewModels
 	[DataContract]
 	public class SongViewModel : ReactiveObject, IRoutableViewModel, INavigationController
 	{
-		private readonly List<IDisposable> _Disposables = new List<IDisposable>();
+		private readonly List<IDisposable> _Disposables = new();
 		private readonly ISourceInfoGatherer _Gatherer;
 		private readonly IScreen? _HostScreen;
 		private readonly ObservableAsPropertyHelper<bool> _IsBusy;
@@ -45,9 +45,9 @@ namespace AMQSongProcessor.UI.ViewModels
 		private string? _Directory;
 		private ProcessingData? _ProcessingData;
 		private int _QueuedJobs;
-		private SearchTerms _Search = new SearchTerms();
-		private AvaloniaList<object> _SelectedItems = new AvaloniaList<object>();
-		private SongVisibility _SongVisibility = new SongVisibility();
+		private SearchTerms _Search = new();
+		private AvaloniaList<object> _SelectedItems = new();
+		private SongVisibility _SongVisibility = new();
 
 		public ObservableCollection<ObservableAnime> Anime { get; } =
 			new SortedObservableCollection<ObservableAnime>(new AnimeComparer());
@@ -265,11 +265,11 @@ namespace AMQSongProcessor.UI.ViewModels
 			=> _SystemClipboard.SetTextAsync(id.ToString());
 
 		private void PrivateCopySong(ObservableSong song)
-			=> ClipboardSong = new Clipboard<ObservableSong>(song, false, null);
+			=> ClipboardSong = new(song, false, null);
 
 		private void PrivateCutSong(ObservableSong song)
 		{
-			ClipboardSong = new Clipboard<ObservableSong>(song, true, () =>
+			ClipboardSong = new(song, true, () =>
 			{
 				var anime = song.Parent;
 				anime.Songs.Remove(song);
@@ -430,7 +430,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		{
 			new Process
 			{
-				StartInfo = new ProcessStartInfo(anime.AbsoluteInfoPath)
+				StartInfo = new(anime.AbsoluteInfoPath)
 				{
 					UseShellExecute = true
 				}
@@ -439,14 +439,13 @@ namespace AMQSongProcessor.UI.ViewModels
 
 		private async Task PrivatePasteSong(ObservableAnime anime)
 		{
-			var cp = ClipboardSong!;
-			var song = new ObservableSong(anime, cp.Value);
-			anime.Songs.Add(song);
+			var clipboard = ClipboardSong!;
+			anime.Songs.Add(new ObservableSong(anime, clipboard.Value));
 			await _Loader.SaveAsync(anime.AbsoluteInfoPath, anime).ConfigureAwait(true);
 
-			if (cp.OnPasteCallback != null)
+			if (clipboard.OnPasteCallback != null)
 			{
-				await cp.OnPasteCallback().ConfigureAwait(true);
+				await clipboard.OnPasteCallback().ConfigureAwait(true);
 			}
 		}
 

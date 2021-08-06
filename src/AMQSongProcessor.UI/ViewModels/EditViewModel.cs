@@ -140,7 +140,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _Start, value);
 		}
 		public string UrlPathSegment => "/edit";
-		public ValidationContext ValidationContext { get; } = new ValidationContext();
+		public ValidationContext ValidationContext { get; } = new();
 		public int VideoTrack
 		{
 			get => _VideoTrack;
@@ -258,7 +258,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			_Song.End = TimeSpan.Parse(End);
 			_Song.Episode = GetNullIfZero(Episode);
 			_Song.Name = Name;
-			_Song.Type = new SongTypeAndPosition(SongType, GetNullIfZero(SongPosition));
+			_Song.Type = new(SongType, GetNullIfZero(SongPosition));
 			_Song.ShouldIgnore = ShouldIgnore;
 			_Song.Status = GetStatus();
 			_Song.Start = TimeSpan.Parse(Start);

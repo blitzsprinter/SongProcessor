@@ -6,10 +6,10 @@ using AMQSongProcessor.Utils;
 
 namespace AMQSongProcessor.Models
 {
-	[DebuggerDisplay("{DebuggerDisplay,nq}")]
+	[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
 	public class Song : ISong
 	{
-		public HashSet<int> AlsoIn { get; set; } = new HashSet<int>();
+		public HashSet<int> AlsoIn { get; set; } = new();
 		public string Artist { get; set; }
 		public string? CleanPath { get; set; }
 		public TimeSpan End { get; set; }
@@ -34,7 +34,7 @@ namespace AMQSongProcessor.Models
 
 		public Song(ISong other)
 		{
-			AlsoIn = new HashSet<int>(other.AlsoIn);
+			AlsoIn = new(other.AlsoIn);
 			Artist = other.Artist;
 			CleanPath = other.CleanPath;
 			End = other.End;

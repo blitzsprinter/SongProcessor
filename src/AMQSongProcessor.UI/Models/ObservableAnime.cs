@@ -14,7 +14,7 @@ using ReactiveUI;
 
 namespace AMQSongProcessor.UI.Models
 {
-	[DebuggerDisplay("{DebuggerDisplay,nq}")]
+	[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
 	public sealed class ObservableAnime : ReactiveObject, IAnime
 	{
 		private string _AbsoluteInfoPath;

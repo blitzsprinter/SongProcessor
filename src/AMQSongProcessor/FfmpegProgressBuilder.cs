@@ -36,7 +36,7 @@ namespace AMQSongProcessor
 			TOTAL_SIZE,
 		});
 
-		private Dictionary<string, string> _Values = new Dictionary<string, string>();
+		private Dictionary<string, string> _Values = new();
 
 		public bool IsNextProgressReady(string kvp, [NotNullWhen(true)] out FfmpegProgress? progress)
 		{
@@ -57,9 +57,9 @@ namespace AMQSongProcessor
 			}
 
 			var values = _Values;
-			_Values = new Dictionary<string, string>();
+			_Values = new();
 
-			progress = new FfmpegProgress
+			progress = new()
 			{
 				Frame = Parse(values, FRAME, int.Parse),
 				Fps = Parse(values, FPS, double.Parse),

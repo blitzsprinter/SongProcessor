@@ -199,9 +199,9 @@ namespace AMQSongProcessor
 
 		private readonly struct Resolution
 		{
-			public static readonly Resolution RES_480 = new Resolution(480, Status.Res480);
-			public static readonly Resolution RES_720 = new Resolution(720, Status.Res720);
-			public static readonly Resolution RES_MP3 = new Resolution(MP3, Status.Mp3);
+			public static readonly Resolution RES_480 = new(480, Status.Res480);
+			public static readonly Resolution RES_720 = new(720, Status.Res720);
+			public static readonly Resolution RES_MP3 = new(MP3, Status.Mp3);
 			public static readonly Resolution[] Resolutions = new[]
 			{
 				RES_MP3,

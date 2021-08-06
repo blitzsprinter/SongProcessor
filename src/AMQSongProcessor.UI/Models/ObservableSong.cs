@@ -11,10 +11,10 @@ using ReactiveUI;
 
 namespace AMQSongProcessor.UI.Models
 {
-	[DebuggerDisplay("{DebuggerDisplay,nq}")]
+	[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
 	public sealed class ObservableSong : ReactiveObject, ISong
 	{
-		private HashSet<int> _AlsoIn = new HashSet<int>();
+		private HashSet<int> _AlsoIn = new();
 		private string _Artist;
 		private string? _CleanPath;
 		private TimeSpan _End;
@@ -112,7 +112,7 @@ namespace AMQSongProcessor.UI.Models
 		public ObservableSong(ObservableAnime parent, ISong other)
 		{
 			Parent = parent;
-			AlsoIn = new HashSet<int>(other.AlsoIn);
+			AlsoIn = new(other.AlsoIn);
 			Artist = other.Artist;
 			CleanPath = other.CleanPath;
 			End = other.End;

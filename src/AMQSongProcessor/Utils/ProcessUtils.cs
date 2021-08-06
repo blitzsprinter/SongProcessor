@@ -43,9 +43,9 @@ namespace AMQSongProcessor.Utils
 
 		public static Process CreateProcess(string program, string args)
 		{
-			return new Process
+			return new()
 			{
-				StartInfo = new ProcessStartInfo
+				StartInfo = new()
 				{
 					FileName = program,
 					Arguments = args,

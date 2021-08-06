@@ -22,6 +22,6 @@ namespace AMQSongProcessor.UI.Converters
 		protected abstract object Convert(ValueCollection values, Type targetType, object parameter, CultureInfo culture);
 
 		protected ArgumentException InvalidCount()
-			=> new ArgumentException($"Invalid value count. Expected {ExpectedValueCount}.");
+			=> new($"Invalid value count. Expected {ExpectedValueCount}.");
 	}
 }

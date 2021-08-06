@@ -10,7 +10,7 @@ namespace AMQSongProcessor.UI.ViewModels
 	[DataContract]
 	public class MainViewModel : ReactiveObject, IScreen
 	{
-		private RoutingState _Router = new RoutingState();
+		private RoutingState _Router = new();
 
 		[DataMember]
 		public RoutingState Router

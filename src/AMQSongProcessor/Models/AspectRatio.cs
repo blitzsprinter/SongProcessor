@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace AMQSongProcessor.Models
 {
-	[DebuggerDisplay("{DebuggerDisplay,nq}")]
+	[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
 	public readonly struct AspectRatio : IEquatable<AspectRatio>, IComparable<AspectRatio>
 	{
 		public int Height { get; }

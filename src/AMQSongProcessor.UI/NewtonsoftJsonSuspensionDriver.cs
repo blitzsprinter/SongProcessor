@@ -13,7 +13,7 @@ namespace AMQSongProcessor.UI
 	{
 		private readonly string _File;
 
-		private readonly JsonSerializerSettings _Options = new JsonSerializerSettings
+		private readonly JsonSerializerSettings _Options = new()
 		{
 			TypeNameHandling = TypeNameHandling.All,
 			Formatting = Formatting.Indented,
