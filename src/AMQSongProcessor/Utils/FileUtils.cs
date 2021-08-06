@@ -34,6 +34,14 @@ namespace AMQSongProcessor.Utils
 			return Path.Combine(directory, path);
 		}
 
+		public static string? GetRelativeOrAbsolute(string dir, string? path)
+		{
+			//If the directory matches the info directory just return the file name
+			//Otherwise return the absolute path
+			var sourceDir = Path.GetDirectoryName(path);
+			return dir.PathEquals(sourceDir) ? Path.GetFileName(path) : path;
+		}
+
 		public static string NextAvailableFilename(string path)
 		{
 			static string GetNextFilename(string pattern)
@@ -109,14 +117,6 @@ namespace AMQSongProcessor.Utils
 				}
 			}
 			return sb.ToString();
-		}
-
-		public static string? StoreRelativeOrAbsolute(string dir, string? path)
-		{
-			//If the directory matches the info directory just return the file name
-			//Otherwise return the absolute path
-			var sourceDir = Path.GetDirectoryName(path);
-			return dir.PathEquals(sourceDir) ? Path.GetFileName(path) : path;
 		}
 	}
 }

@@ -62,7 +62,7 @@ namespace AMQSongProcessor.UI.Models
 			get => _Songs;
 			set => this.RaiseAndSetIfChanged(ref _Songs, value);
 		}
-		public string? Source => FileUtils.StoreRelativeOrAbsolute(this.GetDirectory(), VideoInfo?.Path);
+		public string? Source => this.GetRelativeOrAbsoluteSourcePath();
 		public SourceInfo<VideoInfo>? VideoInfo
 		{
 			get => _VideoInfo;

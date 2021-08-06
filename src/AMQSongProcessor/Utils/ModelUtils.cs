@@ -25,6 +25,9 @@ namespace AMQSongProcessor.Utils
 		public static string GetMp3Path(this ISong song, string directory, int animeId)
 			=> FileUtils.EnsureAbsolutePath(directory, $"[{animeId}] {song.Name}.mp3")!;
 
+		public static string? GetRelativeOrAbsoluteSourcePath(this IAnime anime)
+			=> FileUtils.GetRelativeOrAbsolute(anime.GetDirectory(), anime.VideoInfo?.Path);
+
 		public static string GetVideoPath(this ISong song, string directory, int animeId, int resolution)
 			=> FileUtils.EnsureAbsolutePath(directory, $"[{animeId}] {song.Name} [{resolution}p].webm")!;
 
