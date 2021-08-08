@@ -118,14 +118,14 @@ namespace AMQSongProcessor.UI.ViewModels
 			try
 			{
 				var gatherer = _Gatherers.Single(x => x.Name == SelectedGathererName);
-				var model = await gatherer.GetAsync(Id, new GatherOptions
+				var model = await gatherer.GetAsync(Id, new()
 				{
 					AddSongs = AddSongs,
 					AddEndings = AddEndings,
 					AddInserts = AddInserts,
 					AddOpenings = AddOpenings
 				}).ConfigureAwait(true);
-				var file = await _Loader.SaveAsync(Directory!, model, new SaveNewOptions
+				var file = await _Loader.SaveAsync(Directory!, model, new()
 				{
 					AllowOverwrite = false,
 					CreateDuplicateFile = true,

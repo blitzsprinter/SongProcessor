@@ -49,7 +49,7 @@ namespace AMQSongProcessor
 
 			_Values[key] = split[1].Trim();
 
-			//progress will be the last key in the kvp collection
+			// progress will be the last key in the kvp collection
 			if (key != PROGRESS)
 			{
 				progress = null;
@@ -59,21 +59,21 @@ namespace AMQSongProcessor
 			var values = _Values;
 			_Values = new();
 
-			progress = new()
-			{
-				Frame = Parse(values, FRAME, int.Parse),
-				Fps = Parse(values, FPS, double.Parse),
-				Stream00q = Parse(values, STREAM00Q, double.Parse),
-				Bitrate = Parse(values, BITRATE, x => double.Parse(x.Replace("kbits/s", ""))),
-				TotalSize = Parse(values, TOTAL_SIZE, long.Parse),
-				OutTimeMs = Parse(values, OUT_TIME_MS, long.Parse),
-				OutTimeUs = Parse(values, OUT_TIME_US, long.Parse),
-				OutTime = Parse(values, OUT_TIME, TimeSpan.Parse),
-				DuplicateFrames = Parse(values, DUP_FRAMES, int.Parse),
-				DroppedFrames = Parse(values, DROP_FRAMES, int.Parse),
-				Speed = Parse(values, SPEED, x => double.Parse(x.Replace("x", ""))),
-				IsEnd = values[PROGRESS] == "end",
-			};
+			progress = new
+			(
+				Bitrate: Parse(values, BITRATE, x => double.Parse(x.Replace("kbits/s", ""))),
+				DroppedFrames: Parse(values, DROP_FRAMES, int.Parse),
+				DuplicateFrames: Parse(values, DUP_FRAMES, int.Parse),
+				Fps: Parse(values, FPS, double.Parse),
+				Frame: Parse(values, FRAME, int.Parse),
+				IsEnd: values[PROGRESS] == "end",
+				OutTime: Parse(values, OUT_TIME, TimeSpan.Parse),
+				OutTimeMs: Parse(values, OUT_TIME_MS, long.Parse),
+				OutTimeUs: Parse(values, OUT_TIME_US, long.Parse),
+				Speed: Parse(values, SPEED, x => double.Parse(x.Replace("x", ""))),
+				Stream00q: Parse(values, STREAM00Q, double.Parse),
+				TotalSize: Parse(values, TOTAL_SIZE, long.Parse)
+			);
 			return true;
 		}
 

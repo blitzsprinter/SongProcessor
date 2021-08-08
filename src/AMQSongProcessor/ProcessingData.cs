@@ -2,10 +2,10 @@
 
 namespace AMQSongProcessor
 {
-	public readonly struct ProcessingData
+	public sealed class ProcessingData
 	{
 		public TimeSpan CompletionETA { get; }
-		public string File => System.IO.Path.GetFileName(Path);
+		public string File { get; }
 		public TimeSpan Length { get; }
 		public string Path { get; }
 		public float Percentage { get; }
@@ -15,6 +15,7 @@ namespace AMQSongProcessor
 		public ProcessingData(string path, TimeSpan length, FfmpegProgress progress)
 		{
 			Path = path;
+			File = System.IO.Path.GetFileName(Path);
 			Length = length;
 			Progress = progress;
 

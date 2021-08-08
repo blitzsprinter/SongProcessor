@@ -306,7 +306,7 @@ namespace AMQSongProcessor.UI.ViewModels
 
 		private async Task PrivateDuplicateAnime(ObservableAnime anime)
 		{
-			var file = await _Loader.SaveAsync(anime.GetDirectory(), anime, new SaveNewOptions
+			var file = await _Loader.SaveAsync(anime.GetDirectory(), anime, new()
 			{
 				AllowOverwrite = false,
 				CreateDuplicateFile = true,

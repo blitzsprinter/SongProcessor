@@ -16,7 +16,7 @@ namespace AMQSongProcessor.Models
 		public string Name { get; }
 		public List<Song> Songs { get; } = new();
 		public string? Source => this.GetRelativeOrAbsoluteSourcePath();
-		public SourceInfo<VideoInfo>? VideoInfo { get; set; }
+		public SourceInfo<VideoInfo>? VideoInfo { get; }
 		public int Year { get; }
 		IReadOnlyList<ISong> IAnimeBase.Songs => Songs;
 		private string DebuggerDisplay => Name;
