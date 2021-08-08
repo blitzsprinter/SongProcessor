@@ -17,6 +17,8 @@ namespace AMQSongProcessor.UI.Models
 	[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
 	public sealed class ObservableAnime : ReactiveObject, IAnime
 	{
+		private static readonly SongComparer _SongComparer = new();
+
 		private string _AbsoluteInfoPath;
 		private int _Id;
 		private bool _IsExpanded;
@@ -85,8 +87,8 @@ namespace AMQSongProcessor.UI.Models
 			AbsoluteInfoPath = anime.AbsoluteInfoPath;
 			Id = anime.Id;
 			Name = anime.Name;
-			Songs = new SortedObservableCollection<ObservableSong>(new SongComparer());
-			Songs.AddRange(anime.Songs.Select(x => new ObservableSong(this, x)));
+			var songs = anime.Songs.Select(x => new ObservableSong(this, x));
+			Songs = new SortedObservableCollection<ObservableSong>(_SongComparer, songs);
 			IsExpanderVisible = Songs.Count > 0;
 			VideoInfo = anime.VideoInfo;
 			Year = anime.Year;
