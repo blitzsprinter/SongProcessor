@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using AMQSongProcessor.Models;
-
-namespace AMQSongProcessor
+namespace AMQSongProcessor.Models
 {
 	public sealed class AnimeComparer : Comparer<IAnime>
 	{
-		private readonly SongComparer _SongComparer = new();
+		public static AnimeComparer Instance { get; } = new();
 
 		public override int Compare(IAnime? x, IAnime? y)
 		{
@@ -22,7 +20,7 @@ namespace AMQSongProcessor
 			return y != null ? -1 : 0;
 		}
 
-		private int CompareNonNull(IAnime x, IAnime y)
+		private static int CompareNonNull(IAnime x, IAnime y)
 		{
 			var year = x.Year.CompareTo(y.Year);
 			if (year != 0)
@@ -40,7 +38,7 @@ namespace AMQSongProcessor
 			var count = Math.Min(x.Songs.Count, y.Songs.Count);
 			for (var i = 0; i < count && song == 0; ++i)
 			{
-				song = _SongComparer.Compare(x.Songs[i], y.Songs[i]);
+				song = SongComparer.Instance.Compare(x.Songs[i], y.Songs[i]);
 			}
 			if (song != 0)
 			{

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AMQSongProcessor
+namespace AMQSongProcessor.Ffmpeg
 {
 	public sealed record FfmpegProgress(
 		double Bitrate,

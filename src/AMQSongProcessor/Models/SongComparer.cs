@@ -1,12 +1,13 @@
 ﻿using System.Collections.Generic;
 
-using AMQSongProcessor.Models;
 using AMQSongProcessor.Utils;
 
-namespace AMQSongProcessor
+namespace AMQSongProcessor.Models
 {
 	public sealed class SongComparer : Comparer<ISong>
 	{
+		public static SongComparer Instance { get; } = new();
+
 		public override int Compare(ISong? x, ISong? y)
 		{
 			if (x != null)

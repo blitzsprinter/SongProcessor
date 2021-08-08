@@ -2,7 +2,7 @@
 
 using AMQSongProcessor.Models;
 
-namespace AMQSongProcessor
+namespace AMQSongProcessor.Ffmpeg
 {
 	public interface ISourceInfoGatherer
 	{

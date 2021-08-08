@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 using AdvorangesUtils;
 
+using AMQSongProcessor.Ffmpeg;
 using AMQSongProcessor.Gatherers;
 using AMQSongProcessor.Models;
 using AMQSongProcessor.Utils;

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 
-namespace AMQSongProcessor
+namespace AMQSongProcessor.Ffmpeg
 {
 	internal sealed class FfmpegProgressBuilder
 	{

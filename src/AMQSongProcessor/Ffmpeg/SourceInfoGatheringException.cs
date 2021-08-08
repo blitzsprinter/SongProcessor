@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AMQSongProcessor
+namespace AMQSongProcessor.Ffmpeg
 {
 	public class SourceInfoGatheringException : Exception
 	{

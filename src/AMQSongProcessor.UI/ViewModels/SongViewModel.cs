@@ -9,6 +9,7 @@ using System.Reactive.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
+using AMQSongProcessor.Ffmpeg;
 using AMQSongProcessor.Models;
 using AMQSongProcessor.UI.Models;
 using AMQSongProcessor.Utils;
@@ -57,7 +58,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		private SongVisibility _SongVisibility = new();
 
 		public ObservableCollection<ObservableAnime> Anime { get; } =
-			new SortedObservableCollection<ObservableAnime>(new AnimeComparer());
+			new SortedObservableCollection<ObservableAnime>(AnimeComparer.Instance);
 		public IObservable<bool> CanNavigate { get; }
 		public Clipboard<ObservableSong>? ClipboardSong
 		{
@@ -498,9 +499,9 @@ namespace AMQSongProcessor.UI.ViewModels
 
 		private void PrivateUnload()
 		{
-			foreach (var subscription in _Disposables)
+			foreach (var disposable in _Disposables)
 			{
-				subscription.Dispose();
+				disposable.Dispose();
 			}
 
 			Anime.Clear();

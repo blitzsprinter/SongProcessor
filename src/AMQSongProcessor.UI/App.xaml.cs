@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 using AdvorangesUtils;
 
+using AMQSongProcessor.Ffmpeg;
 using AMQSongProcessor.Gatherers;
 using AMQSongProcessor.UI.ViewModels;
 using AMQSongProcessor.UI.Views;

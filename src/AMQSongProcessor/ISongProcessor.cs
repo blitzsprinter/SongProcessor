@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using AMQSongProcessor.Jobs;
@@ -9,8 +8,6 @@ namespace AMQSongProcessor
 {
 	public interface ISongProcessor
 	{
-		event Action<IWarning> WarningReceived;
-
 		IReadOnlyList<ISongJob> CreateJobs(IEnumerable<IAnime> anime);
 
 		Task ExportFixesAsync(string dir, IEnumerable<IAnime> anime);

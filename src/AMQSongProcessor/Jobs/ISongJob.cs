@@ -2,6 +2,8 @@
 using System.Threading;
 using System.Threading.Tasks;
 
+using AMQSongProcessor.Ffmpeg;
+
 namespace AMQSongProcessor.Jobs
 {
 	public interface ISongJob
