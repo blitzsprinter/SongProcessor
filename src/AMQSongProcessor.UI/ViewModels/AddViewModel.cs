@@ -20,6 +20,13 @@ namespace AMQSongProcessor.UI.ViewModels
 	[DataContract]
 	public class AddViewModel : ReactiveObject, IRoutableViewModel
 	{
+		private static readonly SaveNewOptions _SaveOptions = new
+		(
+			AddShowNameDirectory: true,
+			AllowOverwrite: false,
+			CreateDuplicateFile: true
+		);
+
 		private readonly IEnumerable<IAnimeGatherer> _Gatherers;
 		private readonly IScreen? _HostScreen;
 		private readonly ISongLoader _Loader;
@@ -118,19 +125,14 @@ namespace AMQSongProcessor.UI.ViewModels
 			try
 			{
 				var gatherer = _Gatherers.Single(x => x.Name == SelectedGathererName);
-				var model = await gatherer.GetAsync(Id, new()
-				{
-					AddSongs = AddSongs,
-					AddEndings = AddEndings,
-					AddInserts = AddInserts,
-					AddOpenings = AddOpenings
-				}).ConfigureAwait(true);
-				var file = await _Loader.SaveAsync(Directory!, model, new()
-				{
-					AllowOverwrite = false,
-					CreateDuplicateFile = true,
-					AddShowNameDirectory = true,
-				}).ConfigureAwait(true);
+				var model = await gatherer.GetAsync(Id, new
+				(
+					AddEndings: AddEndings,
+					AddInserts: AddInserts,
+					AddOpenings: AddOpenings,
+					AddSongs: AddSongs)
+				).ConfigureAwait(true);
+				var file = await _Loader.SaveAsync(Directory!, model, _SaveOptions).ConfigureAwait(true);
 				Anime.Add(new ObservableAnime(new Anime(file!, model, null)));
 				Exception = null;
 			}
@@ -142,21 +144,22 @@ namespace AMQSongProcessor.UI.ViewModels
 
 		private async Task PrivateDeleteAnime(IAnime anime)
 		{
-			var text = $"Are you sure you want to delete {anime.Name}?";
-			const string TITLE = "Anime Deletion";
-
-			var result = await _MessageBoxManager.ShowAsync(text, TITLE, Constants.YesNo).ConfigureAwait(true);
-			if (result == Constants.YES)
+			var result = await _MessageBoxManager.ConfirmAsync(
+				$"Are you sure you want to delete {anime.Name}?",
+				"Anime Deletion"
+			).ConfigureAwait(true);
+			if (!result)
 			{
-				Anime.Remove(anime);
-				File.Delete(anime.AbsoluteInfoPath);
+				return;
 			}
+
+			Anime.Remove(anime);
+			File.Delete(anime.AbsoluteInfoPath);
 		}
 
 		private async Task PrivateSelectDirectory()
 		{
-			var dir = System.IO.Directory.Exists(Directory) ? Directory! : Environment.CurrentDirectory;
-			var path = await _MessageBoxManager.GetDirectoryAsync(dir, "Directory").ConfigureAwait(true);
+			var path = await _MessageBoxManager.GetDirectoryAsync(Directory).ConfigureAwait(true);
 			if (string.IsNullOrWhiteSpace(path))
 			{
 				return;

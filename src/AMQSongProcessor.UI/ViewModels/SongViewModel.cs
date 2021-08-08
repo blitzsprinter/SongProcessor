@@ -29,6 +29,13 @@ namespace AMQSongProcessor.UI.ViewModels
 	[DataContract]
 	public class SongViewModel : ReactiveObject, IRoutableViewModel, INavigationController
 	{
+		private static readonly SaveNewOptions _SaveOptions = new
+		(
+			AddShowNameDirectory: false,
+			AllowOverwrite: false,
+			CreateDuplicateFile: true
+		);
+
 		private readonly List<IDisposable> _Disposables = new();
 		private readonly ISourceInfoGatherer _Gatherer;
 		private readonly IScreen? _HostScreen;
@@ -244,15 +251,17 @@ namespace AMQSongProcessor.UI.ViewModels
 
 		private async Task PrivateClearSongs(ObservableAnime anime)
 		{
-			var text = $"Are you sure you want to delete all songs {anime.Name}?";
-			const string TITLE = "Song Clearing";
-
-			var result = await _MessageBoxManager.ShowAsync(text, TITLE, Constants.YesNo).ConfigureAwait(true);
-			if (result == Constants.YES)
+			var result = await _MessageBoxManager.ConfirmAsync(
+				$"Are you sure you want to delete all songs from {anime.Name}?",
+				"Song Clearing"
+			).ConfigureAwait(true);
+			if (!result)
 			{
-				anime.Songs.Clear();
-				await _Loader.SaveAsync(anime.AbsoluteInfoPath, anime).ConfigureAwait(true);
+				return;
 			}
+
+			anime.Songs.Clear();
+			await _Loader.SaveAsync(anime.AbsoluteInfoPath, anime).ConfigureAwait(true);
 		}
 
 		private async Task PrivateClearSource(ObservableAnime anime)
@@ -279,39 +288,38 @@ namespace AMQSongProcessor.UI.ViewModels
 
 		private async Task PrivateDeleteAnime(ObservableAnime anime)
 		{
-			var text = $"Are you sure you want to delete {anime.Name}?";
-			const string TITLE = "Anime Deletion";
-
-			var result = await _MessageBoxManager.ShowAsync(text, TITLE, Constants.YesNo).ConfigureAwait(true);
-			if (result == Constants.YES)
+			var result = await _MessageBoxManager.ConfirmAsync(
+				$"Are you sure you want to delete {anime.Name}?",
+				"Anime Deletion"
+			).ConfigureAwait(true);
+			if (!result)
 			{
-				Anime.Remove(anime);
-				File.Delete(anime.AbsoluteInfoPath);
+				return;
 			}
+
+			Anime.Remove(anime);
+			File.Delete(anime.AbsoluteInfoPath);
 		}
 
 		private async Task PrivateDeleteSong(ObservableSong song)
 		{
 			var anime = song.Parent;
-			var text = $"Are you sure you want to delete \"{song.Name}\" from {anime.Name}?";
-			const string TITLE = "Song Deletion";
-
-			var result = await _MessageBoxManager.ShowAsync(text, TITLE, Constants.YesNo).ConfigureAwait(true);
-			if (result == Constants.YES)
+			var result = await _MessageBoxManager.ConfirmAsync(
+				$"Are you sure you want to delete \"{song.Name}\" from {anime.Name}?",
+				"Song Deletion"
+			).ConfigureAwait(true);
+			if (!result)
 			{
-				anime.Songs.Remove(song);
-				await _Loader.SaveAsync(anime.AbsoluteInfoPath, anime).ConfigureAwait(true);
+				return;
 			}
+
+			anime.Songs.Remove(song);
+			await _Loader.SaveAsync(anime.AbsoluteInfoPath, anime).ConfigureAwait(true);
 		}
 
 		private async Task PrivateDuplicateAnime(ObservableAnime anime)
 		{
-			var file = await _Loader.SaveAsync(anime.GetDirectory(), anime, new()
-			{
-				AllowOverwrite = false,
-				CreateDuplicateFile = true,
-				AddShowNameDirectory = false,
-			}).ConfigureAwait(true);
+			var file = await _Loader.SaveAsync(anime.GetDirectory(), anime, _SaveOptions).ConfigureAwait(true);
 			Anime.Add(new ObservableAnime(new Anime(file!, anime, anime.VideoInfo)));
 		}
 
@@ -398,11 +406,11 @@ namespace AMQSongProcessor.UI.ViewModels
 			var status = modifier.ToStatus();
 
 			var action = isRemove ? "removing" : "adding";
-			var text = $"Are you sure you want to modify {SelectedItems.Count} songs status' by {action} {status}?";
-			const string TITLE = "Multiple Song Status Modification";
-
-			var result = await _MessageBoxManager.ShowAsync(text, TITLE, Constants.YesNo).ConfigureAwait(true);
-			if (result != Constants.YES)
+			var result = await _MessageBoxManager.ConfirmAsync(
+				$"Are you sure you want to modify {SelectedItems.Count} songs status' by {action} {status}?",
+				"Multiple Song Status Modification"
+			).ConfigureAwait(true);
+			if (!result)
 			{
 				return;
 			}
@@ -479,8 +487,7 @@ namespace AMQSongProcessor.UI.ViewModels
 
 		private async Task PrivateSelectDirectory()
 		{
-			var dir = System.IO.Directory.Exists(Directory) ? Directory! : Environment.CurrentDirectory;
-			var path = await _MessageBoxManager.GetDirectoryAsync(dir, "Directory").ConfigureAwait(true);
+			var path = await _MessageBoxManager.GetDirectoryAsync(Directory).ConfigureAwait(true);
 			if (string.IsNullOrWhiteSpace(path))
 			{
 				return;

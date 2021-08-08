@@ -4,13 +4,13 @@ using AMQSongProcessor.Models;
 
 namespace AMQSongProcessor.Gatherers
 {
-	public sealed class GatherOptions
+	public sealed record GatherOptions(
+		bool AddEndings,
+		bool AddInserts,
+		bool AddOpenings,
+		bool AddSongs
+	)
 	{
-		public bool AddEndings { get; set; }
-		public bool AddInserts { get; set; }
-		public bool AddOpenings { get; set; }
-		public bool AddSongs { get; set; }
-
 		public bool CanBeGathered(SongType type)
 		{
 			return AddSongs && type switch

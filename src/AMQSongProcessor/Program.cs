@@ -221,11 +221,11 @@ namespace AMQSongProcessor
 			}
 
 			var options = new SaveNewOptions
-			{
-				AllowOverwrite = false,
-				CreateDuplicateFile = false,
-				AddShowNameDirectory = true,
-			};
+			(
+				AddShowNameDirectory: true,
+				AllowOverwrite: false,
+				CreateDuplicateFile: false
+			);
 			var gatherer = new ANNGatherer();
 			foreach (var id in File.ReadAllLines(idFile).Select(int.Parse))
 			{

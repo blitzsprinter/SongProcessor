@@ -11,10 +11,4 @@ namespace AMQSongProcessor.UI
 
 		Task<T> ShowAsync<T>(string text, string title, IEnumerable<T>? options);
 	}
-
-	public static class MessageBoxManagerUtils
-	{
-		public static Task ShowAsync(this IMessageBoxManager manager, string text, string title)
-			=> manager.ShowAsync<object>(text, title, null);
-	}
 }
