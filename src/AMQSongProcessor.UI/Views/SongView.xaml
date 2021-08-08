@@ -23,7 +23,8 @@
                KeyDown="OnKeyDown"
                IsEnabled="{Binding !Anime.Count}" />
       <Button Grid.Column="1" Content="Select"
-              Command="{Binding SelectDirectory}" />
+              Command="{Binding SelectDirectory}"
+              IsEnabled="{Binding !Anime.Count}" />
       <Button Grid.Column="2" Content="Load"
               Command="{Binding Load}"
               IsVisible="{Binding !Anime.Count}" />
@@ -126,53 +127,43 @@
                        Background="{Binding Status, Converter={x:Static converters:MiscConverters.StatusColor}}">
               <TextBlock.ContextMenu>
                 <ContextMenu Classes="notWhenBusy">
-                  <MenuItem Classes="disallowMultiple"
-                            Header="Edit Song" CommandParameter="{Binding}"
+                  <MenuItem Classes="disallowMultiple" Header="Edit Song"
+                            CommandParameter="{Binding}"
                             Command="{Binding ElementName=Me, Path=DataContext.EditSong}" />
-                  <MenuItem Classes="disallowMultiple"
-                            Header="-" />
-                  <MenuItem Classes="disallowMultiple"
-                            Header="Copy Song" CommandParameter="{Binding}"
+                  <MenuItem Classes="disallowMultiple" Header="-" />
+                  <MenuItem Classes="disallowMultiple" Header="Copy Song"
+                            CommandParameter="{Binding}"
                             Command="{Binding ElementName=Me, Path=DataContext.CopySong}" />
-                  <MenuItem Classes="disallowMultiple"
-                            Header="Cut Song" CommandParameter="{Binding}"
+                  <MenuItem Classes="disallowMultiple" Header="Cut Song"
+                            CommandParameter="{Binding}"
                             Command="{Binding ElementName=Me, Path=DataContext.CutSong}" />
-                  <MenuItem Classes="disallowMultiple"
-                            Header="Delete Song" CommandParameter="{Binding}"
+                  <MenuItem Classes="disallowMultiple" Header="Delete Song"
+                            CommandParameter="{Binding}"
                             Command="{Binding ElementName=Me, Path=DataContext.DeleteSong}" />
 
-                  <MenuItem Classes="onlySongs"
-                            Header="Set Songs As Submitted"
+                  <MenuItem Classes="onlySongs" Header="Set Songs As Submitted"
                             CommandParameter="{x:Static uimodels:StatusModifier.Submitted}"
                             Command="{Binding ElementName=Me, Path=DataContext.ModifyMultipleSongsStatus}" />
-                  <MenuItem Classes="onlySongs"
-                            Header="Set Songs As Mp3 Uploaded"
+                  <MenuItem Classes="onlySongs" Header="Set Songs As Mp3 Uploaded"
                             CommandParameter="{x:Static uimodels:StatusModifier.Mp3}"
                             Command="{Binding ElementName=Me, Path=DataContext.ModifyMultipleSongsStatus}" />
-                  <MenuItem Classes="onlySongs"
-                            Header="Set Songs As 480p Uploaded"
+                  <MenuItem Classes="onlySongs" Header="Set Songs As 480p Uploaded"
                             CommandParameter="{x:Static uimodels:StatusModifier.Res480}"
                             Command="{Binding ElementName=Me, Path=DataContext.ModifyMultipleSongsStatus}" />
-                  <MenuItem Classes="onlySongs"
-                            Header="Set Songs As 720p Uploaded"
+                  <MenuItem Classes="onlySongs" Header="Set Songs As 720p Uploaded"
                             CommandParameter="{x:Static uimodels:StatusModifier.Res720}"
                             Command="{Binding ElementName=Me, Path=DataContext.ModifyMultipleSongsStatus}" />
-                  <MenuItem Classes="onlySongs"
-                            Header="-" />
-                  <MenuItem Classes="onlySongs"
-                            Header="Unset Songs As Submitted"
+                  <MenuItem Classes="onlySongs" Header="-" />
+                  <MenuItem Classes="onlySongs" Header="Unset Songs As Submitted"
                             CommandParameter="{x:Static uimodels:StatusModifier.NotSubmitted}"
                             Command="{Binding ElementName=Me, Path=DataContext.ModifyMultipleSongsStatus}" />
-                  <MenuItem Classes="onlySongs"
-                            Header="Unset Songs As Mp3 Uploaded"
+                  <MenuItem Classes="onlySongs" Header="Unset Songs As Mp3 Uploaded"
                             CommandParameter="{x:Static uimodels:StatusModifier.NotMp3}"
                             Command="{Binding ElementName=Me, Path=DataContext.ModifyMultipleSongsStatus}" />
-                  <MenuItem Classes="onlySongs"
-                            Header="Unset Songs As 480p Uploaded"
+                  <MenuItem Classes="onlySongs" Header="Unset Songs As 480p Uploaded"
                             CommandParameter="{x:Static uimodels:StatusModifier.NotRes480}"
                             Command="{Binding ElementName=Me, Path=DataContext.ModifyMultipleSongsStatus}" />
-                  <MenuItem Classes="onlySongs"
-                            Header="Unset Songs As 720p Uploaded"
+                  <MenuItem Classes="onlySongs" Header="Unset Songs As 720p Uploaded"
                             CommandParameter="{x:Static uimodels:StatusModifier.NotRes720}"
                             Command="{Binding ElementName=Me, Path=DataContext.ModifyMultipleSongsStatus}" />
                 </ContextMenu>
