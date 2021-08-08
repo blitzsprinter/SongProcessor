@@ -2,16 +2,18 @@
 using System.IO;
 using System.Threading.Tasks;
 
+using AMQSongProcessor.UI.ViewModels;
+
 namespace AMQSongProcessor.UI
 {
 	public static class UIUtils
 	{
 		public static async Task<bool> ConfirmAsync(
 			this IMessageBoxManager manager,
-			string text,
-			string title)
+			MessageBoxViewModel<string> viewModel)
 		{
-			var result = await manager.ShowAsync(text, title, Constants.YesNo).ConfigureAwait(true);
+			viewModel.Options = Constants.YesNo;
+			var result = await manager.ShowAsync(viewModel).ConfigureAwait(true);
 			return result == Constants.YES;
 		}
 
@@ -23,10 +25,9 @@ namespace AMQSongProcessor.UI
 			return manager.GetDirectoryAsync(directory, "Directory");
 		}
 
-		public static Task ShowAsync(
+		public static Task ShowNoResultAsync(
 			this IMessageBoxManager manager,
-			string text,
-			string title)
-			=> manager.ShowAsync<object>(text, title, null);
+			MessageBoxViewModel<object> viewModel)
+			=> manager.ShowAsync(viewModel);
 	}
 }

@@ -1,5 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+
+using AMQSongProcessor.UI.ViewModels;
 
 namespace AMQSongProcessor.UI
 {
@@ -9,6 +10,6 @@ namespace AMQSongProcessor.UI
 
 		Task<string[]> GetFilesAsync(string directory, string title, bool allowMultiple = true, string? initialFileName = null);
 
-		Task<T> ShowAsync<T>(string text, string title, IEnumerable<T>? options);
+		Task<T> ShowAsync<T>(MessageBoxViewModel<T> viewModel);
 	}
 }

@@ -37,7 +37,6 @@ namespace AMQSongProcessor.UI.ViewModels
 			CreateDuplicateFile: true
 		);
 
-		private readonly List<IDisposable> _Disposables = new();
 		private readonly ISourceInfoGatherer _Gatherer;
 		private readonly IScreen? _HostScreen;
 		private readonly ObservableAsPropertyHelper<bool> _IsBusy;
@@ -47,6 +46,7 @@ namespace AMQSongProcessor.UI.ViewModels
 		private readonly ObservableAsPropertyHelper<bool> _MultipleItemsSelected;
 		private readonly ObservableAsPropertyHelper<bool> _OnlySongsSelected;
 		private readonly ISongProcessor _Processor;
+		private readonly List<IDisposable> _Subscriptions = new();
 		private readonly IClipboard _SystemClipboard;
 		private Clipboard<ObservableSong>? _ClipboardSong;
 		private int _CurrentJob;
@@ -242,8 +242,14 @@ namespace AMQSongProcessor.UI.ViewModels
 			}
 			catch (Exception)
 			{
-				var text = $"\"{path}\" is an invalid file for a video source.";
-				await Dispatcher.UIThread.InvokeAsync(() => _MessageBoxManager.ShowAsync(text, "Invalid File")).ConfigureAwait(true);
+				await Dispatcher.UIThread.InvokeAsync(() =>
+				{
+					return _MessageBoxManager.ShowNoResultAsync(new()
+					{
+						Text = $"\"{path}\" is an invalid file for a video source.",
+						Title = "Invalid File",
+					});
+				}).ConfigureAwait(true);
 				return;
 			}
 
@@ -252,10 +258,11 @@ namespace AMQSongProcessor.UI.ViewModels
 
 		private async Task PrivateClearSongs(ObservableAnime anime)
 		{
-			var result = await _MessageBoxManager.ConfirmAsync(
-				$"Are you sure you want to delete all songs from {anime.Name}?",
-				"Song Clearing"
-			).ConfigureAwait(true);
+			var result = await _MessageBoxManager.ConfirmAsync(new()
+			{
+				Text = $"Are you sure you want to delete all songs from {anime.Name}?",
+				Title = "Song Clearing",
+			}).ConfigureAwait(true);
 			if (!result)
 			{
 				return;
@@ -289,10 +296,11 @@ namespace AMQSongProcessor.UI.ViewModels
 
 		private async Task PrivateDeleteAnime(ObservableAnime anime)
 		{
-			var result = await _MessageBoxManager.ConfirmAsync(
-				$"Are you sure you want to delete {anime.Name}?",
-				"Anime Deletion"
-			).ConfigureAwait(true);
+			var result = await _MessageBoxManager.ConfirmAsync(new()
+			{
+				Text = $"Are you sure you want to delete {anime.Name}?",
+				Title = "Anime Deletion",
+			}).ConfigureAwait(true);
 			if (!result)
 			{
 				return;
@@ -305,10 +313,11 @@ namespace AMQSongProcessor.UI.ViewModels
 		private async Task PrivateDeleteSong(ObservableSong song)
 		{
 			var anime = song.Parent;
-			var result = await _MessageBoxManager.ConfirmAsync(
-				$"Are you sure you want to delete \"{song.Name}\" from {anime.Name}?",
-				"Song Deletion"
-			).ConfigureAwait(true);
+			var result = await _MessageBoxManager.ConfirmAsync(new()
+			{
+				Text = $"Are you sure you want to delete \"{song.Name}\" from {anime.Name}?",
+				Title = "Song Deletion",
+			}).ConfigureAwait(true);
 			if (!result)
 			{
 				return;
@@ -348,7 +357,14 @@ namespace AMQSongProcessor.UI.ViewModels
 				var text = $"Volume information for \"{Path.GetFileName(path)}\":" +
 					$"\nMean volume: {result.Info.MeanVolume}dB" +
 					$"\nMax volume: {result.Info.MaxVolume}dB";
-				_ = Dispatcher.UIThread.InvokeAsync(() => _MessageBoxManager.ShowAsync(text, "Volume Info")).ConfigureAwait(true);
+				_ = Dispatcher.UIThread.InvokeAsync(() =>
+				{
+					return _MessageBoxManager.ShowNoResultAsync(new()
+					{
+						Text = text,
+						Title = "Volume Info",
+					});
+				}).ConfigureAwait(true);
 			}
 		}
 
@@ -363,15 +379,15 @@ namespace AMQSongProcessor.UI.ViewModels
 					ModifyVisibility(o);
 					Anime.Add(o);
 
-					_Disposables.Add(o.Changed.Subscribe(_ => ModifyVisibility(o)));
-					_Disposables.Add(o.Songs
+					_Subscriptions.Add(o.Changed.Subscribe(_ => ModifyVisibility(o)));
+					_Subscriptions.Add(o.Songs
 						.ToObservableChangeSet()
 						.WhenAnyPropertyChanged()
 						.Subscribe(_ => ModifyVisibility(o))
 					);
 				}
 
-				_Disposables.Add(Search.Changed
+				_Subscriptions.Add(Search.Changed
 					.Merge(SongVisibility.Changed)
 					.Subscribe(_ =>
 					{
@@ -384,19 +400,13 @@ namespace AMQSongProcessor.UI.ViewModels
 			}
 			catch (Exception e)
 			{
-				static string CreateMessage(Exception e)
+				await _MessageBoxManager.ShowNoResultAsync(new()
 				{
-					var msg = e.Message;
-					if (e.InnerException is null)
-					{
-						return msg;
-					}
-					return msg + "\n" + CreateMessage(e.InnerException);
-				}
-
-				var message = CreateMessage(e);
-				await _MessageBoxManager.ShowAsync(message, "Failed To Load Songs").ConfigureAwait(true);
-
+					CanResize = true,
+					Height = Constants.MESSAGE_BOX_HEIGHT * 5,
+					Text = e.ToString(),
+					Title = "Failed To Load Songs",
+				}).ConfigureAwait(true);
 				throw;
 			}
 		}
@@ -406,11 +416,12 @@ namespace AMQSongProcessor.UI.ViewModels
 			var isRemove = modifier < 0;
 			var status = modifier.ToStatus();
 
-			var action = isRemove ? "removing" : "adding";
-			var result = await _MessageBoxManager.ConfirmAsync(
-				$"Are you sure you want to modify {SelectedItems.Count} songs status' by {action} {status}?",
-				"Multiple Song Status Modification"
-			).ConfigureAwait(true);
+			var result = await _MessageBoxManager.ConfirmAsync(new()
+			{
+				Text = $"Are you sure you want to modify {SelectedItems.Count} " +
+					$"songs status' by {(isRemove ? "removing" : "adding")} {status}?",
+				Title = "Multiple Song Status Modification",
+			}).ConfigureAwait(true);
 			if (!result)
 			{
 				return;
@@ -499,9 +510,9 @@ namespace AMQSongProcessor.UI.ViewModels
 
 		private void PrivateUnload()
 		{
-			foreach (var disposable in _Disposables)
+			foreach (var subscriptions in _Subscriptions)
 			{
-				disposable.Dispose();
+				subscriptions.Dispose();
 			}
 
 			Anime.Clear();

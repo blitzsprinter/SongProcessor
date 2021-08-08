@@ -9,7 +9,7 @@
         FontFamily="Courier New"
         Width="{Binding Width}"
         Height="{Binding Height}"
-        CanResize="False">
+        CanResize="{Binding CanResize}">
 
   <Grid RowDefinitions="89*,42">
     <Grid Grid.Row="0">

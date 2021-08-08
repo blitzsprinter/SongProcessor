@@ -12,18 +12,24 @@ namespace AMQSongProcessor.UI.ViewModels
 {
 	public class MessageBoxViewModel<T> : ReactiveObject
 	{
-		private string? _ButtonText;
+		private string? _ButtonText = "Ok";
+		private bool _CanResize;
 		private T _CurrentOption = default!;
-		private int _Height = 133;
+		private int _Height = Constants.MESSAGE_BOX_HEIGHT;
 		private IEnumerable<T>? _Options;
 		private string? _Text;
 		private string? _Title;
-		private int _Width = 278;
+		private int _Width = Constants.MESSAGE_BOX_WIDTH;
 
 		public string? ButtonText
 		{
 			get => _ButtonText;
 			set => this.RaiseAndSetIfChanged(ref _ButtonText, value);
+		}
+		public bool CanResize
+		{
+			get => _CanResize;
+			set => this.RaiseAndSetIfChanged(ref _CanResize, value);
 		}
 		[property: MaybeNull]
 		public T CurrentOption

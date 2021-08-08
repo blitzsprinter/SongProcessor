@@ -144,10 +144,11 @@ namespace AMQSongProcessor.UI.ViewModels
 
 		private async Task PrivateDeleteAnime(IAnime anime)
 		{
-			var result = await _MessageBoxManager.ConfirmAsync(
-				$"Are you sure you want to delete {anime.Name}?",
-				"Anime Deletion"
-			).ConfigureAwait(true);
+			var result = await _MessageBoxManager.ConfirmAsync(new()
+			{
+				Text = $"Are you sure you want to delete {anime.Name}?",
+				Title = "Anime Deletion",
+			}).ConfigureAwait(true);
 			if (!result)
 			{
 				return;
