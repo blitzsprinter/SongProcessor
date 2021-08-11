@@ -3,7 +3,10 @@ using System.IO;
 using System.Reactive;
 using System.Reactive.Linq;
 
+using AMQSongProcessor.UI.ViewModels;
+
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 using ReactiveUI;
 
@@ -24,6 +27,9 @@ namespace AMQSongProcessor.UI
 		public NewtonsoftJsonSuspensionDriver(string file)
 		{
 			_File = file;
+			_Options.Converters.Add(new Test());
+			_Options.Converters.Add(new Test2());
+			_Options.Converters.Add(new Test3());
 		}
 
 		public IObservable<Unit> InvalidateState()
@@ -52,6 +58,30 @@ namespace AMQSongProcessor.UI
 			var lines = JsonConvert.SerializeObject(state, _Options);
 			File.WriteAllText(_File, lines);
 			return Observable.Return(Unit.Default);
+		}
+	}
+
+	public class Test : CustomCreationConverter<MainViewModel>
+	{
+		public override MainViewModel Create(Type objectType)
+		{
+			throw new NotImplementedException();
+		}
+	}
+
+	public class Test2 : CustomCreationConverter<SongViewModel>
+	{
+		public override SongViewModel Create(Type objectType)
+		{
+			throw new NotImplementedException();
+		}
+	}
+
+	public class Test3 : CustomCreationConverter<ISongLoader>
+	{
+		public override ISongLoader Create(Type objectType)
+		{
+			throw new NotImplementedException();
 		}
 	}
 }

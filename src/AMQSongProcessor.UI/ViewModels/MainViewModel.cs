@@ -1,7 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Runtime.Serialization;
+
+using AMQSongProcessor.Ffmpeg;
+using AMQSongProcessor.Gatherers;
+
+using Avalonia.Input.Platform;
 
 using ReactiveUI;
 
@@ -25,10 +31,28 @@ namespace AMQSongProcessor.UI.ViewModels
 		public ReactiveCommand<Unit, Unit> Load { get; }
 		#endregion Commands
 
-		public MainViewModel()
+		public MainViewModel(
+			ISongLoader loader,
+			ISongProcessor processor,
+			ISourceInfoGatherer gatherer,
+			IClipboard clipboard,
+			IMessageBoxManager messageBoxManager,
+			IEnumerable<IAnimeGatherer> gatherers)
 		{
-			Load = CreateViewModelCommand<SongViewModel>();
-			Add = CreateViewModelCommand<AddViewModel>();
+			Load = CreateViewModelCommand(() => new SongViewModel(
+				this,
+				loader,
+				processor,
+				gatherer,
+				clipboard,
+				messageBoxManager
+			));
+			Add = CreateViewModelCommand(() => new AddViewModel(
+				this,
+				loader,
+				messageBoxManager,
+				gatherers
+			));
 			GoBack = ReactiveCommand.Create(() =>
 			{
 				Router.NavigateBack.Execute();
@@ -61,12 +85,12 @@ namespace AMQSongProcessor.UI.ViewModels
 			return CanNavigate().CombineLatest(isDifferent, (x, y) => x && y);
 		}
 
-		private ReactiveCommand<Unit, Unit> CreateViewModelCommand<T>()
-			where T : IRoutableViewModel, new()
+		private ReactiveCommand<Unit, Unit> CreateViewModelCommand<T>(Func<T> factory)
+			where T : IRoutableViewModel
 		{
 			return ReactiveCommand.Create(() =>
 			{
-				Router.Navigate.Execute(new T());
+				Router.Navigate.Execute(factory());
 			}, CanNavigateTo<T>());
 		}
 	}

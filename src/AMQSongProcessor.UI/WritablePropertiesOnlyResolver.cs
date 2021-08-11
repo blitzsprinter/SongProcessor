@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reactive.Linq;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -13,7 +11,14 @@ namespace AMQSongProcessor.UI
 		protected override IList<JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization)
 		{
 			var props = base.CreateProperties(type, memberSerialization);
-			return props.Where(p => p.Writable).ToList();
+			for (var i = props.Count - 1; i >= 0; --i)
+			{
+				if (!props[i].Writable)
+				{
+					props.RemoveAt(i);
+				}
+			}
+			return props;
 		}
 	}
 }

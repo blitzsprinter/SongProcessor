@@ -27,24 +27,11 @@ namespace AMQSongProcessor.UI
 		{
 			AppDomain.CurrentDomain.UnhandledException += (sender, e) => IOUtils.LogUncaughtException(e.ExceptionObject);
 
-			var window = InitializeSystemItems();
-			InitializeSongItems();
-
-			window.DataContext = InitializeSuspension();
-			window.Show();
-			base.OnFrameworkInitializationCompleted();
-		}
-
-		private MainWindow InitializeSystemItems()
-		{
 			var window = new MainWindow();
+			var messageBoxManager = new MessageBoxManager(window);
 			Locator.CurrentMutable.RegisterConstant(Clipboard);
-			Locator.CurrentMutable.RegisterConstant<IMessageBoxManager>(new MessageBoxManager(window));
-			return window;
-		}
+			Locator.CurrentMutable.RegisterConstant<IMessageBoxManager>(messageBoxManager);
 
-		private static void InitializeSongItems()
-		{
 			var gatherer = new SourceInfoGatherer
 			{
 				RetryLimit = 3,
@@ -53,19 +40,17 @@ namespace AMQSongProcessor.UI
 			{
 				ExceptionsToIgnore = IgnoreExceptions.All,
 			};
-			Locator.CurrentMutable.RegisterConstant<ISourceInfoGatherer>(gatherer);
-			Locator.CurrentMutable.RegisterConstant<ISongLoader>(loader);
-			Locator.CurrentMutable.Register<ISongProcessor>(() => new SongProcessor());
-
-			Locator.CurrentMutable.RegisterConstant<IEnumerable<IAnimeGatherer>>(new IAnimeGatherer[]
+			var processor = new SongProcessor();
+			var gatherers = new IAnimeGatherer[]
 			{
 				new ANNGatherer(),
 				new AniDBGatherer()
-			});
-		}
+			};
+			Locator.CurrentMutable.RegisterConstant<ISourceInfoGatherer>(gatherer);
+			Locator.CurrentMutable.RegisterConstant<ISongLoader>(loader);
+			Locator.CurrentMutable.RegisterConstant<ISongProcessor>(processor);
+			Locator.CurrentMutable.RegisterConstant<IEnumerable<IAnimeGatherer>>(gatherers);
 
-		private MainViewModel InitializeSuspension()
-		{
 			var suspension = new AutoSuspendHelper(ApplicationLifetime);
 			var driver = new NewtonsoftJsonSuspensionDriver("appstate.json")
 			{
@@ -73,7 +58,17 @@ namespace AMQSongProcessor.UI
 				DeleteOnInvalidState = false,
 #endif
 			};
-			RxApp.SuspensionHost.CreateNewAppState = () => new MainViewModel();
+			RxApp.SuspensionHost.CreateNewAppState = () =>
+			{
+				return new MainViewModel(
+					loader,
+					processor,
+					gatherer,
+					Clipboard,
+					messageBoxManager,
+					gatherers
+				);
+			};
 			RxApp.SuspensionHost.SetupDefaultSuspendResume(driver);
 			suspension.OnFrameworkInitializationCompleted();
 
@@ -82,7 +77,10 @@ namespace AMQSongProcessor.UI
 			Locator.CurrentMutable.Register<IViewFor<SongViewModel>>(() => new SongView());
 			Locator.CurrentMutable.Register<IViewFor<AddViewModel>>(() => new AddView());
 			Locator.CurrentMutable.Register<IViewFor<EditViewModel>>(() => new EditView());
-			return state;
+
+			window.DataContext = state;
+			window.Show();
+			base.OnFrameworkInitializationCompleted();
 		}
 	}
 }

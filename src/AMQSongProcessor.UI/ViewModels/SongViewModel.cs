@@ -134,18 +134,20 @@ namespace AMQSongProcessor.UI.ViewModels
 		public ReactiveCommand<Unit, Unit> Unload { get; }
 		#endregion Commands
 
-		public SongViewModel() : this(null)
-		{
-		}
-
-		public SongViewModel(IScreen? screen)
+		public SongViewModel(
+			IScreen screen,
+			ISongLoader loader,
+			ISongProcessor processor,
+			ISourceInfoGatherer gatherer,
+			IClipboard clipboard,
+			IMessageBoxManager messageBoxManager)
 		{
 			_HostScreen = screen;
-			_Loader = Locator.Current.GetService<ISongLoader>();
-			_Processor = Locator.Current.GetService<ISongProcessor>();
-			_Gatherer = Locator.Current.GetService<ISourceInfoGatherer>();
-			_SystemClipboard = Locator.Current.GetService<IClipboard>();
-			_MessageBoxManager = Locator.Current.GetService<IMessageBoxManager>();
+			_Loader = loader ?? throw new ArgumentNullException(nameof(loader));
+			_Processor = processor ?? throw new ArgumentNullException(nameof(processor));
+			_Gatherer = gatherer ?? throw new ArgumentNullException(nameof(gatherer));
+			_SystemClipboard = clipboard ?? throw new ArgumentNullException(nameof(clipboard));
+			_MessageBoxManager = messageBoxManager ?? throw new ArgumentNullException(nameof(messageBoxManager));
 
 			Unload = ReactiveCommand.Create(PrivateUnload);
 			CopyANNID = ReactiveCommand.CreateFromTask<int>(PrivateCopyANNID);
@@ -221,9 +223,12 @@ namespace AMQSongProcessor.UI.ViewModels
 		{
 			var song = new ObservableSong(anime, new Song());
 			anime.Songs.Add(song);
-
-			var vm = new EditViewModel(song);
-			HostScreen.Router.Navigate.Execute(vm);
+			HostScreen.Router.Navigate.Execute(new EditViewModel(
+				HostScreen,
+				song,
+				_Loader,
+				_MessageBoxManager
+			));
 		}
 
 		private async Task PrivateChangeSource(ObservableAnime anime)
@@ -335,8 +340,12 @@ namespace AMQSongProcessor.UI.ViewModels
 
 		private void PrivateEditSong(ObservableSong song)
 		{
-			var vm = new EditViewModel(song);
-			HostScreen.Router.Navigate.Execute(vm);
+			HostScreen.Router.Navigate.Execute(new EditViewModel(
+				HostScreen,
+				song,
+				_Loader,
+				_MessageBoxManager
+			));
 		}
 
 		private Task PrivateExportFixes()

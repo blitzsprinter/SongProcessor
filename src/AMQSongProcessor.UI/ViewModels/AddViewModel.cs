@@ -98,16 +98,16 @@ namespace AMQSongProcessor.UI.ViewModels
 		public ReactiveCommand<Unit, Unit> SelectDirectory { get; }
 		#endregion Commands
 
-		public AddViewModel() : this(null)
-		{
-		}
-
-		public AddViewModel(IScreen? screen)
+		public AddViewModel(
+			IScreen screen,
+			ISongLoader loader,
+			IMessageBoxManager messageBoxManager,
+			IEnumerable<IAnimeGatherer> gatherers)
 		{
 			_HostScreen = screen;
-			_Loader = Locator.Current.GetService<ISongLoader>();
-			_MessageBoxManager = Locator.Current.GetService<IMessageBoxManager>();
-			_Gatherers = Locator.Current.GetService<IEnumerable<IAnimeGatherer>>();
+			_Loader = loader ?? throw new ArgumentNullException(nameof(loader));
+			_MessageBoxManager = messageBoxManager ?? throw new ArgumentNullException(nameof(messageBoxManager));
+			_Gatherers = gatherers ?? throw new ArgumentNullException(nameof(gatherers));
 			_SelectedGathererName = _Gatherers.First().Name;
 			GathererNames = _Gatherers.Select(x => x.Name);
 

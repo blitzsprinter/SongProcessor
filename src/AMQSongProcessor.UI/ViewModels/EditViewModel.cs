@@ -157,13 +157,17 @@ namespace AMQSongProcessor.UI.ViewModels
 		public ReactiveCommand<Unit, Unit> SelectCleanPath { get; }
 		#endregion Commands
 
-		public EditViewModel(ObservableSong song, IScreen? screen = null)
+		public EditViewModel(
+			IScreen screen,
+			ObservableSong song,
+			ISongLoader loader,
+			IMessageBoxManager messageBoxManager)
 		{
 			_HostScreen = screen;
 			_Song = song ?? throw new ArgumentNullException(nameof(song));
 			_Anime = song.Parent ?? throw new ArgumentException("Parent cannot be null.", nameof(song));
-			_Loader = Locator.Current.GetService<ISongLoader>();
-			_MessageBoxManager = Locator.Current.GetService<IMessageBoxManager>();
+			_Loader = loader ?? throw new ArgumentNullException(nameof(loader));
+			_MessageBoxManager = messageBoxManager ?? throw new ArgumentNullException(nameof(messageBoxManager));
 
 			_Artist = _Song.Artist;
 			_AspectRatio = _Song.OverrideAspectRatio ?? AspectRatios[0];
