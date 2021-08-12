@@ -143,7 +143,7 @@ namespace AMQSongProcessor.Gatherers
 					throw new FormatException("Unable to get songs.", e);
 				}
 
-				if (dict.Values.Any(x => x == null)
+				if (dict.Values.Any(x => x is null)
 					|| !type.HasValue
 					|| options?.CanBeGathered(type.Value) == false)
 				{

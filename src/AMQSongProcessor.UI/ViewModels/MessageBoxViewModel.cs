@@ -14,7 +14,7 @@ namespace AMQSongProcessor.UI.ViewModels
 	{
 		private string? _ButtonText = "Ok";
 		private bool _CanResize;
-		private T _CurrentOption = default!;
+		private T? _CurrentOption;
 		private int _Height = UIUtils.MESSAGE_BOX_HEIGHT;
 		private IEnumerable<T>? _Options;
 		private string? _Text;
@@ -31,8 +31,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			get => _CanResize;
 			set => this.RaiseAndSetIfChanged(ref _CanResize, value);
 		}
-		[property: MaybeNull]
-		public T CurrentOption
+		public T? CurrentOption
 		{
 			get => _CurrentOption;
 			set => this.RaiseAndSetIfChanged(ref _CurrentOption, value);
@@ -49,7 +48,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			{
 				this.RaiseAndSetIfChanged(ref _Options, value);
 				CurrentOption = default!;
-				ButtonText = Options == null ? "Ok" : "Confirm";
+				ButtonText = Options is null ? "Ok" : "Confirm";
 			}
 		}
 		public string? Text
@@ -81,7 +80,8 @@ namespace AMQSongProcessor.UI.ViewModels
 				{
 					Current = current,
 					All = all,
-				}).Select(x => x.All == null || !Equals(x.Current, default));
+				})
+				.Select(x => x.All is null || !Equals(x.Current, default));
 			CloseCommand = ReactiveCommand.Create<Window>(window =>
 			{
 				window.Close(CurrentOption);

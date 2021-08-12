@@ -58,7 +58,7 @@ namespace AMQSongProcessor.Jobs
 				$" -to {Song.End}" + // Ending time
 				$" -i \"{Anime.GetAbsoluteSourcePath()}\""; // Video source
 
-			if (Song.CleanPath == null)
+			if (Song.CleanPath is null)
 			{
 				args +=
 					$" -map 0:v:{Song.OverrideVideoTrack}" + // Use the first input's video

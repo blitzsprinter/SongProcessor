@@ -1,6 +1,4 @@
-﻿#pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -14,23 +12,22 @@ namespace AMQSongProcessor.UI.Models
 	[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
 	public sealed class ObservableSong : ReactiveObject, ISong
 	{
-		private HashSet<int> _AlsoIn = new();
-		private string _Artist;
+		private HashSet<int> _AlsoIn = null!;
+		private string _Artist = null!;
 		private string? _CleanPath;
 		private TimeSpan _End;
 		private int? _Episode;
 		private bool _IsVisible = true;
-		private string _Name;
+		private string _Name = null!;
+		private AspectRatio? _OverrideAspectRatio;
 		private int _OverrideAudioTrack;
 		private int _OverrideVideoTrack;
-		private AspectRatio? _OverrideAspectRatio;
 		private bool _ShouldIgnore;
 		private TimeSpan _Start;
 		private Status _Status;
 		private SongTypeAndPosition _Type;
 		private VolumeModifer? _VolumeModifier;
 
-		public ObservableAnime Parent { get; }
 		public HashSet<int> AlsoIn
 		{
 			get => _AlsoIn;
@@ -66,6 +63,11 @@ namespace AMQSongProcessor.UI.Models
 			get => _Name;
 			set => this.RaiseAndSetIfChanged(ref _Name, value);
 		}
+		public AspectRatio? OverrideAspectRatio
+		{
+			get => _OverrideAspectRatio;
+			set => this.RaiseAndSetIfChanged(ref _OverrideAspectRatio, value);
+		}
 		public int OverrideAudioTrack
 		{
 			get => _OverrideAudioTrack;
@@ -76,11 +78,7 @@ namespace AMQSongProcessor.UI.Models
 			get => _OverrideVideoTrack;
 			set => this.RaiseAndSetIfChanged(ref _OverrideVideoTrack, value);
 		}
-		public AspectRatio? OverrideAspectRatio
-		{
-			get => _OverrideAspectRatio;
-			set => this.RaiseAndSetIfChanged(ref _OverrideAspectRatio, value);
-		}
+		public ObservableAnime Parent { get; }
 		public bool ShouldIgnore
 		{
 			get => _ShouldIgnore;

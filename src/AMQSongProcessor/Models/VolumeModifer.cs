@@ -35,7 +35,7 @@ namespace AMQSongProcessor.Models
 
 		public static bool TryParse(string s, out VolumeModifer result)
 		{
-			if (s == null)
+			if (s is null)
 			{
 				result = default;
 				return false;

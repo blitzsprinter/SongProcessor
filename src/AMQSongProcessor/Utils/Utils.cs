@@ -38,7 +38,7 @@ namespace AMQSongProcessor.Utils
 
 		public static T[] ToArray<T>(this IEnumerable<T> source, int count)
 		{
-			if (source == null)
+			if (source is null)
 			{
 				throw new ArgumentNullException(nameof(source));
 			}
@@ -80,7 +80,7 @@ namespace AMQSongProcessor.Utils
 		[return: MaybeNull]
 		public static T ToObject<T>(this JsonDocument document, JsonSerializerOptions? options = null)
 		{
-			if (document == null)
+			if (document is null)
 			{
 				throw new ArgumentNullException(nameof(document));
 			}

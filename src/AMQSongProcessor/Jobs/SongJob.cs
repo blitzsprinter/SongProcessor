@@ -50,7 +50,7 @@ namespace AMQSongProcessor.Jobs
 			var ffmpegProgressBuilder = new FfmpegProgressBuilder();
 			process.OutputDataReceived += (s, e) =>
 			{
-				if (e.Data == null)
+				if (e.Data is null)
 				{
 					return;
 				}

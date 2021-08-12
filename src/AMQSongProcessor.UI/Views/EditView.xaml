@@ -69,7 +69,7 @@
       </HeaderedContentControl>
     </UniformGrid>
     <UniformGrid Grid.Column="1" Grid.ColumnSpan="3" Grid.Row="4">
-      <Button Content="{Binding ButtonText}" Background="{Binding ButtonBackground}" Command="{Binding Save}" />
+      <Button Content="{Binding ButtonText}" Command="{Binding Save}" />
     </UniformGrid>
   </Grid>
 </UserControl>

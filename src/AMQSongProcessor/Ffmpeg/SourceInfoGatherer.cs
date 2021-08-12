@@ -57,7 +57,7 @@ namespace AMQSongProcessor.Ffmpeg
 			var info = new VolumeInfo();
 			process.ErrorDataReceived += (s, e) =>
 			{
-				if (e.Data == null)
+				if (e.Data is null)
 				{
 					return;
 				}
@@ -134,7 +134,7 @@ namespace AMQSongProcessor.Ffmpeg
 					throw Exception(stream, file, new InvalidFileTypeException("Invalid file type."));
 				}
 				var info = property[0].ToObject<T>(_Options);
-				if (info == null)
+				if (info is null)
 				{
 					throw Exception(stream, file, new JsonException("Invalid json supplied."));
 				}

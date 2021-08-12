@@ -26,7 +26,7 @@ namespace AMQSongProcessor
 			var jobs = new List<ISongJob>();
 			foreach (var anime in animes)
 			{
-				if (anime.Source == null)
+				if (anime.Source is null)
 				{
 					WarningReceived?.Invoke(new SourceIsNull(anime));
 					continue;
@@ -68,7 +68,7 @@ namespace AMQSongProcessor
 			static string FormatTimestamp(ISong song)
 			{
 				var ts = FormatTimeSpan(song.Start);
-				if (song.Episode == null)
+				if (song.Episode is null)
 				{
 					return ts;
 				}

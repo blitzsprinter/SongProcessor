@@ -18,7 +18,7 @@ namespace AMQSongProcessor.Utils
 
 		public static string? EnsureAbsolutePath(string? directory, string? path)
 		{
-			if (path == null)
+			if (path is null)
 			{
 				return null;
 			}
@@ -27,7 +27,7 @@ namespace AMQSongProcessor.Utils
 				return path;
 			}
 
-			if (directory == null)
+			if (directory is null)
 			{
 				return null;
 			}

@@ -11,9 +11,9 @@ namespace AMQSongProcessor.Converters
 		public override VolumeModifer? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
 		{
 			var s = reader.GetString();
-			if (s == null)
+			if (s is null)
 			{
-				return null;
+				return default;
 			}
 			return VolumeModifer.Parse(s);
 		}

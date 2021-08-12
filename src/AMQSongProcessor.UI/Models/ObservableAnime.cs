@@ -1,6 +1,4 @@
-﻿#pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
-
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
@@ -15,13 +13,13 @@ namespace AMQSongProcessor.UI.Models
 	[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
 	public sealed class ObservableAnime : ReactiveObject, IAnime
 	{
-		private string _AbsoluteInfoPath;
+		private string _AbsoluteInfoPath = null!;
 		private int _Id;
 		private bool _IsExpanded;
 		private bool _IsExpanderVisible;
 		private bool _IsVisible = true;
-		private string _Name;
-		private ObservableCollection<ObservableSong> _Songs;
+		private string _Name = null!;
+		private ObservableCollection<ObservableSong> _Songs = null!;
 		private SourceInfo<VideoInfo>? _VideoInfo;
 		private int _Year;
 

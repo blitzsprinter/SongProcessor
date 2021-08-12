@@ -393,15 +393,15 @@ namespace AMQSongProcessor.UI.ViewModels
 				var files = _Loader.GetFiles(Directory!);
 				await foreach (var anime in _Loader.LoadFromFilesAsync(files, 5))
 				{
-					var o = new ObservableAnime(anime);
-					ModifyVisibility(o);
-					Anime.Add(o);
+					var observable = new ObservableAnime(anime);
+					ModifyVisibility(observable);
+					Anime.Add(observable);
 
-					_Subscriptions.Add(o.Changed.Subscribe(_ => ModifyVisibility(o)));
-					_Subscriptions.Add(o.Songs
+					_Subscriptions.Add(observable.Changed.Subscribe(_ => ModifyVisibility(observable)));
+					_Subscriptions.Add(observable.Songs
 						.ToObservableChangeSet()
 						.WhenAnyPropertyChanged()
-						.Subscribe(_ => ModifyVisibility(o))
+						.Subscribe(_ => ModifyVisibility(observable))
 					);
 				}
 
@@ -425,7 +425,6 @@ namespace AMQSongProcessor.UI.ViewModels
 					Text = e.ToString(),
 					Title = "Failed To Load Songs",
 				}).ConfigureAwait(true);
-				throw;
 			}
 		}
 

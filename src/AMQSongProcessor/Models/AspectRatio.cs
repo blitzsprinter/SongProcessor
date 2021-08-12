@@ -30,13 +30,7 @@ namespace AMQSongProcessor.Models
 			=> Equals(obj as AspectRatio?);
 
 		public bool Equals(AspectRatio? other)
-		{
-			if (other == null)
-			{
-				return false;
-			}
-			return Equals(other.Value);
-		}
+			=> other is not null && Equals(other.Value);
 
 		public bool Equals(AspectRatio other)
 			=> Height == other.Height && Width == other.Width;

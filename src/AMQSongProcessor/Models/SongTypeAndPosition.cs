@@ -52,7 +52,7 @@ namespace AMQSongProcessor.Models
 
 		public static bool TryParse(string? s, out SongTypeAndPosition result)
 		{
-			if (s == null)
+			if (s is null)
 			{
 				result = default;
 				return false;
@@ -95,13 +95,7 @@ namespace AMQSongProcessor.Models
 			=> Equals(obj as SongTypeAndPosition?);
 
 		public bool Equals(SongTypeAndPosition? other)
-		{
-			if (other == null)
-			{
-				return false;
-			}
-			return Equals(other.Value);
-		}
+			=> other is not null && Equals(other.Value);
 
 		public bool Equals(SongTypeAndPosition other)
 			=> Type == other.Type && Position == other.Position;
@@ -112,7 +106,7 @@ namespace AMQSongProcessor.Models
 		public override string ToString()
 		{
 			var s = LongType;
-			if (Type == SongType.In || Position == null)
+			if (Type == SongType.In || Position is null)
 			{
 				return s;
 			}
