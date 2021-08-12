@@ -9,10 +9,10 @@ namespace AMQSongProcessor.UI.Converters
 {
 	public static class MiscConverters
 	{
-		private static readonly SolidColorBrush _Cyan = GetBrush(Brushes.Cyan);
-		private static readonly SolidColorBrush _Green = GetBrush(Brushes.Green);
-		private static readonly SolidColorBrush _Red = GetBrush(Brushes.Red);
-		private static readonly SolidColorBrush _Yellow = GetBrush(Brushes.Yellow);
+		private static readonly IBrush _Cyan = GetBrush(Brushes.Cyan);
+		private static readonly IBrush _Green = GetBrush(Brushes.Green);
+		private static readonly IBrush _Red = GetBrush(Brushes.Red);
+		private static readonly IBrush _Yellow = GetBrush(Brushes.Yellow);
 
 		public static FuncValueConverter<SourceInfo<VideoInfo>?, IBrush?> SourceColor { get; } = new(x =>
 		{

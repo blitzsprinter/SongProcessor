@@ -12,6 +12,8 @@ using AMQSongProcessor.Models;
 using AMQSongProcessor.UI.Models;
 using AMQSongProcessor.Utils;
 
+using Avalonia.Media;
+
 using Newtonsoft.Json;
 
 using ReactiveUI;
@@ -32,6 +34,8 @@ namespace AMQSongProcessor.UI.ViewModels
 		private string _Artist;
 		private AspectRatio _AspectRatio;
 		private int _AudioTrack;
+		private IBrush? _ButtonBackground;
+		private string _ButtonText = "Save";
 		private string _CleanPath;
 		private string _End;
 		private int _Episode;
@@ -74,6 +78,16 @@ namespace AMQSongProcessor.UI.ViewModels
 		{
 			get => _AudioTrack;
 			set => this.RaiseAndSetIfChanged(ref _AudioTrack, value);
+		}
+		public IBrush? ButtonBackground
+		{
+			get => _ButtonBackground;
+			set => this.RaiseAndSetIfChanged(ref _ButtonBackground, value);
+		}
+		public string ButtonText
+		{
+			get => _ButtonText;
+			set => this.RaiseAndSetIfChanged(ref _ButtonText, value);
 		}
 		public string CleanPath
 		{
@@ -211,6 +225,12 @@ namespace AMQSongProcessor.UI.ViewModels
 			this.ValidationRule(
 				validTimes,
 				"Invalid times supplied or start is less than end.");
+
+			ValidationContext.ValidationStatusChange.Subscribe(x =>
+			{
+				ButtonText = x.IsValid ? "Save" : x.Text.ToSingleLine(" ");
+				ButtonBackground = x.IsValid ? null : Brushes.Red;
+			});
 
 			Save = ReactiveCommand.CreateFromTask(PrivateSave, this.IsValid());
 			SelectCleanPath = ReactiveCommand.CreateFromTask(PrivateSelectCleanPath);
