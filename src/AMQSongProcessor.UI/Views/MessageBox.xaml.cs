@@ -7,7 +7,7 @@ using Avalonia.Markup.Xaml;
 
 namespace AMQSongProcessor.UI.Views
 {
-	public class MessageBox : Window
+	public sealed class MessageBox : Window
 	{
 		public MessageBox()
 		{

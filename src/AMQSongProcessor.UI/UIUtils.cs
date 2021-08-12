@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -8,13 +9,20 @@ namespace AMQSongProcessor.UI
 {
 	public static class UIUtils
 	{
+		public const int MESSAGE_BOX_HEIGHT = 133;
+		public const int MESSAGE_BOX_WIDTH = 278;
+		public const string NO = "No";
+		public const string YES = "Yes";
+
+		public static ImmutableArray<string> YesNo { get; } = new[] { YES, NO }.ToImmutableArray();
+
 		public static async Task<bool> ConfirmAsync(
 			this IMessageBoxManager manager,
 			MessageBoxViewModel<string> viewModel)
 		{
-			viewModel.Options = Constants.YesNo;
+			viewModel.Options = YesNo;
 			var result = await manager.ShowAsync(viewModel).ConfigureAwait(true);
-			return result == Constants.YES;
+			return result == YES;
 		}
 
 		public static Task<string?> GetDirectoryAsync(

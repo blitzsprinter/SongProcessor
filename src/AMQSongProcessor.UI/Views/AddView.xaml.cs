@@ -5,7 +5,7 @@ using Avalonia.ReactiveUI;
 
 namespace AMQSongProcessor.UI.Views
 {
-	public class AddView : ReactiveUserControl<AddViewModel>
+	public sealed class AddView : ReactiveUserControl<AddViewModel>
 	{
 		public AddView()
 		{

@@ -28,7 +28,7 @@ using Splat;
 namespace AMQSongProcessor.UI.ViewModels
 {
 	[DataContract]
-	public class SongViewModel : ReactiveObject, IRoutableViewModel, INavigationController
+	public sealed class SongViewModel : ReactiveObject, IRoutableViewModel, INavigationController
 	{
 		private static readonly SaveNewOptions _SaveOptions = new
 		(
@@ -38,7 +38,6 @@ namespace AMQSongProcessor.UI.ViewModels
 		);
 
 		private readonly ISourceInfoGatherer _Gatherer;
-		private readonly IScreen? _HostScreen;
 		private readonly ObservableAsPropertyHelper<bool> _IsBusy;
 		private readonly ObservableAsPropertyHelper<bool> _IsProcessing;
 		private readonly ISongLoader _Loader;
@@ -76,7 +75,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			get => _Directory;
 			set => this.RaiseAndSetIfChanged(ref _Directory, value);
 		}
-		public IScreen HostScreen => _HostScreen ?? Locator.Current.GetService<IScreen>();
+		public IScreen HostScreen { get; }
 		public bool IsBusy => _IsBusy.Value;
 		public bool IsProcessing => _IsProcessing.Value;
 		public bool MultipleItemsSelected => _MultipleItemsSelected.Value;
@@ -142,7 +141,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			IClipboard clipboard,
 			IMessageBoxManager messageBoxManager)
 		{
-			_HostScreen = screen;
+			HostScreen = screen ?? throw new ArgumentNullException(nameof(screen));
 			_Loader = loader ?? throw new ArgumentNullException(nameof(loader));
 			_Processor = processor ?? throw new ArgumentNullException(nameof(processor));
 			_Gatherer = gatherer ?? throw new ArgumentNullException(nameof(gatherer));
@@ -202,6 +201,16 @@ namespace AMQSongProcessor.UI.ViewModels
 			CanNavigate = busy.CombineLatest(loaded, (x, y) => !(x || y));
 		}
 
+		private SongViewModel() : this(
+			Locator.Current.GetService<IScreen>(),
+			Locator.Current.GetService<ISongLoader>(),
+			Locator.Current.GetService<ISongProcessor>(),
+			Locator.Current.GetService<ISourceInfoGatherer>(),
+			Locator.Current.GetService<IClipboard>(),
+			Locator.Current.GetService<IMessageBoxManager>())
+		{
+		}
+
 		private void ModifyVisibility(ObservableAnime anime)
 		{
 			var isExpanderVisible = false;
@@ -225,9 +234,9 @@ namespace AMQSongProcessor.UI.ViewModels
 			anime.Songs.Add(song);
 			HostScreen.Router.Navigate.Execute(new EditViewModel(
 				HostScreen,
-				song,
 				_Loader,
-				_MessageBoxManager
+				_MessageBoxManager,
+				song
 			));
 		}
 
@@ -342,9 +351,9 @@ namespace AMQSongProcessor.UI.ViewModels
 		{
 			HostScreen.Router.Navigate.Execute(new EditViewModel(
 				HostScreen,
-				song,
 				_Loader,
-				_MessageBoxManager
+				_MessageBoxManager,
+				song
 			));
 		}
 
@@ -412,7 +421,7 @@ namespace AMQSongProcessor.UI.ViewModels
 				await _MessageBoxManager.ShowNoResultAsync(new()
 				{
 					CanResize = true,
-					Height = Constants.MESSAGE_BOX_HEIGHT * 5,
+					Height = UIUtils.MESSAGE_BOX_HEIGHT * 5,
 					Text = e.ToString(),
 					Title = "Failed To Load Songs",
 				}).ConfigureAwait(true);

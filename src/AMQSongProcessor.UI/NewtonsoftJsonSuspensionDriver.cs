@@ -1,12 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reactive;
 using System.Reactive.Linq;
 
-using AMQSongProcessor.UI.ViewModels;
-
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Serialization;
 
 using ReactiveUI;
 
@@ -18,18 +17,16 @@ namespace AMQSongProcessor.UI
 
 		private readonly JsonSerializerSettings _Options = new()
 		{
-			TypeNameHandling = TypeNameHandling.All,
-			Formatting = Formatting.Indented,
+			ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
 			ContractResolver = new WritablePropertiesOnlyResolver(),
+			Formatting = Formatting.Indented,
+			TypeNameHandling = TypeNameHandling.All,
 		};
 		public bool DeleteOnInvalidState { get; set; }
 
 		public NewtonsoftJsonSuspensionDriver(string file)
 		{
 			_File = file;
-			_Options.Converters.Add(new Test());
-			_Options.Converters.Add(new Test2());
-			_Options.Converters.Add(new Test3());
 		}
 
 		public IObservable<Unit> InvalidateState()
@@ -59,29 +56,21 @@ namespace AMQSongProcessor.UI
 			File.WriteAllText(_File, lines);
 			return Observable.Return(Unit.Default);
 		}
-	}
 
-	public class Test : CustomCreationConverter<MainViewModel>
-	{
-		public override MainViewModel Create(Type objectType)
+		private sealed class WritablePropertiesOnlyResolver : DefaultContractResolver
 		{
-			throw new NotImplementedException();
-		}
-	}
-
-	public class Test2 : CustomCreationConverter<SongViewModel>
-	{
-		public override SongViewModel Create(Type objectType)
-		{
-			throw new NotImplementedException();
-		}
-	}
-
-	public class Test3 : CustomCreationConverter<ISongLoader>
-	{
-		public override ISongLoader Create(Type objectType)
-		{
-			throw new NotImplementedException();
+			protected override IList<JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization)
+			{
+				var props = base.CreateProperties(type, memberSerialization);
+				for (var i = props.Count - 1; i >= 0; --i)
+				{
+					if (!props[i].Writable)
+					{
+						props.RemoveAt(i);
+					}
+				}
+				return props;
+			}
 		}
 	}
 }

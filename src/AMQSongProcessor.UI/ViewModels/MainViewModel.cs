@@ -11,10 +11,12 @@ using Avalonia.Input.Platform;
 
 using ReactiveUI;
 
+using Splat;
+
 namespace AMQSongProcessor.UI.ViewModels
 {
 	[DataContract]
-	public class MainViewModel : ReactiveObject, IScreen
+	public sealed class MainViewModel : ReactiveObject, IScreen
 	{
 		private RoutingState _Router = new();
 
@@ -57,6 +59,16 @@ namespace AMQSongProcessor.UI.ViewModels
 			{
 				Router.NavigateBack.Execute();
 			}, CanGoBack());
+		}
+
+		private MainViewModel() : this(
+			Locator.Current.GetService<ISongLoader>(),
+			Locator.Current.GetService<ISongProcessor>(),
+			Locator.Current.GetService<ISourceInfoGatherer>(),
+			Locator.Current.GetService<IClipboard>(),
+			Locator.Current.GetService<IMessageBoxManager>(),
+			Locator.Current.GetService<IEnumerable<IAnimeGatherer>>())
+		{
 		}
 
 		private IObservable<bool> CanGoBack()

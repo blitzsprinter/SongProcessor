@@ -19,16 +19,13 @@ using ReactiveUI.Validation.Abstractions;
 using ReactiveUI.Validation.Contexts;
 using ReactiveUI.Validation.Extensions;
 
-using Splat;
-
 namespace AMQSongProcessor.UI.ViewModels
 {
-	//Never serialize this view/viewmodel since this data is related to folder structure
+	// Never serialize this view/viewmodel since this data is related to folder structure
 	[JsonConverter(typeof(NewtonsoftJsonSkipThis))]
-	public class EditViewModel : ReactiveObject, IRoutableViewModel, IValidatableViewModel
+	public sealed class EditViewModel : ReactiveObject, IRoutableViewModel, IValidatableViewModel
 	{
 		private readonly ObservableAnime _Anime;
-		private readonly IScreen? _HostScreen;
 		private readonly ISongLoader _Loader;
 		private readonly IMessageBoxManager _MessageBoxManager;
 		private readonly ObservableSong _Song;
@@ -108,7 +105,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			get => _HasMp3;
 			set => this.RaiseAndSetIfChanged(ref _HasMp3, value);
 		}
-		public IScreen HostScreen => _HostScreen ?? Locator.Current.GetService<IScreen>();
+		public IScreen HostScreen { get; }
 		public bool IsSubmitted
 		{
 			get => _IsSubmitted;
@@ -159,11 +156,11 @@ namespace AMQSongProcessor.UI.ViewModels
 
 		public EditViewModel(
 			IScreen screen,
-			ObservableSong song,
 			ISongLoader loader,
-			IMessageBoxManager messageBoxManager)
+			IMessageBoxManager messageBoxManager,
+			ObservableSong song)
 		{
-			_HostScreen = screen;
+			HostScreen = screen ?? throw new ArgumentNullException(nameof(screen));
 			_Song = song ?? throw new ArgumentNullException(nameof(song));
 			_Anime = song.Parent ?? throw new ArgumentException("Parent cannot be null.", nameof(song));
 			_Loader = loader ?? throw new ArgumentNullException(nameof(loader));
@@ -223,13 +220,13 @@ namespace AMQSongProcessor.UI.ViewModels
 			=> ratio.Width == 0 || ratio.Height == 0 ? null : ratio;
 
 		private static string? GetNullIfEmpty(string str)
-					=> string.IsNullOrEmpty(str) ? null : str;
+			=> string.IsNullOrEmpty(str) ? null : str;
 
 		private static int? GetNullIfZero(int? num)
 			=> num == 0 ? null : num;
 
 		private static VolumeModifer? GetVolumeModifer(int? num)
-			=> GetNullIfZero(num) == null ? default(VolumeModifer?) : VolumeModifer.FromDecibels(num!.Value);
+			=> GetNullIfZero(num) == null ? default : VolumeModifer.FromDecibels(num!.Value);
 
 		private Status GetStatus()
 		{

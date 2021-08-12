@@ -18,7 +18,7 @@ using Splat;
 namespace AMQSongProcessor.UI.ViewModels
 {
 	[DataContract]
-	public class AddViewModel : ReactiveObject, IRoutableViewModel
+	public sealed class AddViewModel : ReactiveObject, IRoutableViewModel
 	{
 		private static readonly SaveNewOptions _SaveOptions = new
 		(
@@ -28,7 +28,6 @@ namespace AMQSongProcessor.UI.ViewModels
 		);
 
 		private readonly IEnumerable<IAnimeGatherer> _Gatherers;
-		private readonly IScreen? _HostScreen;
 		private readonly ISongLoader _Loader;
 		private readonly IMessageBoxManager _MessageBoxManager;
 		private bool _AddEndings = true;
@@ -77,7 +76,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _Exception, value);
 		}
 		public IEnumerable<string> GathererNames { get; }
-		public IScreen HostScreen => _HostScreen ?? Locator.Current.GetService<IScreen>();
+		public IScreen HostScreen { get; }
 		[DataMember]
 		public int Id
 		{
@@ -104,7 +103,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			IMessageBoxManager messageBoxManager,
 			IEnumerable<IAnimeGatherer> gatherers)
 		{
-			_HostScreen = screen;
+			HostScreen = screen ?? throw new ArgumentNullException(nameof(screen));
 			_Loader = loader ?? throw new ArgumentNullException(nameof(loader));
 			_MessageBoxManager = messageBoxManager ?? throw new ArgumentNullException(nameof(messageBoxManager));
 			_Gatherers = gatherers ?? throw new ArgumentNullException(nameof(gatherers));
@@ -118,6 +117,14 @@ namespace AMQSongProcessor.UI.ViewModels
 			Add = ReactiveCommand.CreateFromTask(PrivateAdd, canAdd);
 			DeleteAnime = ReactiveCommand.CreateFromTask<IAnime>(PrivateDeleteAnime);
 			SelectDirectory = ReactiveCommand.CreateFromTask(PrivateSelectDirectory);
+		}
+
+		private AddViewModel() : this(
+			Locator.Current.GetService<IScreen>(),
+			Locator.Current.GetService<ISongLoader>(),
+			Locator.Current.GetService<IMessageBoxManager>(),
+			Locator.Current.GetService<IEnumerable<IAnimeGatherer>>())
+		{
 		}
 
 		private async Task PrivateAdd()

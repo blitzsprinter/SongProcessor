@@ -10,16 +10,16 @@ using ReactiveUI;
 
 namespace AMQSongProcessor.UI.ViewModels
 {
-	public class MessageBoxViewModel<T> : ReactiveObject
+	public sealed class MessageBoxViewModel<T> : ReactiveObject
 	{
 		private string? _ButtonText = "Ok";
 		private bool _CanResize;
 		private T _CurrentOption = default!;
-		private int _Height = Constants.MESSAGE_BOX_HEIGHT;
+		private int _Height = UIUtils.MESSAGE_BOX_HEIGHT;
 		private IEnumerable<T>? _Options;
 		private string? _Text;
 		private string? _Title;
-		private int _Width = Constants.MESSAGE_BOX_WIDTH;
+		private int _Width = UIUtils.MESSAGE_BOX_WIDTH;
 
 		public string? ButtonText
 		{

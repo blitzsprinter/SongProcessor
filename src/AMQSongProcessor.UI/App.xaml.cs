@@ -29,8 +29,12 @@ namespace AMQSongProcessor.UI
 
 			var window = new MainWindow();
 			var messageBoxManager = new MessageBoxManager(window);
+			// Create a wrapper for the not yet created state
+			// so when deserializing the saved view models IScreen isn't null
+			var screenWrapper = new HostScreenWrapper();
 			Locator.CurrentMutable.RegisterConstant(Clipboard);
 			Locator.CurrentMutable.RegisterConstant<IMessageBoxManager>(messageBoxManager);
+			Locator.CurrentMutable.RegisterConstant<IScreen>(screenWrapper);
 
 			var gatherer = new SourceInfoGatherer
 			{
@@ -51,6 +55,7 @@ namespace AMQSongProcessor.UI
 			Locator.CurrentMutable.RegisterConstant<ISongProcessor>(processor);
 			Locator.CurrentMutable.RegisterConstant<IEnumerable<IAnimeGatherer>>(gatherers);
 
+			// Set up suspension to save view model information
 			var suspension = new AutoSuspendHelper(ApplicationLifetime);
 			var driver = new NewtonsoftJsonSuspensionDriver("appstate.json")
 			{
@@ -72,8 +77,7 @@ namespace AMQSongProcessor.UI
 			RxApp.SuspensionHost.SetupDefaultSuspendResume(driver);
 			suspension.OnFrameworkInitializationCompleted();
 
-			var state = RxApp.SuspensionHost.GetAppState<MainViewModel>();
-			Locator.CurrentMutable.RegisterConstant<IScreen>(state);
+			var state = screenWrapper.Screen = RxApp.SuspensionHost.GetAppState<MainViewModel>();
 			Locator.CurrentMutable.Register<IViewFor<SongViewModel>>(() => new SongView());
 			Locator.CurrentMutable.Register<IViewFor<AddViewModel>>(() => new AddView());
 			Locator.CurrentMutable.Register<IViewFor<EditViewModel>>(() => new EditView());
@@ -81,6 +85,13 @@ namespace AMQSongProcessor.UI
 			window.DataContext = state;
 			window.Show();
 			base.OnFrameworkInitializationCompleted();
+		}
+
+		private class HostScreenWrapper : IScreen
+		{
+			internal IScreen Screen { get; set; } = null!;
+
+			RoutingState IScreen.Router => Screen.Router;
 		}
 	}
 }
