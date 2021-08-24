@@ -42,7 +42,7 @@ namespace AMQSongProcessor.UI
 			};
 			var loader = new SongLoader(gatherer)
 			{
-				ExceptionsToIgnore = IgnoreExceptions.All,
+				ExceptionsToIgnore = IgnoreExceptions.None,
 			};
 			var processor = new SongProcessor();
 			var gatherers = new IAnimeGatherer[]

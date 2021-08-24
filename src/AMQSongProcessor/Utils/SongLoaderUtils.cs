@@ -1,8 +1,11 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 
 using AdvorangesUtils;
@@ -37,61 +40,45 @@ namespace AMQSongProcessor.Utils
 			return loader.FastLoadFromFilesAsync(files, filesPerTask.Value);
 		}
 
-		private static async IAsyncEnumerable<IAnime> FastLoadFromFilesAsync(
+		private static IAsyncEnumerable<IAnime> FastLoadFromFilesAsync(
 			this ISongLoader loader,
 			IEnumerable<string> files,
 			int filesPerTask)
 		{
-			var enumerators = new ConcurrentDictionary<IAsyncEnumerator<IAnime>, byte>(files
-				.GroupInto(filesPerTask)
-				.Select(x => loader.SlowLoadFromFilesAsync(x).GetAsyncEnumerator())
-				.ToDictionary(x => x, _ => (byte)0));
-
-			ValueTask DisposeEnumeratorAsync(IAsyncEnumerator<IAnime> enumerator)
+			var channel = Channel.CreateUnbounded<IAnime>(new UnboundedChannelOptions
 			{
-				if (enumerators.TryRemove(enumerator, out var _))
-				{
-					return enumerator.DisposeAsync();
-				}
-				return new ValueTask();
-			}
+				SingleReader = true,
+				SingleWriter = false,
+			});
 
-			try
+			var totalCount = 0;
+			var currentCount = 0;
+			foreach (var chunk in files.Chunk(filesPerTask))
 			{
-				var processed = 0;
-				var tasks = new HashSet<Task<FastLoad<IAnime>>>(enumerators.Count + 1);
-				while (!enumerators.IsEmpty)
+				_ = Task.Run(async () =>
 				{
-					foreach (var enumerator in enumerators.Keys)
-					{
-						tasks.Add(FastLoad<IAnime>.FromEnumerator(enumerator));
-					}
+					Interlocked.Increment(ref totalCount);
 
-					while (tasks.Count != 0)
+					try
 					{
-						var task = await Task.WhenAny(tasks).CAF();
-						tasks.Remove(task);
-						var result = await task.CAF();
-
-						if (result.HasItem)
+						await foreach (var anime in loader.SlowLoadFromFilesAsync(chunk))
 						{
-							yield return result.Item!;
+							await channel.Writer.WriteAsync(anime).ConfigureAwait(false);
 						}
-						else
+
+						if (Interlocked.Increment(ref currentCount) == totalCount)
 						{
-							Interlocked.Increment(ref processed);
-							await DisposeEnumeratorAsync(result.Enumerator).CAF();
+							channel.Writer.Complete();
 						}
 					}
-				}
+					catch (Exception e)
+					{
+						channel.Writer.Complete(e);
+					}
+				});
 			}
-			finally
-			{
-				foreach (var enumerator in enumerators.Keys)
-				{
-					await DisposeEnumeratorAsync(enumerator).CAF();
-				}
-			}
+
+			return channel.Reader.ReadAllAsync();
 		}
 
 		private static async IAsyncEnumerable<IAnime> SlowLoadFromFilesAsync(
@@ -105,28 +92,6 @@ namespace AMQSongProcessor.Utils
 				{
 					yield return anime;
 				}
-			}
-		}
-
-		private struct FastLoad<T> where T : class
-		{
-			public IAsyncEnumerator<T> Enumerator { get; }
-			public bool HasItem => Item != null;
-			public T? Item { get; }
-
-			public FastLoad(IAsyncEnumerator<T> enumerator, T? item)
-			{
-				Enumerator = enumerator;
-				Item = item;
-			}
-
-			public static async Task<FastLoad<T>> FromEnumerator(IAsyncEnumerator<T> enumerator)
-			{
-				if (await enumerator.MoveNextAsync().CAF())
-				{
-					return new FastLoad<T>(enumerator, enumerator.Current);
-				}
-				return new FastLoad<T>(enumerator, null);
 			}
 		}
 	}
