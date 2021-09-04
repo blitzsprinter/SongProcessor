@@ -1,5 +1,4 @@
-﻿using System.Linq;
-
+﻿
 using Avalonia.Data.Converters;
 
 namespace AMQSongProcessor.UI.Converters

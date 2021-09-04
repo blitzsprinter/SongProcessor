@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace AMQSongProcessor
+﻿namespace AMQSongProcessor
 {
 	[Flags]
 	public enum IgnoreExceptions : uint

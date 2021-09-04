@@ -1,11 +1,9 @@
-﻿using System;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 
 using AdvorangesUtils;
 
 using AMQSongProcessor.Ffmpeg;
+using AMQSongProcessor.Jobs.Results;
 using AMQSongProcessor.Models;
 using AMQSongProcessor.Utils;
 
@@ -13,7 +11,7 @@ namespace AMQSongProcessor.Jobs
 {
 	public abstract class SongJob : ISongJob
 	{
-		public const int FILE_ALREADY_EXISTS = 183;
+		public const int FFMPEG_SUCCESS = 0;
 		public static readonly AspectRatio SquareSAR = new(1, 1);
 
 		public bool AlreadyExists => File.Exists(GetSanitizedPath());
@@ -28,12 +26,12 @@ namespace AMQSongProcessor.Jobs
 			Song = song;
 		}
 
-		public async Task<int> ProcessAsync(CancellationToken? token = null)
+		public async Task<IResult> ProcessAsync(CancellationToken? token = null)
 		{
 			var path = GetSanitizedPath();
 			if (File.Exists(path))
 			{
-				return FILE_ALREADY_EXISTS;
+				return new FileAlreadyExistsResult(path);
 			}
 
 			using var process = ProcessUtils.FFmpeg.CreateProcess(GenerateArgs());
@@ -48,7 +46,7 @@ namespace AMQSongProcessor.Jobs
 
 			// ffmpeg will output the information we want to std:out
 			var ffmpegProgressBuilder = new FfmpegProgressBuilder();
-			process.OutputDataReceived += (s, e) =>
+			process.OutputDataReceived += (_, e) =>
 			{
 				if (e.Data is null)
 				{
@@ -60,8 +58,27 @@ namespace AMQSongProcessor.Jobs
 					ProcessingDataReceived?.Invoke(new ProcessingData(path, Song.GetLength(), progress));
 				}
 			};
+			var ffmpegErrors = default(List<string>);
+			process.ErrorDataReceived += (_, e) =>
+			{
+				if (e.Data is null)
+				{
+					return;
+				}
 
-			return await process.RunAsync(OutputMode.Async).CAF();
+				Debug.WriteLine(e.Data);
+
+				ffmpegErrors ??= new();
+				ffmpegErrors.Add(e.Data);
+			};
+
+			var code = await process.RunAsync(OutputMode.Async).CAF();
+			if (code != FFMPEG_SUCCESS)
+			{
+				ffmpegErrors ??= new();
+				return new FFmpegErrorResult(code, ffmpegErrors);
+			}
+			return FFmpegSuccess.Instance;
 		}
 
 		protected abstract string GenerateArgs();

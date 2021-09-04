@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-
+﻿
 using AMQSongProcessor.UI.ViewModels;
 
 namespace AMQSongProcessor.UI

@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-
+﻿
 using AMQSongProcessor.Jobs;
 using AMQSongProcessor.Models;
 

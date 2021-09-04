@@ -1,8 +1,5 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-using AMQSongProcessor.Ffmpeg;
+﻿using AMQSongProcessor.Ffmpeg;
+using AMQSongProcessor.Jobs.Results;
 
 namespace AMQSongProcessor.Jobs
 {
@@ -10,6 +7,6 @@ namespace AMQSongProcessor.Jobs
 	{
 		event Action<ProcessingData> ProcessingDataReceived;
 
-		Task<int> ProcessAsync(CancellationToken? token = null);
+		Task<IResult> ProcessAsync(CancellationToken? token = null);
 	}
 }

@@ -1,5 +1,4 @@
-﻿using System.IO;
-
+﻿
 using AMQSongProcessor.Models;
 
 using Avalonia.Data.Converters;

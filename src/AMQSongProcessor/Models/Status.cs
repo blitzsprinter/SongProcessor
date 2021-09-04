@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace AMQSongProcessor.Models
+﻿namespace AMQSongProcessor.Models
 {
 	[Flags]
 	public enum Status : uint

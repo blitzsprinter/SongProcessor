@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿
 using AMQSongProcessor.Models;
 
 namespace AMQSongProcessor.UI.Models

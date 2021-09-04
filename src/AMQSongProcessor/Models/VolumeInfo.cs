@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace AMQSongProcessor.Models
+﻿namespace AMQSongProcessor.Models
 {
 	public sealed class VolumeInfo
 	{

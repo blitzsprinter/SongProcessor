@@ -1,7 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-
-namespace AMQSongProcessor.UI
+﻿namespace AMQSongProcessor.UI
 {
 	public sealed class Clipboard<T>
 	{

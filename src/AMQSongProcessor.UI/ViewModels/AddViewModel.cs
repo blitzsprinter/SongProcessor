@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.IO;
-using System.Linq;
+﻿using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Runtime.Serialization;
-using System.Threading.Tasks;
 
 using AMQSongProcessor.Gatherers;
 using AMQSongProcessor.Models;

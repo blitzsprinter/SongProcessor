@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace AMQSongProcessor.UI.ViewModels
+﻿namespace AMQSongProcessor.UI.ViewModels
 {
 	public interface INavigationController
 	{

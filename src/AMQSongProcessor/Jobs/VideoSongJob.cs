@@ -3,9 +3,6 @@
 
 #undef AV1
 
-using System.Collections.Generic;
-using System.Linq;
-
 using AdvorangesUtils;
 
 using AMQSongProcessor.Models;
@@ -32,9 +29,9 @@ namespace AMQSongProcessor.Jobs
 		protected override string GenerateArgs()
 		{
 			const string ARGS =
-				" -v quiet" +
-				" -stats" +
-				" -progress pipe:1" +
+				" -v level+error" + // Only output errors to stderr
+				" -nostats" + // Do not output the default stats
+				" -progress pipe:1" + // Output the stats to stdout in the easier to parse format
 				" -sn" + // No subtitles
 				" -map_metadata -1" + // No metadata
 				" -map_chapters -1" + // No chapters

@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Runtime.Serialization;
-using System.Threading.Tasks;
 
 using AMQSongProcessor.Ffmpeg;
 using AMQSongProcessor.Models;
@@ -488,14 +483,14 @@ namespace AMQSongProcessor.UI.ViewModels
 
 		private IObservable<Unit> PrivateProcessSongs()
 		{
-			//start processing, but cancel if the cancel button is clicked
 			return Observable.StartAsync(async token =>
 			{
 				var jobs = _Processor.CreateJobs(Anime);
 				CurrentJob = 1;
 				QueuedJobs = jobs.Count;
 
-				await jobs.ProcessAsync(x =>
+				// As each job progresses display its percentage
+				var results = jobs.ProcessAsync(x =>
 				{
 					if (x.Progress.IsEnd)
 					{
@@ -504,13 +499,31 @@ namespace AMQSongProcessor.UI.ViewModels
 					ProcessingData = x;
 
 					TaskbarProgress.UpdateTaskbarProgress(x.Percentage);
-				}, token).ConfigureAwait(true);
+				}, token);
+
+				// If any result is an error stop processing and display it
+				await foreach (var result in results.WithCancellation(token))
+				{
+					if (!result.IsSuccess)
+					{
+						await _MessageBoxManager.ShowNoResultAsync(new()
+						{
+							CanResize = true,
+							Height = UIUtils.MESSAGE_BOX_HEIGHT * 5,
+							Text = result.ToString(),
+							Title = "Failed To Process Song",
+						}).ConfigureAwait(true);
+						await CancelProcessing.Execute();
+					}
+				}
 			})
+			// On cancel/error/finish set all indicators of progress back to zero
 			.Finally(() =>
 			{
 				ProcessingData = null;
 				TaskbarProgress.UpdateTaskbarProgress(null);
 			})
+			// Cancel if cancel button is clicked
 			.TakeUntil(CancelProcessing);
 		}
 

@@ -1,21 +1,18 @@
-﻿using System;
-using System.Buffers;
-using System.Collections.Generic;
+﻿using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 
 using AdvorangesUtils;
 
 using AMQSongProcessor.Ffmpeg;
 using AMQSongProcessor.Jobs;
+using AMQSongProcessor.Jobs.Results;
 
 namespace AMQSongProcessor.Utils
 {
 	public static class Utils
 	{
-		public static async Task ProcessAsync(
+		public static async IAsyncEnumerable<IResult> ProcessAsync(
 			this IEnumerable<ISongJob> jobs,
 			Action<ProcessingData>? onProcessingDataReceived = null,
 			CancellationToken? token = null)
@@ -27,11 +24,22 @@ namespace AMQSongProcessor.Utils
 
 				try
 				{
-					await job.ProcessAsync(token).CAF();
+					yield return await job.ProcessAsync(token).CAF();
 				}
 				finally
 				{
 					job.ProcessingDataReceived -= onProcessingDataReceived;
+				}
+			}
+		}
+
+		public static async Task ThrowIfAnyErrors(this IAsyncEnumerable<IResult> results)
+		{
+			await foreach (var result in results)
+			{
+				if (!result.IsSuccess)
+				{
+					throw new InvalidOperationException(result.ToString());
 				}
 			}
 		}

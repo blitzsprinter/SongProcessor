@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace AMQSongProcessor.UI.Converters
+﻿namespace AMQSongProcessor.UI.Converters
 {
 	public abstract class MaybeFunc<TObj> : IMaybeFunc
 	{

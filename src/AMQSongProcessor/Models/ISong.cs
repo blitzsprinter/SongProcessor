@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace AMQSongProcessor.Models
+﻿namespace AMQSongProcessor.Models
 {
 	public interface ISong
 	{

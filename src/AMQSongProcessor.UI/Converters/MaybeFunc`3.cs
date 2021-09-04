@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace AMQSongProcessor.UI.Converters
+﻿namespace AMQSongProcessor.UI.Converters
 {
 	public class MaybeFunc<TObj, TParam, TRet> : MaybeFunc<TObj>, IMaybeFunc<TParam, TRet>
 	{

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Text;
 
 using AdvorangesUtils;
 
@@ -68,7 +62,7 @@ namespace AMQSongProcessor
 			await processor.ExportFixesAsync(dir, anime).CAF();
 
 			var jobs = processor.CreateJobs(anime);
-			await jobs.ProcessAsync(OnProcessingReceived).CAF();
+			await jobs.ProcessAsync(OnProcessingReceived).ThrowIfAnyErrors().CAF();
 		}
 
 		private static void Display(IEnumerable<IAnime> anime)
