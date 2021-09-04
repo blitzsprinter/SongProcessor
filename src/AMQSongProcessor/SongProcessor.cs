@@ -1,8 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Text;
 
-using AdvorangesUtils;
-
 using AMQSongProcessor.Jobs;
 using AMQSongProcessor.Models;
 using AMQSongProcessor.Utils;
@@ -116,13 +114,14 @@ namespace AMQSongProcessor
 						.Concat(song.AlsoIn)
 						.Where(x => x != anime.Id)
 						.OrderBy(x => x)
-						.Join(x => x.ToString());
-					if (!string.IsNullOrWhiteSpace(others))
+						.Select(x => x.ToString());
+					var joined = string.Join(" ,", others);
+					if (!string.IsNullOrWhiteSpace(joined))
 					{
-						sb.Append("**Duplicate found in:** ").AppendLine(others);
+						sb.Append("**Duplicate found in:** ").AppendLine(joined);
 					}
 
-					await sw.WriteAsync(sb.AppendLine()).CAF();
+					await sw.WriteAsync(sb.AppendLine()).ConfigureAwait(false);
 					++writtenSongs;
 				}
 
@@ -135,7 +134,7 @@ namespace AMQSongProcessor
 			var text = count > 1
 				? "**I solemnly swear that I have checked that these song-anime combos aren't in the game already, and I have read and understand all the pins**"
 				: "**I solemnly swear that I have checked that this song-anime combo isn't in the game already, and I have read and understand all the pins**";
-			await sw.WriteAsync(text).CAF();
+			await sw.WriteAsync(text).ConfigureAwait(false);
 		}
 
 		private static IEnumerable<SongJob> GetJobs(

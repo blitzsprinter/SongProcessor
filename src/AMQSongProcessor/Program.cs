@@ -1,7 +1,5 @@
 ﻿using System.Text;
 
-using AdvorangesUtils;
-
 using AMQSongProcessor.Ffmpeg;
 using AMQSongProcessor.Gatherers;
 using AMQSongProcessor.Models;
@@ -45,7 +43,7 @@ namespace AMQSongProcessor
 			Console.OutputEncoding = Encoding.UTF8;
 
 			var loader = new SongLoader(new SourceInfoGatherer());
-			await AddNewShowsAsync(loader, dir).CAF();
+			await AddNewShowsAsync(loader, dir).ConfigureAwait(false);
 
 			var anime = new SortedSet<Anime>(new AnimeComparer());
 			await foreach (var item in loader.LoadFromDirectoryAsync(dir, 5))
@@ -59,10 +57,10 @@ namespace AMQSongProcessor
 
 			var processor = new SongProcessor();
 			processor.WarningReceived += Console.WriteLine;
-			await processor.ExportFixesAsync(dir, anime).CAF();
+			await processor.ExportFixesAsync(dir, anime).ConfigureAwait(false);
 
 			var jobs = processor.CreateJobs(anime);
-			await jobs.ProcessAsync(OnProcessingReceived).ThrowIfAnyErrors().CAF();
+			await jobs.ProcessAsync(OnProcessingReceived).ThrowIfAnyErrors().ConfigureAwait(false);
 		}
 
 		private static void Display(IEnumerable<IAnime> anime)
@@ -224,8 +222,8 @@ namespace AMQSongProcessor
 			var gatherer = new ANNGatherer();
 			foreach (var id in File.ReadAllLines(idFile).Select(int.Parse))
 			{
-				var model = await gatherer.GetAsync(id).CAF();
-				await loader.SaveAsync(directory, model, options).CAF();
+				var model = await gatherer.GetAsync(id).ConfigureAwait(false);
+				await loader.SaveAsync(directory, model, options).ConfigureAwait(false);
 				Console.WriteLine($"Got information from ANN for {model.Name}.");
 			}
 

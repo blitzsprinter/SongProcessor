@@ -1,7 +1,5 @@
 ﻿using System.Threading.Channels;
 
-using AdvorangesUtils;
-
 using AMQSongProcessor.Models;
 
 namespace AMQSongProcessor.Utils
@@ -79,7 +77,7 @@ namespace AMQSongProcessor.Utils
 		{
 			foreach (var file in files)
 			{
-				var anime = await loader.LoadAsync(file).CAF();
+				var anime = await loader.LoadAsync(file).ConfigureAwait(false);
 				if (anime != null)
 				{
 					yield return anime;

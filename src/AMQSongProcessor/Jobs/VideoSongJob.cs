@@ -3,8 +3,6 @@
 
 #undef AV1
 
-using AdvorangesUtils;
-
 using AMQSongProcessor.Models;
 using AMQSongProcessor.Utils;
 
@@ -95,8 +93,8 @@ namespace AMQSongProcessor.Jobs
 
 				videoFilterParts["scale"] = $"{width}:{Resolution}";
 
-				var joined = videoFilterParts.Select(x => $"{x.Key}={x.Value}").Join(",");
-				args += $" -filter:v \"{joined}\"";
+				var parts = videoFilterParts.Select(x => $"{x.Key}={x.Value}");
+				args += $" -filter:v \"{string.Join(',', parts)}\"";
 			}
 
 			if (Song.VolumeModifier != null)

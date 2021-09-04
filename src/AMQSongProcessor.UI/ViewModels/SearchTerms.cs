@@ -1,7 +1,5 @@
 ﻿using System.Runtime.Serialization;
 
-using AdvorangesUtils;
-
 using AMQSongProcessor.Models;
 
 using ReactiveUI;
@@ -40,17 +38,21 @@ namespace AMQSongProcessor.UI.ViewModels
 			return IsVisible(AnimeName, anime.Name)
 				// Then check if any of the songs are allowed to be shown
 				&& (anime.Songs.Any(IsVisible)
-				// If no songs, make sure we're not searching for any songs/artists
-				|| (IsEmpty(SongName) && IsEmpty(ArtistName) && anime.Songs.Count == 0));
+					// If no songs, make sure we're not searching for any songs/artists
+					|| (string.IsNullOrWhiteSpace(SongName)
+						&& string.IsNullOrWhiteSpace(ArtistName)
+						&& anime.Songs.Count == 0
+					)
+				);
 		}
 
 		public bool IsVisible(ISong song)
 			=> IsVisible(SongName, song.Name) && IsVisible(ArtistName, song.Artist);
 
-		private static bool IsEmpty(string? search)
-			=> string.IsNullOrWhiteSpace(search);
-
 		private static bool IsVisible(string? search, string actual)
-			=> IsEmpty(search) || actual.CaseInsContains(search);
+		{
+			return string.IsNullOrWhiteSpace(search)
+				|| actual.Contains(search!, StringComparison.OrdinalIgnoreCase);
+		}
 	}
 }

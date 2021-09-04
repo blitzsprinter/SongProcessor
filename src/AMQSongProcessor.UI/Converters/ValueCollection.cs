@@ -1,7 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-using AdvorangesUtils;
-
 namespace AMQSongProcessor.UI.Converters
 {
 	public sealed class ValueCollection
@@ -126,7 +124,7 @@ namespace AMQSongProcessor.UI.Converters
 
 		private InvalidCastException InvalidType(IEnumerable<Type> types)
 		{
-			var t = types.Join(x => x.ToString());
+			var t = string.Join(" ,", types);
 			return new InvalidCastException($"Invalid value at index {--_Index}. Expected {t}");
 		}
 	}

@@ -2,8 +2,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
-using AdvorangesUtils;
-
 using AMQSongProcessor.Ffmpeg;
 using AMQSongProcessor.Jobs;
 using AMQSongProcessor.Jobs.Results;
@@ -24,7 +22,7 @@ namespace AMQSongProcessor.Utils
 
 				try
 				{
-					yield return await job.ProcessAsync(token).CAF();
+					yield return await job.ProcessAsync(token).ConfigureAwait(false);
 				}
 				finally
 				{

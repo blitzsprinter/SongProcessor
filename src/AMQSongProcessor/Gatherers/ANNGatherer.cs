@@ -2,8 +2,6 @@
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
-using AdvorangesUtils;
-
 using AMQSongProcessor.Models;
 
 namespace AMQSongProcessor.Gatherers
@@ -43,13 +41,13 @@ namespace AMQSongProcessor.Gatherers
 		public async Task<IAnimeBase> GetAsync(int id, GatherOptions? options = null)
 		{
 			var url = URL + id;
-			var result = await _Client.GetAsync(url).CAF();
+			var result = await _Client.GetAsync(url).ConfigureAwait(false);
 			if (!result.IsSuccessStatusCode)
 			{
 				throw new HttpRequestException($"{url} threw {result.StatusCode}.");
 			}
 
-			var stream = await result.Content.ReadAsStreamAsync().CAF();
+			var stream = await result.Content.ReadAsStreamAsync().ConfigureAwait(false);
 			var doc = XElement.Load(stream);
 			if (doc.Descendants("warning").Any(x => x.Value.Contains("no result for anime")))
 			{

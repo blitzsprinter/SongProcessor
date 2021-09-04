@@ -1,7 +1,5 @@
 ﻿using System.Text;
 
-using AdvorangesUtils;
-
 namespace AMQSongProcessor.Utils
 {
 	public static class FileUtils
@@ -9,8 +7,6 @@ namespace AMQSongProcessor.Utils
 		private const string NUMBER_PATTERN = "_({0})";
 		private static readonly HashSet<char> InvalidChars =
 			new(Path.GetInvalidFileNameChars().Concat(Path.GetInvalidPathChars()));
-		public static bool IsWindows { get; } =
-			Environment.OSVersion.Platform.ToString().CaseInsContains("win");
 
 		public static string? EnsureAbsolutePath(string? directory, string? path)
 		{
@@ -32,8 +28,8 @@ namespace AMQSongProcessor.Utils
 
 		public static string? GetRelativeOrAbsolute(string dir, string? path)
 		{
-			//If the directory matches the info directory just return the file name
-			//Otherwise return the absolute path
+			// If the directory matches the info directory just return the file name
+			// Otherwise return the absolute path
 			var sourceDir = Path.GetDirectoryName(path);
 			return dir.PathEquals(sourceDir) ? Path.GetFileName(path) : path;
 		}
@@ -92,12 +88,12 @@ namespace AMQSongProcessor.Utils
 			return GetNextFilename(path + NUMBER_PATTERN);
 		}
 
-		public static bool PathEquals(this string? path1, string? path2)
+		public static bool PathEquals(this string path1, string? path2)
 		{
 			//Use CaseInsEquals b/c Windows paths are case insensitive
-			if (IsWindows)
+			if (OperatingSystem.IsWindows())
 			{
-				return path1.CaseInsEquals(path2);
+				return path1.Equals(path2, StringComparison.OrdinalIgnoreCase);
 			}
 			return path1 == path2;
 		}

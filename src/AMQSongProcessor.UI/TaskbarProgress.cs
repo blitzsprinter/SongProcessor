@@ -1,16 +1,12 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-using AMQSongProcessor.Utils;
-
 namespace AMQSongProcessor.UI
 {
 	public static class TaskbarProgress
 	{
 		private static readonly Lazy<ITaskbarList3> _TaskbarInstance
 			= new(() => (ITaskbarList3)new TaskbarInstance());
-		private static readonly bool _Windows7OrGreater =
-			FileUtils.IsWindows && Environment.OSVersion.Version >= new Version(6, 1);
 		private static TaskbarStates _TaskbarState;
 
 		/// <summary>
@@ -19,7 +15,7 @@ namespace AMQSongProcessor.UI
 		/// <param name="percentage">Ranges from 0.00 to 1.00</param>
 		public static void UpdateTaskbarProgress(double? percentage)
 		{
-			if (!_Windows7OrGreater)
+			if (!OperatingSystem.IsWindowsVersionAtLeast(6, 1))
 			{
 				return;
 			}

@@ -1,8 +1,6 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
-using AdvorangesUtils;
-
 using AMQSongProcessor.Converters;
 using AMQSongProcessor.Ffmpeg;
 using AMQSongProcessor.Models;
@@ -46,14 +44,14 @@ namespace AMQSongProcessor
 				object? deserialized;
 				using (var fs = new FileStream(path, FileMode.Open))
 				{
-					deserialized = await JsonSerializer.DeserializeAsync(fs, ModelType, Options).CAF();
+					deserialized = await JsonSerializer.DeserializeAsync(fs, ModelType, Options).ConfigureAwait(false);
 				}
 
 				if (deserialized is not IAnimeBase model)
 				{
 					throw new InvalidOperationException("Invalid type supplied for deserializing.");
 				}
-				return await ConvertFromModelAsync(path, model).CAF();
+				return await ConvertFromModelAsync(path, model).ConfigureAwait(false);
 			}
 			catch (JsonException) when ((ExceptionsToIgnore & IgnoreExceptions.Json) != 0)
 			{
@@ -109,7 +107,7 @@ namespace AMQSongProcessor
 			{
 				try
 				{
-					videoInfo = await Gatherer.GetVideoInfoAsync(source).CAF();
+					videoInfo = await Gatherer.GetVideoInfoAsync(source).ConfigureAwait(false);
 				}
 				catch (Exception) when ((ExceptionsToIgnore & IgnoreExceptions.Video) != 0)
 				{
@@ -135,10 +133,10 @@ namespace AMQSongProcessor
 
 			try
 			{
-				var model = await ConvertToModelAsync(file, anime).CAF();
+				var model = await ConvertToModelAsync(file, anime).ConfigureAwait(false);
 				using (var fs = new FileStream(file, FileMode.Create))
 				{
-					await JsonSerializer.SerializeAsync(fs, model, ModelType, Options).CAF();
+					await JsonSerializer.SerializeAsync(fs, model, ModelType, Options).ConfigureAwait(false);
 				}
 
 				return file;

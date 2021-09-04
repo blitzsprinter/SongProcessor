@@ -2,8 +2,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
-using AdvorangesUtils;
-
 namespace AMQSongProcessor.Utils
 {
 	[Flags]
@@ -28,10 +26,8 @@ namespace AMQSongProcessor.Utils
 
 	public static class ProcessUtils
 	{
-		private static readonly bool IsWindows =
-			Environment.OSVersion.Platform.ToString().CaseInsContains("win");
-		private static readonly IReadOnlyList<Environment.SpecialFolder> SpecialFolders =
-			GetValues<Environment.SpecialFolder>();
+		private static readonly IReadOnlyList<Environment.SpecialFolder> SpecialFolders
+			= GetValues<Environment.SpecialFolder>();
 		public static Program FFmpeg { get; } = FindProgram("ffmpeg");
 		public static Program FFprobe { get; } = FindProgram("ffprobe");
 
@@ -118,7 +114,7 @@ namespace AMQSongProcessor.Utils
 
 		private static Program FindProgram(string program)
 		{
-			program = IsWindows ? program + ".exe" : program;
+			program = OperatingSystem.IsWindows() ? program + ".exe" : program;
 			//Look through every directory and any subfolders they have called bin
 			foreach (var dir in GetDirectories(program))
 			{
@@ -144,7 +140,7 @@ namespace AMQSongProcessor.Utils
 			//Check path variables
 			if (Environment.GetEnvironmentVariable("PATH") is string path)
 			{
-				foreach (var part in path.Split(IsWindows ? ';' : ':'))
+				foreach (var part in path.Split(OperatingSystem.IsWindows() ? ';' : ':'))
 				{
 					yield return part.Trim();
 				}

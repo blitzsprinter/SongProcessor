@@ -1,8 +1,6 @@
 ﻿using System.IO.Compression;
 using System.Web;
 
-using AdvorangesUtils;
-
 using AMQSongProcessor.Models;
 
 using HtmlAgilityPack;
@@ -24,7 +22,7 @@ namespace AMQSongProcessor.Gatherers
 		public async Task<IAnimeBase> GetAsync(int id, GatherOptions? options = null)
 		{
 			var url = URL + id;
-			var result = await _Client.GetAsync(url).CAF();
+			var result = await _Client.GetAsync(url).ConfigureAwait(false);
 			if (!result.IsSuccessStatusCode)
 			{
 				throw new HttpRequestException($"{url} threw {result.StatusCode}.");
@@ -32,7 +30,7 @@ namespace AMQSongProcessor.Gatherers
 
 			var doc = new HtmlDocument();
 			//aniDB uses brotli compression
-			using (var stream = await result.Content.ReadAsStreamAsync().CAF())
+			using (var stream = await result.Content.ReadAsStreamAsync().ConfigureAwait(false))
 			using (var br = new BrotliStream(stream, CompressionMode.Decompress))
 			{
 				doc.Load(br);

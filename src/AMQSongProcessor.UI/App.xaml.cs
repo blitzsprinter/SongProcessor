@@ -1,6 +1,4 @@
-﻿using AdvorangesUtils;
-
-using AMQSongProcessor.Ffmpeg;
+﻿using AMQSongProcessor.Ffmpeg;
 using AMQSongProcessor.Gatherers;
 using AMQSongProcessor.UI.ViewModels;
 using AMQSongProcessor.UI.Views;
@@ -22,7 +20,12 @@ namespace AMQSongProcessor.UI
 
 		public override void OnFrameworkInitializationCompleted()
 		{
-			AppDomain.CurrentDomain.UnhandledException += (sender, e) => IOUtils.LogUncaughtException(e.ExceptionObject);
+			AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+			{
+				var path = Path.Combine(Directory.GetCurrentDirectory(), "CrashLog.txt");
+				var text = $"[{DateTime.UtcNow:G}] {e.ExceptionObject}\n";
+				File.AppendAllText(path, text);
+			};
 
 			var window = new MainWindow();
 			var messageBoxManager = new MessageBoxManager(window);

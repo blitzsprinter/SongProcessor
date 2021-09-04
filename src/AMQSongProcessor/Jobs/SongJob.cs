@@ -1,7 +1,5 @@
 ﻿using System.Diagnostics;
 
-using AdvorangesUtils;
-
 using AMQSongProcessor.Ffmpeg;
 using AMQSongProcessor.Jobs.Results;
 using AMQSongProcessor.Models;
@@ -72,7 +70,7 @@ namespace AMQSongProcessor.Jobs
 				ffmpegErrors.Add(e.Data);
 			};
 
-			var code = await process.RunAsync(OutputMode.Async).CAF();
+			var code = await process.RunAsync(OutputMode.Async).ConfigureAwait(false);
 			if (code != FFMPEG_SUCCESS)
 			{
 				ffmpegErrors ??= new();

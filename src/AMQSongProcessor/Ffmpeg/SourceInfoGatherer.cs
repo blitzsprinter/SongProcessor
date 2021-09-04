@@ -1,8 +1,6 @@
 ﻿using System.Text;
 using System.Text.Json;
 
-using AdvorangesUtils;
-
 using AMQSongProcessor.Converters;
 using AMQSongProcessor.Models;
 using AMQSongProcessor.Utils;
@@ -82,7 +80,7 @@ namespace AMQSongProcessor.Ffmpeg
 				};
 				f(info);
 			};
-			await process.RunAsync(OutputMode.Async).CAF();
+			await process.RunAsync(OutputMode.Async).ConfigureAwait(false);
 
 			return new SourceInfo<VolumeInfo>(file, info);
 		}
@@ -119,13 +117,13 @@ namespace AMQSongProcessor.Ffmpeg
 				process.Dispose();
 			}, null);
 
-			await process.RunAsync(OutputMode.Sync).CAF();
+			await process.RunAsync(OutputMode.Sync).ConfigureAwait(false);
 			// Must call WaitForExit otherwise the json may be incomplete
-			await process.WaitForExitAsync().CAF();
+			await process.WaitForExitAsync().ConfigureAwait(false);
 
 			try
 			{
-				using var doc = await JsonDocument.ParseAsync(process.StandardOutput.BaseStream).CAF();
+				using var doc = await JsonDocument.ParseAsync(process.StandardOutput.BaseStream).ConfigureAwait(false);
 				if (!doc.RootElement.TryGetProperty("streams", out var property))
 				{
 					throw Exception(stream, file, new InvalidFileTypeException("Invalid file type."));
@@ -145,7 +143,7 @@ namespace AMQSongProcessor.Ffmpeg
 			{
 				if (RetryLimit > attempt)
 				{
-					return await GetInfoAsync<T>(stream, file, track, attempt + 1).CAF();
+					return await GetInfoAsync<T>(stream, file, track, attempt + 1).ConfigureAwait(false);
 				}
 				throw Exception(stream, file, e);
 			}
