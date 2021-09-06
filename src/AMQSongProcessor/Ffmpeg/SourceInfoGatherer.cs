@@ -5,7 +5,7 @@ using AMQSongProcessor.Converters;
 using AMQSongProcessor.Models;
 using AMQSongProcessor.Utils;
 
-namespace AMQSongProcessor.Ffmpeg
+namespace AMQSongProcessor.FFmpeg
 {
 	public sealed class SourceInfoGatherer : ISourceInfoGatherer
 	{

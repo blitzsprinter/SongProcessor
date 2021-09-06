@@ -1,4 +1,4 @@
-﻿namespace AMQSongProcessor.Ffmpeg
+﻿namespace AMQSongProcessor.FFmpeg
 {
 	public class SourceInfoGatheringException : Exception
 	{

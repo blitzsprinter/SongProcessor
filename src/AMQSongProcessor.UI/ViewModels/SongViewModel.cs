@@ -4,7 +4,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Runtime.Serialization;
 
-using AMQSongProcessor.Ffmpeg;
+using AMQSongProcessor.FFmpeg;
 using AMQSongProcessor.Models;
 using AMQSongProcessor.UI.Models;
 using AMQSongProcessor.Utils;

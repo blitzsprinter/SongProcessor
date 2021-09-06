@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-using AMQSongProcessor.Ffmpeg;
+using AMQSongProcessor.FFmpeg;
 using AMQSongProcessor.Gatherers;
 using AMQSongProcessor.Models;
 using AMQSongProcessor.Utils;

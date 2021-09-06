@@ -1,4 +1,4 @@
-﻿using AMQSongProcessor.Ffmpeg;
+﻿using AMQSongProcessor.FFmpeg;
 using AMQSongProcessor.Gatherers;
 using AMQSongProcessor.UI.ViewModels;
 using AMQSongProcessor.UI.Views;

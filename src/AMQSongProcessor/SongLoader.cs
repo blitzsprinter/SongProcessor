@@ -2,7 +2,7 @@
 using System.Text.Json.Serialization;
 
 using AMQSongProcessor.Converters;
-using AMQSongProcessor.Ffmpeg;
+using AMQSongProcessor.FFmpeg;
 using AMQSongProcessor.Models;
 using AMQSongProcessor.Utils;
 

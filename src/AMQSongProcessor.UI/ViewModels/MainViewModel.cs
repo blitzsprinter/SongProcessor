@@ -2,7 +2,7 @@
 using System.Reactive.Linq;
 using System.Runtime.Serialization;
 
-using AMQSongProcessor.Ffmpeg;
+using AMQSongProcessor.FFmpeg;
 using AMQSongProcessor.Gatherers;
 
 using Avalonia.Input.Platform;

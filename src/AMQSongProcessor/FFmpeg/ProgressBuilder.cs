@@ -1,9 +1,9 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 
-namespace AMQSongProcessor.Ffmpeg
+namespace AMQSongProcessor.FFmpeg
 {
-	internal sealed class FfmpegProgressBuilder
+	internal sealed class ProgressBuilder
 	{
 		public const string BITRATE = "bitrate";
 		public const string DROP_FRAMES = "drop_frames";
@@ -36,7 +36,7 @@ namespace AMQSongProcessor.Ffmpeg
 
 		private Dictionary<string, string> _Values = new();
 
-		public bool IsNextProgressReady(string kvp, [NotNullWhen(true)] out FfmpegProgress? progress)
+		public bool IsNextProgressReady(string kvp, [NotNullWhen(true)] out Progress? progress)
 		{
 			var split = kvp.Split('=');
 			var key = split[0].Trim();

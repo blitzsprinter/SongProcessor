@@ -1,4 +1,4 @@
-﻿namespace AMQSongProcessor.Models
+﻿namespace AMQSongProcessor.FFmpeg
 {
 	public readonly struct SourceInfo<T>
 	{

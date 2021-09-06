@@ -1,6 +1,6 @@
-﻿namespace AMQSongProcessor.Ffmpeg
+﻿namespace AMQSongProcessor.FFmpeg
 {
-	public sealed record FfmpegProgress(
+	public sealed record Progress(
 		double Bitrate,
 		int DroppedFrames,
 		int DuplicateFrames,

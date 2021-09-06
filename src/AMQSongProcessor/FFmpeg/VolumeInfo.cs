@@ -1,4 +1,4 @@
-﻿namespace AMQSongProcessor.Models
+﻿namespace AMQSongProcessor.FFmpeg
 {
 	public sealed record VolumeInfo(
 		Dictionary<int, int> Histograms,

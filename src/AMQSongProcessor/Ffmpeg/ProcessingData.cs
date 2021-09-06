@@ -1,9 +1,9 @@
-﻿namespace AMQSongProcessor.Ffmpeg
+﻿namespace AMQSongProcessor.FFmpeg
 {
 	public sealed record ProcessingData(
 		TimeSpan Length,
 		string Path,
-		FfmpegProgress Progress
+		Progress Progress
 	)
 	{
 		public float Percentage => Math.Min(1f, Progress.OutTime.Ticks / (float)Length.Ticks);

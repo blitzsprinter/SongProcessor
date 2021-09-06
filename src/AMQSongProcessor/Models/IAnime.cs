@@ -1,4 +1,6 @@
-﻿namespace AMQSongProcessor.Models
+﻿using AMQSongProcessor.FFmpeg;
+
+namespace AMQSongProcessor.Models
 {
 	public interface IAnime : IAnimeBase
 	{

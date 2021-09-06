@@ -1,6 +1,8 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace AMQSongProcessor.Models
+using AMQSongProcessor.Models;
+
+namespace AMQSongProcessor.FFmpeg
 {
 	public sealed record VideoInfo(
 		[property: JsonPropertyName("avg_frame_rate")]

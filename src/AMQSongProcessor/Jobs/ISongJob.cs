@@ -1,4 +1,4 @@
-﻿using AMQSongProcessor.Ffmpeg;
+﻿using AMQSongProcessor.FFmpeg;
 using AMQSongProcessor.Jobs.Results;
 
 namespace AMQSongProcessor.Jobs

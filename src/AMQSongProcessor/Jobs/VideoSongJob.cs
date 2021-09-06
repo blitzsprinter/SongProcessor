@@ -3,6 +3,7 @@
 
 #undef AV1
 
+using AMQSongProcessor.FFmpeg;
 using AMQSongProcessor.Models;
 using AMQSongProcessor.Utils;
 
