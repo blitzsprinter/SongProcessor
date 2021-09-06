@@ -5,6 +5,8 @@ namespace AMQSongProcessor.Models
 	[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
 	public readonly struct AspectRatio : IEquatable<AspectRatio>, IComparable<AspectRatio>
 	{
+		public const char SEPARATOR = '/';
+
 		public int Height { get; }
 		public float Ratio => Width / (float)Height;
 		public int Width { get; }
@@ -12,15 +14,54 @@ namespace AMQSongProcessor.Models
 
 		public AspectRatio(int width, int height)
 		{
+			if (width < 1)
+			{
+				throw new ArgumentOutOfRangeException(nameof(width));
+			}
+			if (height < 1)
+			{
+				throw new ArgumentOutOfRangeException(nameof(height));
+			}
+
 			Width = width;
 			Height = height;
 		}
 
 		public static bool operator !=(AspectRatio item1, AspectRatio item2)
-			=> !(item1 == item2);
+			=> !item1.Equals(item2);
 
 		public static bool operator ==(AspectRatio item1, AspectRatio item2)
 			=> item1.Equals(item2);
+
+		public static AspectRatio Parse(string s, char separator)
+		{
+			if (!TryParse(s, separator, out var result))
+			{
+				throw ModelUtils.InvalidFormat<AspectRatio>(s);
+			}
+			return result;
+		}
+
+		public static bool TryParse(string s, char separator, out AspectRatio result)
+		{
+			if (s is null)
+			{
+				result = default;
+				return false;
+			}
+
+			var values = s.Split(separator);
+			if (values.Length != 2
+				|| !int.TryParse(values[0], out var width)
+				|| !int.TryParse(values[1], out var height))
+			{
+				result = default;
+				return false;
+			}
+
+			result = new(width, height);
+			return true;
+		}
 
 		public int CompareTo(AspectRatio other)
 			=> Ratio.CompareTo(other.Ratio);
@@ -38,7 +79,7 @@ namespace AMQSongProcessor.Models
 			=> HashCode.Combine(Width, Height);
 
 		public override string ToString()
-			=> ToString('/');
+			=> ToString(SEPARATOR);
 
 		public string ToString(char separator)
 			=> Width.ToString() + separator + Height.ToString();

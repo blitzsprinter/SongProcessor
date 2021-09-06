@@ -10,17 +10,7 @@ namespace AMQSongProcessor.Converters
 		private const char SEPARATOR = ':';
 
 		public override AspectRatio Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-		{
-			if (reader.GetString() is not string s)
-			{
-				return default;
-			}
-
-			var values = s.Split(SEPARATOR);
-			var width = int.Parse(values[0]);
-			var height = int.Parse(values[1]);
-			return new AspectRatio(width, height);
-		}
+			=> reader.GetString() is string s ? AspectRatio.Parse(s, SEPARATOR) : default;
 
 		public override void Write(Utf8JsonWriter writer, AspectRatio value, JsonSerializerOptions options)
 			=> writer.WriteStringValue(value.ToString(SEPARATOR));

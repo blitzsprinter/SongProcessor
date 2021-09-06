@@ -1,9 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>WinExe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <Nullable>enable</Nullable>
     <LangVersion>preview</LangVersion>
+    <OutputType>WinExe</OutputType>
     <ApplicationIcon>cirno_at_computer_pTB_icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>

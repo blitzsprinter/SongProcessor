@@ -22,9 +22,8 @@ namespace AMQSongProcessor.Gatherers
 
 		//The artist ends at (eps ###-###) or the end of the line
 
-		private static readonly Regex SongRegex =
-			new(SongPattern, RegexOptions.Compiled | RegexOptions.ExplicitCapture);
-
+		private static readonly Regex SongRegex
+			= new(SongPattern, RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 		private static readonly string[] VintageFormats = new[]
 		{
 			"yyyy"

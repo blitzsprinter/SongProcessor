@@ -5,7 +5,7 @@ namespace AMQSongProcessor.Models
 	[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
 	public readonly struct VolumeModifer
 	{
-		private const string DB = "dB";
+		public const string DB = "dB";
 
 		public double? Decibels { get; }
 		public double? Percentage { get; }
@@ -27,7 +27,7 @@ namespace AMQSongProcessor.Models
 		{
 			if (!TryParse(s, out var result))
 			{
-				throw new FormatException($"Invalid format: {s}");
+				throw ModelUtils.InvalidFormat<VolumeModifer>(s);
 			}
 			return result;
 		}

@@ -35,21 +35,21 @@ namespace AMQSongProcessor.Models
 		}
 
 		public static bool operator !=(SongTypeAndPosition item1, SongTypeAndPosition item2)
-			=> !(item1 == item2);
+			=> !item1.Equals(item2);
 
 		public static bool operator ==(SongTypeAndPosition item1, SongTypeAndPosition item2)
 			=> item1.Equals(item2);
 
-		public static SongTypeAndPosition Parse(string? s)
+		public static SongTypeAndPosition Parse(string s)
 		{
 			if (!TryParse(s, out var result))
 			{
-				throw new FormatException($"Invalid format: {s}");
+				throw ModelUtils.InvalidFormat<SongTypeAndPosition>(s);
 			}
 			return result;
 		}
 
-		public static bool TryParse(string? s, out SongTypeAndPosition result)
+		public static bool TryParse(string s, out SongTypeAndPosition result)
 		{
 			if (s is null)
 			{
@@ -103,14 +103,16 @@ namespace AMQSongProcessor.Models
 			=> HashCode.Combine(Type, Position);
 
 		public override string ToString()
+			=> ToString(shortType: false);
+
+		public string ToString(bool shortType)
 		{
-			var s = LongType;
+			var type = shortType ? ShortType : LongType;
 			if (Type == SongType.In || Position is null)
 			{
-				return s;
+				return type;
 			}
-
-			return s + " " + Position.ToString();
+			return type + " " + Position.ToString();
 		}
 
 		private static int GetFirstDigitIndex(string value)

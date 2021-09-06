@@ -158,7 +158,6 @@ namespace AMQSongProcessor.Gatherers
 			{
 				var div = doc.DocumentNode.Descendants("div");
 				var data = div.Single(x => x.Id == "tab_1_pane");
-
 				var span = data.Descendants("span");
 				var name = span.Single(x => x.GetAttributeValue("itemprop", null) == "name");
 				return name.InnerText.Trim();
