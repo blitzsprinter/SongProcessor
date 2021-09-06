@@ -5,7 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace AMQSongProcessor.Tests.Models
 {
 	[TestClass]
-	public sealed class AspectRatio_tests
+	public sealed class AspectRatio_Tests
 	{
 		private const char SEP = AspectRatio.SEPARATOR;
 		private static readonly AspectRatio Default = new(16, 9);
@@ -13,10 +13,13 @@ namespace AMQSongProcessor.Tests.Models
 		[TestMethod]
 		public void CompareTo_Test()
 		{
-			var widths = Enumerable.Range(1, 999).ToList();
-			var ratios = new SortedList<AspectRatio, AspectRatio>(widths.Count);
+			var range = Enumerable.Range(1, 999);
+			var expected = range.Select(x => new AspectRatio(x, 1)).ToList();
+
+			var ratios = new SortedList<AspectRatio, AspectRatio>();
 			var rng = new Random(0);
 
+			var widths = range.ToList();
 			while (widths.Count > 0)
 			{
 				var index = rng.Next(0, widths.Count);
@@ -25,9 +28,10 @@ namespace AMQSongProcessor.Tests.Models
 				ratios.Add(ratio, ratio);
 			}
 
-			for (var i = 1; i < ratios.Count; ++i)
+			Assert.AreEqual(expected.Count, ratios.Count);
+			for (var i = 0; i < expected.Count; ++i)
 			{
-				Assert.AreEqual(-1, ratios.Keys[i - 1].CompareTo(ratios.Keys[i]));
+				Assert.AreEqual(expected[i], ratios.Values[i]);
 			}
 		}
 

@@ -2,26 +2,37 @@
 
 namespace AMQSongProcessor.Models
 {
+	public enum VolumeModifierType
+	{
+		Decibels,
+		Percentage
+	}
+
 	[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
 	public readonly struct VolumeModifer
 	{
 		public const string DB = "dB";
 
-		public double? Decibels { get; }
-		public double? Percentage { get; }
+		public VolumeModifierType Type { get; }
+		public double Value { get; }
 		private string DebuggerDisplay => ToString();
 
-		private VolumeModifer(double? percentage, double? dbs)
+		private VolumeModifer(VolumeModifierType type, double value)
 		{
-			Percentage = percentage;
-			Decibels = dbs;
+			if (type == VolumeModifierType.Percentage && value < 0)
+			{
+				throw new ArgumentOutOfRangeException(nameof(value));
+			}
+
+			Type = type;
+			Value = value;
 		}
 
 		public static VolumeModifer FromDecibels(double dbs)
-			=> new(null, dbs);
+			=> new(VolumeModifierType.Decibels, dbs);
 
 		public static VolumeModifer FromPercentage(double percentage)
-			=> new(percentage, null);
+			=> new(VolumeModifierType.Percentage, percentage);
 
 		public static VolumeModifer Parse(string s)
 		{
@@ -40,12 +51,13 @@ namespace AMQSongProcessor.Models
 				return false;
 			}
 
-			if (double.TryParse(s.Trim(), out var percentage))
+			var span = s.AsSpan().Trim();
+			if (double.TryParse(span, out var percentage))
 			{
 				result = FromPercentage(percentage);
 				return true;
 			}
-			else if (double.TryParse(s.Replace(DB, null).Trim(), out var dbs))
+			else if (span.EndsWith(DB) && double.TryParse(s[..(span.Length - 2)], out var dbs))
 			{
 				result = FromDecibels(dbs);
 				return true;
@@ -57,11 +69,11 @@ namespace AMQSongProcessor.Models
 
 		public override string ToString()
 		{
-			if (Decibels != null)
+			if (Type == VolumeModifierType.Decibels)
 			{
-				return Decibels + DB;
+				return Value + DB;
 			}
-			return (Percentage ?? 1).ToString();
+			return Value.ToString();
 		}
 	}
 }

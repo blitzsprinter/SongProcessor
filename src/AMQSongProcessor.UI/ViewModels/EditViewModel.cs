@@ -181,7 +181,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			_SongType = _Song.Type.Type;
 			_Start = _Song.Start.ToString();
 			_VideoTrack = _Song.OverrideVideoTrack;
-			_VolumeModifier = (int)(_Song.VolumeModifier?.Decibels ?? 0);
+			_VolumeModifier = (int)(_Song.VolumeModifier?.Value ?? 0);
 
 			this.ValidationRule(
 				x => x.Artist,

@@ -25,9 +25,13 @@ namespace AMQSongProcessor.Models
 
 		public SongTypeAndPosition(SongType type, int? position)
 		{
-			if (!Enum.IsDefined(typeof(SongType), type))
+			if (!Enum.IsDefined(type))
 			{
-				throw new ArgumentOutOfRangeException(nameof(type), "Invalid song type.");
+				throw new ArgumentOutOfRangeException(nameof(type));
+			}
+			if (position < 1)
+			{
+				throw new ArgumentOutOfRangeException(nameof(position));
 			}
 
 			Type = type;
@@ -58,7 +62,7 @@ namespace AMQSongProcessor.Models
 			}
 
 			var index = GetFirstDigitIndex(s);
-			if (!Enum.TryParse<SongType>(s[..index].Trim(), out var type))
+			if (!Enum.TryParse(s[..index].Trim(), out SongType type))
 			{
 				result = default;
 				return false;
@@ -67,7 +71,7 @@ namespace AMQSongProcessor.Models
 			var position = default(int?);
 			if (index != s.Length)
 			{
-				if (!int.TryParse(s[index..], out var parsed) || parsed < 1)
+				if (!int.TryParse(s[index..].Trim(), out var parsed) || parsed < 1)
 				{
 					result = default;
 					return false;
@@ -112,7 +116,7 @@ namespace AMQSongProcessor.Models
 			{
 				return type;
 			}
-			return type + " " + Position.ToString();
+			return type + " " + Position;
 		}
 
 		private static int GetFirstDigitIndex(string value)

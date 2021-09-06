@@ -70,8 +70,8 @@ namespace AMQSongProcessor.Ffmpeg
 				Action<VolumeInfo> f = key switch
 				{
 					"n_samples" => x => x.NSamples = int.Parse(value),
-					"mean_volume" => x => x.MeanVolume = VolumeModifer.Parse(value).Decibels!.Value,
-					"max_volume" => x => x.MaxVolume = VolumeModifer.Parse(value).Decibels!.Value,
+					"mean_volume" => x => x.MeanVolume = VolumeModifer.Parse(value).Value,
+					"max_volume" => x => x.MaxVolume = VolumeModifer.Parse(value).Value,
 					_ => x => //histogram_#db
 					{
 						var db = int.Parse(key.Split(_SplitChars)[1]);

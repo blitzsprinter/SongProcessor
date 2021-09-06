@@ -5,9 +5,10 @@
 		Op = 0,
 		Opening = Op,
 		Ed = 1,
+		End = Ed,
 		Ending = Ed,
 		In = 2,
-		Insert = In,
 		Ins = In,
+		Insert = In,
 	}
 }
