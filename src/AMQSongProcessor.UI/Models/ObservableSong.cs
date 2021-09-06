@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics;
 
 using AMQSongProcessor.Models;
-using AMQSongProcessor.Utils;
 
 using ReactiveUI;
 

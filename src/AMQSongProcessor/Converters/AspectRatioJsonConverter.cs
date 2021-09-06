@@ -5,12 +5,12 @@ using AMQSongProcessor.Models;
 
 namespace AMQSongProcessor.Converters
 {
-	internal sealed class AspectRatioJsonConverter : JsonConverter<AspectRatio>
+	public sealed class AspectRatioJsonConverter : JsonConverter<AspectRatio>
 	{
 		private const char SEPARATOR = ':';
 
 		public override AspectRatio Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-			=> reader.GetString() is string s ? AspectRatio.Parse(s, SEPARATOR) : default;
+			=> AspectRatio.Parse(reader.GetString()!, SEPARATOR);
 
 		public override void Write(Utf8JsonWriter writer, AspectRatio value, JsonSerializerOptions options)
 			=> writer.WriteStringValue(value.ToString(SEPARATOR));

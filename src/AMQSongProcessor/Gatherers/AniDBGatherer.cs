@@ -29,7 +29,7 @@ namespace AMQSongProcessor.Gatherers
 			}
 
 			var doc = new HtmlDocument();
-			//aniDB uses brotli compression
+			// AniDB uses brotli compression
 			using (var stream = await result.Content.ReadAsStreamAsync().ConfigureAwait(false))
 			using (var br = new BrotliStream(stream, CompressionMode.Decompress))
 			{

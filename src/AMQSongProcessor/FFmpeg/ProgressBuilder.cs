@@ -18,7 +18,9 @@ namespace AMQSongProcessor.FFmpeg
 		public const string STREAM00Q = "stream_0_0_q";
 		public const string TOTAL_SIZE = "total_size";
 
-		public static ImmutableHashSet<string> ValidKeys = ImmutableHashSet.Create(new[]
+		private Dictionary<string, string> _Values = new();
+
+		public static ImmutableHashSet<string> ValidKeys { get; } = ImmutableHashSet.Create(new[]
 		{
 			BITRATE,
 			DROP_FRAMES,
@@ -33,8 +35,6 @@ namespace AMQSongProcessor.FFmpeg
 			STREAM00Q,
 			TOTAL_SIZE,
 		});
-
-		private Dictionary<string, string> _Values = new();
 
 		public bool IsNextProgressReady(string kvp, [NotNullWhen(true)] out Progress? progress)
 		{

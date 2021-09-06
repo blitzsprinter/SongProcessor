@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-using AMQSongProcessor.FFmpeg;
+﻿using AMQSongProcessor.FFmpeg;
 using AMQSongProcessor.Jobs.Results;
 using AMQSongProcessor.Models;
 using AMQSongProcessor.Utils;
@@ -57,7 +55,7 @@ namespace AMQSongProcessor.Jobs
 					ProcessingDataReceived?.Invoke(data);
 				}
 			};
-			var ffmpegErrors = default(List<string>);
+			var errors = default(List<string>);
 			process.ErrorDataReceived += (_, e) =>
 			{
 				if (e.Data is null)
@@ -65,17 +63,15 @@ namespace AMQSongProcessor.Jobs
 					return;
 				}
 
-				Debug.WriteLine(e.Data);
-
-				ffmpegErrors ??= new();
-				ffmpegErrors.Add(e.Data);
+				errors ??= new();
+				errors.Add(e.Data);
 			};
 
 			var code = await process.RunAsync(OutputMode.Async).ConfigureAwait(false);
 			if (code != FFMPEG_SUCCESS)
 			{
-				ffmpegErrors ??= new();
-				return new FFmpegErrorResult(code, ffmpegErrors);
+				errors ??= new();
+				return new FFmpegErrorResult(code, errors);
 			}
 			return FFmpegSuccess.Instance;
 		}

@@ -72,8 +72,7 @@ namespace AMQSongProcessor.Utils
 			return list;
 		}
 
-		[return: MaybeNull]
-		public static T ToObject<T>(this JsonElement element, JsonSerializerOptions? options = null)
+		public static T? ToObject<T>(this JsonElement element, JsonSerializerOptions? options = null)
 		{
 			var bufferWriter = new ArrayBufferWriter<byte>();
 			using (var writer = new Utf8JsonWriter(bufferWriter))
@@ -83,8 +82,7 @@ namespace AMQSongProcessor.Utils
 			return JsonSerializer.Deserialize<T>(bufferWriter.WrittenSpan, options);
 		}
 
-		[return: MaybeNull]
-		public static T ToObject<T>(this JsonDocument document, JsonSerializerOptions? options = null)
+		public static T? ToObject<T>(this JsonDocument document, JsonSerializerOptions? options = null)
 		{
 			if (document is null)
 			{

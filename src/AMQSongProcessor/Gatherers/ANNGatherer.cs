@@ -17,10 +17,8 @@ namespace AMQSongProcessor.Gatherers
 			$@"""(?<{NAME}>.+?)""" + //The name will be in quotes
 			".+?by " + //The name may have a translation in parans, and will be followed with by
 			$"(?<{ARTIST}>.+?)" + //The artist is just a simple match of any characters
-			@"( \(eps|$)";
+			@"( \(eps?|$)"; //The artist ends at (eps/ep ###-###) or the end of the line
 		private const string URL = "https://cdn.animenewsnetwork.com/encyclopedia/api.xml?anime=";
-
-		//The artist ends at (eps ###-###) or the end of the line
 
 		private static readonly Regex SongRegex
 			= new(SongPattern, RegexOptions.Compiled | RegexOptions.ExplicitCapture);

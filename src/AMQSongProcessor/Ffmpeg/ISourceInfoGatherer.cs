@@ -1,6 +1,4 @@
-﻿using AMQSongProcessor.Models;
-
-namespace AMQSongProcessor.FFmpeg
+﻿namespace AMQSongProcessor.FFmpeg
 {
 	public interface ISourceInfoGatherer
 	{

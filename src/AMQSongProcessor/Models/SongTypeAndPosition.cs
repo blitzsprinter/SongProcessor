@@ -35,7 +35,8 @@ namespace AMQSongProcessor.Models
 			}
 
 			Type = type;
-			Position = position;
+			// Inserts don't have a position attached in AMQ
+			Position = Type == SongType.Insert ? null : position;
 		}
 
 		public static bool operator !=(SongTypeAndPosition item1, SongTypeAndPosition item2)

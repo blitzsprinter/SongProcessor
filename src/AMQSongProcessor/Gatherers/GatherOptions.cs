@@ -1,5 +1,4 @@
-﻿
-using AMQSongProcessor.Models;
+﻿using AMQSongProcessor.Models;
 
 namespace AMQSongProcessor.Gatherers
 {
@@ -14,9 +13,9 @@ namespace AMQSongProcessor.Gatherers
 		{
 			return AddSongs && type switch
 			{
+				SongType.Op => AddOpenings,
 				SongType.Ed => AddEndings,
 				SongType.In => AddInserts,
-				SongType.Op => AddOpenings,
 				_ => throw new ArgumentOutOfRangeException(nameof(type)),
 			};
 		}

@@ -1,7 +1,4 @@
-﻿
-using AMQSongProcessor.Utils;
-
-namespace AMQSongProcessor.Models
+﻿namespace AMQSongProcessor.Models
 {
 	public sealed class SongComparer : Comparer<ISong>
 	{

@@ -1,7 +1,5 @@
 ﻿using System.Diagnostics;
 
-using AMQSongProcessor.Utils;
-
 namespace AMQSongProcessor.Models
 {
 	[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]

@@ -230,7 +230,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			=> num == 0 ? null : num;
 
 		private static VolumeModifer? GetVolumeModifer(int? num)
-			=> GetNullIfZero(num) is null ? default : VolumeModifer.FromDecibels(num!.Value);
+			=> GetNullIfZero(num) is null ? null : VolumeModifer.FromDecibels(num!.Value);
 
 		private Status GetStatus()
 		{

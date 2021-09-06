@@ -1,7 +1,6 @@
 ﻿using System.Runtime.Serialization;
 
 using AMQSongProcessor.Models;
-using AMQSongProcessor.Utils;
 
 using ReactiveUI;
 

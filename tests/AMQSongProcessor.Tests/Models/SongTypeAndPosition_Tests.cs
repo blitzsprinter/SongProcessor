@@ -13,15 +13,20 @@ namespace AMQSongProcessor.Tests.Models
 		public void CompareTo_Test()
 		{
 			var range = Enumerable.Range(1, 999).Cast<int?>().Prepend(null);
-			var expected = new[] { 0, 1, 2 }.Cast<SongType>().SelectMany(type =>
+			var expected = new[] { 0, 1 }.Cast<SongType>().SelectMany(type =>
 			{
 				return range.Select(x => new SongTypeAndPosition(type, x));
-			}).ToList();
+			}).Append(SongType.In.Create(null)).ToList();
 
 			var songs = new SortedList<SongTypeAndPosition, SongTypeAndPosition>();
 			var rng = new Random(0);
 
-			foreach (var type in new[] { 2, 0, 1 }.Cast<SongType>())
+			{
+				var song = SongType.In.Create(null);
+				songs.Add(song, song);
+			}
+
+			foreach (var type in new[] { 0, 1 }.Cast<SongType>())
 			{
 				var positions = range.ToList();
 				while (positions.Count > 0)
@@ -104,7 +109,7 @@ namespace AMQSongProcessor.Tests.Models
 					}
 				}
 			}
-			Assert.AreEqual(X * types.Length, set.Count);
+			Assert.AreEqual((X * (types.Length - 1)) + 1, set.Count);
 		}
 
 		[TestMethod]
