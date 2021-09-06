@@ -42,7 +42,7 @@ namespace AMQSongProcessor.Gatherers
 
 			try
 			{
-				var anime = new AnimeModel
+				var anime = new AnimeBase
 				{
 					Id = GetANNId(doc),
 					Name = GetTitle(doc),

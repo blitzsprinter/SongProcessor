@@ -43,7 +43,7 @@ namespace AMQSongProcessor.UI.ViewModels
 
 		public static IReadOnlyList<AspectRatio> AspectRatios { get; } = new[]
 		{
-			new AspectRatio(0, 0),
+			default,
 			new AspectRatio(4, 3),
 			new AspectRatio(16, 9),
 		};

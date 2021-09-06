@@ -49,7 +49,10 @@ namespace AMQSongProcessor.Ffmpeg
 				process.Dispose();
 			}, null);
 
-			var info = new VolumeInfo();
+			var histograms = new Dictionary<int, int>();
+			var maxVolume = 0.00;
+			var meanVolume = 0.00;
+			var nSamples = 0;
 			process.ErrorDataReceived += (s, e) =>
 			{
 				if (e.Data is null)
@@ -67,22 +70,34 @@ namespace AMQSongProcessor.Ffmpeg
 				var kvp = cut.Split(':');
 				string key = kvp[0], value = kvp[1];
 
-				Action<VolumeInfo> f = key switch
+				switch (key)
 				{
-					"n_samples" => x => x.NSamples = int.Parse(value),
-					"mean_volume" => x => x.MeanVolume = VolumeModifer.Parse(value).Value,
-					"max_volume" => x => x.MaxVolume = VolumeModifer.Parse(value).Value,
-					_ => x => //histogram_#db
-					{
+					case "n_samples":
+						nSamples = int.Parse(value);
+						break;
+
+					case "mean_volume":
+						meanVolume = VolumeModifer.Parse(value).Value;
+						break;
+
+					case "max_volume":
+						maxVolume = VolumeModifer.Parse(value).Value;
+						break;
+
+					default: // histogram_#db
 						var db = int.Parse(key.Split(_SplitChars)[1]);
-						x.Histograms[db] = int.Parse(value);
-					}
-				};
-				f(info);
+						histograms[db] = int.Parse(value);
+						break;
+				}
 			};
 			await process.RunAsync(OutputMode.Async).ConfigureAwait(false);
 
-			return new SourceInfo<VolumeInfo>(file, info);
+			return new SourceInfo<VolumeInfo>(file, new VolumeInfo(
+				histograms,
+				maxVolume,
+				meanVolume,
+				nSamples
+			));
 		}
 
 		public Task<SourceInfo<VideoInfo>> GetVideoInfoAsync(string file, int track = 0)

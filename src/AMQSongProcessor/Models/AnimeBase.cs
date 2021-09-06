@@ -3,21 +3,23 @@
 namespace AMQSongProcessor.Models
 {
 	[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
-	public class AnimeModel : IAnimeBase
+	public class AnimeBase : IAnimeBase
 	{
 		public int Id { get; set; }
-		public string Name { get; set; } = null!;
-		public List<Song> Songs { get; set; } = new();
+		public string Name { get; set; }
+		public List<Song> Songs { get; set; }
 		public string? Source { get; set; }
 		public int Year { get; set; }
 		IReadOnlyList<ISong> IAnimeBase.Songs => Songs;
 		private string DebuggerDisplay => Name;
 
-		public AnimeModel()
+		public AnimeBase()
 		{
+			Name = null!;
+			Songs = new();
 		}
 
-		public AnimeModel(IAnimeBase other)
+		public AnimeBase(IAnimeBase other)
 		{
 			Id = other.Id;
 			Name = other.Name;

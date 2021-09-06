@@ -2,12 +2,6 @@
 
 namespace AMQSongProcessor.Models
 {
-	public enum VolumeModifierType
-	{
-		Decibels,
-		Percentage
-	}
-
 	[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
 	public readonly struct VolumeModifer
 	{

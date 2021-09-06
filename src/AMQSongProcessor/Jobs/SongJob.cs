@@ -53,7 +53,8 @@ namespace AMQSongProcessor.Jobs
 
 				if (ffmpegProgressBuilder.IsNextProgressReady(e.Data, out var progress))
 				{
-					ProcessingDataReceived?.Invoke(new ProcessingData(path, Song.GetLength(), progress));
+					var data = new ProcessingData(Song.GetLength(), path, progress);
+					ProcessingDataReceived?.Invoke(data);
 				}
 			};
 			var ffmpegErrors = default(List<string>);

@@ -13,7 +13,7 @@ namespace AMQSongProcessor
 		public IgnoreExceptions ExceptionsToIgnore { get; set; } = IgnoreExceptions.Video;
 		public string Extension { get; set; } = "amq";
 		protected ISourceInfoGatherer Gatherer { get; }
-		protected Type ModelType { get; set; } = typeof(AnimeModel);
+		protected Type ModelType { get; set; } = typeof(AnimeBase);
 		protected JsonSerializerOptions Options { get; set; } = new()
 		{
 			WriteIndented = true,
@@ -122,7 +122,7 @@ namespace AMQSongProcessor
 		}
 
 		protected virtual Task<IAnimeBase> ConvertToModelAsync(string file, IAnimeBase anime)
-			=> Task.FromResult<IAnimeBase>(new AnimeModel(anime));
+			=> Task.FromResult<IAnimeBase>(new AnimeBase(anime));
 
 		private async Task<string?> SaveAsync(string file, IAnimeBase anime)
 		{

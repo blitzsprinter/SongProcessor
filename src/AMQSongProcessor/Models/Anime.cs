@@ -10,7 +10,7 @@ namespace AMQSongProcessor.Models
 		public string AbsoluteInfoPath { get; }
 		public int Id { get; }
 		public string Name { get; }
-		public List<Song> Songs { get; } = new();
+		public List<Song> Songs { get; }
 		public string? Source => this.GetRelativeOrAbsoluteSourcePath();
 		public SourceInfo<VideoInfo>? VideoInfo { get; }
 		public int Year { get; }

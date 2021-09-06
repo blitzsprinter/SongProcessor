@@ -53,7 +53,7 @@ namespace AMQSongProcessor.Gatherers
 				throw new HttpRequestException($"{id} does not exist on {Name}.");
 			}
 
-			var anime = new AnimeModel
+			var anime = new AnimeBase
 			{
 				Id = id,
 				Year = int.MaxValue,
@@ -98,7 +98,7 @@ namespace AMQSongProcessor.Gatherers
 		public override string ToString()
 			=> Name;
 
-		private static void ProcessSong(AnimeModel anime, GatherOptions? options, XElement e, string t)
+		private static void ProcessSong(AnimeBase anime, GatherOptions? options, XElement e, string t)
 		{
 			var type = Enum.Parse<SongType>(t.Split(' ')[0], true);
 			if (options?.CanBeGathered(type) == false)
@@ -117,10 +117,10 @@ namespace AMQSongProcessor.Gatherers
 			});
 		}
 
-		private static void ProcessTitle(AnimeModel anime, XElement e)
+		private static void ProcessTitle(AnimeBase anime, XElement e)
 			=> anime.Name = e.Value;
 
-		private static void ProcessVintage(AnimeModel anime, XElement e)
+		private static void ProcessVintage(AnimeBase anime, XElement e)
 		{
 			static bool TryParseExact(string s, out DateTime dt)
 				=> DateTime.TryParseExact(s, VintageFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out dt);

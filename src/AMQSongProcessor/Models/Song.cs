@@ -7,7 +7,7 @@ namespace AMQSongProcessor.Models
 	[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
 	public class Song : ISong
 	{
-		public HashSet<int> AlsoIn { get; set; } = new();
+		public HashSet<int> AlsoIn { get; set; }
 		public string Artist { get; set; }
 		public string? CleanPath { get; set; }
 		public TimeSpan End { get; set; }
@@ -26,6 +26,7 @@ namespace AMQSongProcessor.Models
 
 		public Song()
 		{
+			AlsoIn = new();
 			Artist = null!;
 			Name = null!;
 		}
