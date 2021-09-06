@@ -99,7 +99,7 @@ namespace AMQSongProcessor
 
 		protected virtual async Task<IAnime> ConvertFromModelAsync(string file, IAnimeBase model)
 		{
-			var directory = Path.GetDirectoryName(file);
+			var directory = Path.GetDirectoryName(file)!;
 			var source = FileUtils.EnsureAbsolutePath(directory, model.Source);
 
 			SourceInfo<VideoInfo>? videoInfo = null;

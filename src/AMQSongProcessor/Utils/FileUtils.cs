@@ -5,33 +5,34 @@ namespace AMQSongProcessor.Utils
 	public static class FileUtils
 	{
 		private const string NUMBER_PATTERN = "_({0})";
-		private static readonly HashSet<char> InvalidChars =
-			new(Path.GetInvalidFileNameChars().Concat(Path.GetInvalidPathChars()));
+		private static readonly HashSet<char> InvalidChars
+			= new(Path.GetInvalidFileNameChars().Concat(Path.GetInvalidPathChars()));
 
-		public static string? EnsureAbsolutePath(string? directory, string? path)
+		public static string? EnsureAbsolutePath(string dir, string? path)
 		{
 			if (path is null)
 			{
 				return null;
 			}
-			else if (Path.IsPathFullyQualified(path))
-			{
-				return path;
-			}
 
-			if (directory is null)
+			return Path.IsPathFullyQualified(path) ? path : Path.Combine(dir, path);
+		}
+
+		public static string? GetRelativeOrAbsolutePath(string dir, string? path)
+		{
+			if (path is null)
 			{
 				return null;
 			}
-			return Path.Combine(directory, path);
-		}
 
-		public static string? GetRelativeOrAbsolute(string dir, string? path)
-		{
-			// If the directory matches the info directory just return the file name
+			// Windows paths are case insensitive
+			var comparison = OperatingSystem.IsWindows()
+				? StringComparison.OrdinalIgnoreCase
+				: StringComparison.CurrentCulture;
+
+			// If the directory contains the info directory just return the nested file path
 			// Otherwise return the absolute path
-			var sourceDir = Path.GetDirectoryName(path);
-			return dir.PathEquals(sourceDir) ? Path.GetFileName(path) : path;
+			return path.StartsWith(dir, comparison) ? path[(dir.Length + 1)..] : path;
 		}
 
 		public static string NextAvailableFilename(string path)
@@ -77,25 +78,14 @@ namespace AMQSongProcessor.Utils
 				return path;
 			}
 
-			// If path has extension then insert the number pattern just before the extension and return next filename
-			if (Path.HasExtension(path))
-			{
-				var extStart = path.LastIndexOf(Path.GetExtension(path));
-				return GetNextFilename(path.Insert(extStart, NUMBER_PATTERN));
-			}
+			// If path has extension then insert the number pattern just before the extension
+			// and return next filename
+			var pattern = Path.HasExtension(path)
+				? path.Insert(path.LastIndexOf(Path.GetExtension(path)), NUMBER_PATTERN)
+				: path + NUMBER_PATTERN;
 
 			// Otherwise just append the pattern to the path and return next filename
-			return GetNextFilename(path + NUMBER_PATTERN);
-		}
-
-		public static bool PathEquals(this string path1, string? path2)
-		{
-			//Use CaseInsEquals b/c Windows paths are case insensitive
-			if (OperatingSystem.IsWindows())
-			{
-				return path1.Equals(path2, StringComparison.OrdinalIgnoreCase);
-			}
-			return path1 == path2;
+			return GetNextFilename(pattern);
 		}
 
 		public static string SanitizePath(string path)

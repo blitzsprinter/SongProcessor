@@ -259,7 +259,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			_Song.Artist = Artist;
 			_Song.OverrideAspectRatio = GetAspectRatio(AspectRatio);
 			_Song.OverrideAudioTrack = AudioTrack;
-			_Song.CleanPath = FileUtils.GetRelativeOrAbsolute(_Anime.GetDirectory(), GetNullIfEmpty(CleanPath));
+			_Song.CleanPath = FileUtils.GetRelativeOrAbsolutePath(_Anime.GetDirectory(), GetNullIfEmpty(CleanPath));
 			_Song.End = TimeSpan.Parse(End);
 			_Song.Episode = GetNullIfZero(Episode);
 			_Song.Name = Name;
