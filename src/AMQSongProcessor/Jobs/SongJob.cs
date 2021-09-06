@@ -31,14 +31,14 @@ namespace AMQSongProcessor.Jobs
 			}
 
 			using var process = ProcessUtils.FFmpeg.CreateProcess(GenerateArgs());
-			process.WithCleanUp((s, e) =>
+			process.OnCancel((_, _) =>
 			{
 				process.Kill();
 				process.Dispose();
 				// Without this sleep the file is not released in time and an exception happens
 				Thread.Sleep(25);
 				File.Delete(path);
-			}, null, token);
+			}, token);
 
 			// ffmpeg will output the information we want to std:out
 			var progressBuilder = new ProgressBuilder();

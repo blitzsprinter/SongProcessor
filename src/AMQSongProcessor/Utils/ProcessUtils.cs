@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace AMQSongProcessor.Utils
 {
@@ -48,73 +49,9 @@ namespace AMQSongProcessor.Utils
 			};
 		}
 
-		public static Task<int> RunAsync(this Process process, OutputMode mode)
+		public static Program FindProgram(string program)
 		{
-			var tcs = new TaskCompletionSource<int>();
-
-			process.EnableRaisingEvents = true;
-			process.WithCleanUp(null, c => tcs.SetResult(c));
-
-			var started = process.Start();
-			if (!started)
-			{
-				throw new InvalidOperationException("Could not start process: " + process);
-			}
-
-			if ((mode & OutputMode.Async) != 0)
-			{
-				process.BeginOutputReadLine();
-				process.BeginErrorReadLine();
-			}
-
-			return tcs.Task;
-		}
-
-		public static Process WithCleanUp(
-			this Process process,
-			EventHandler? onCancel,
-			Action<int>? onComplete,
-			CancellationToken? token = null)
-		{
-			if (!process.EnableRaisingEvents)
-			{
-				throw new ArgumentException("Must be able to raise events.", nameof(process));
-			}
-
-			var isCanceled = false;
-			void Cancel(object? sender, EventArgs args)
-			{
-				if (isCanceled)
-				{
-					return;
-				}
-
-				isCanceled = true;
-				onCancel?.Invoke(sender, args);
-			}
-
-			//If the program gets canceled, shut down the process
-			Console.CancelKeyPress += Cancel;
-			//If the program gets shut down, make sure it also shuts down the process
-			AppDomain.CurrentDomain.ProcessExit += Cancel;
-			//If an unhandled exception occurs, also attempt to shut down the process
-			AppDomain.CurrentDomain.UnhandledException += Cancel;
-			//Same if a cancellation token is canceled
-			var registration = token?.Register(() => Cancel(token, EventArgs.Empty));
-			process.Exited += (s, e) =>
-			{
-				Console.CancelKeyPress -= Cancel;
-				AppDomain.CurrentDomain.ProcessExit -= Cancel;
-				AppDomain.CurrentDomain.UnhandledException -= Cancel;
-				registration?.Dispose();
-				onComplete?.Invoke(process.ExitCode);
-			};
-			return process;
-		}
-
-		private static Program FindProgram(string program)
-		{
-			program = OperatingSystem.IsWindows() ? program + ".exe" : program;
+			program = OperatingSystem.IsWindows() ? $"{program}.exe" : program;
 			//Look through every directory and any subfolders they have called bin
 			foreach (var dir in GetDirectories(program))
 			{
@@ -130,14 +67,107 @@ namespace AMQSongProcessor.Utils
 			throw new InvalidOperationException($"Unable to find {program}.");
 		}
 
+		public static Process OnCancel(
+			this Process process,
+			EventHandler callback,
+			CancellationToken? token = null)
+		{
+			process.CallbackGuards(callback);
+
+			var isCanceled = 0;
+			void Cancel(object? sender, EventArgs args)
+			{
+				if (Interlocked.Exchange(ref isCanceled, 1) != 0)
+				{
+					return;
+				}
+
+				callback.Invoke(sender, args);
+			}
+
+			// If the program gets canceled, shut down the process
+			Console.CancelKeyPress += Cancel;
+			// If the program gets shut down, make sure it also shuts down the process
+			AppDomain.CurrentDomain.ProcessExit += Cancel;
+			// If an unhandled exception occurs, also attempt to shut down the process
+			AppDomain.CurrentDomain.UnhandledException += Cancel;
+			// Same if a cancellation token is canceled
+			var registration = token?.Register(() => Cancel(token, EventArgs.Empty));
+
+			// After the process is exited, remove all the cancel handling
+			void OnExited(object? sender, EventArgs e)
+			{
+				process.Exited -= OnExited;
+				Console.CancelKeyPress -= Cancel;
+				AppDomain.CurrentDomain.ProcessExit -= Cancel;
+				AppDomain.CurrentDomain.UnhandledException -= Cancel;
+				registration?.Dispose();
+			}
+			process.Exited += OnExited;
+
+			return process;
+		}
+
+		public static Process OnComplete(this Process process, Action<int> callback)
+		{
+			process.CallbackGuards(callback);
+
+			void OnExited(object? sender, EventArgs e)
+			{
+				process.Exited -= OnExited;
+				callback.Invoke(process.ExitCode);
+			}
+			process.Exited += OnExited;
+
+			return process;
+		}
+
+		public static Task<int> RunAsync(this Process process, OutputMode mode)
+		{
+			var tcs = new TaskCompletionSource<int>();
+
+			process.EnableRaisingEvents = true;
+			process.OnComplete(code => tcs.SetResult(code));
+
+			var started = process.Start();
+			if (!started)
+			{
+				throw new InvalidOperationException($"Could not start process: {process}.");
+			}
+
+			if ((mode & OutputMode.Async) != 0)
+			{
+				process.BeginOutputReadLine();
+				process.BeginErrorReadLine();
+			}
+
+			return tcs.Task;
+		}
+
+		private static void CallbackGuards(
+			this Process process,
+			object callback,
+			[CallerMemberName] string name = "")
+		{
+			if (callback is null)
+			{
+				throw new ArgumentNullException(nameof(callback), $"{name} does not accept a null callback.");
+			}
+			if (!process.EnableRaisingEvents)
+			{
+				throw new ArgumentException("Must be able to raise events.", nameof(process));
+			}
+		}
+
 		private static IEnumerable<string> GetDirectories(string program)
 		{
-			//Check where the program is stored
+			yield return Directory.GetCurrentDirectory();
+			// Check where the program is stored
 			if (Assembly.GetExecutingAssembly().Location is string assembly)
 			{
 				yield return Path.GetDirectoryName(assembly)!;
 			}
-			//Check path variables
+			// Check path variables
 			if (Environment.GetEnvironmentVariable("PATH") is string path)
 			{
 				foreach (var part in path.Split(OperatingSystem.IsWindows() ? ';' : ':'))
@@ -145,7 +175,7 @@ namespace AMQSongProcessor.Utils
 					yield return part.Trim();
 				}
 			}
-			//Check every special folder
+			// Check every special folder
 			foreach (var folder in SpecialFolders)
 			{
 				yield return Path.Combine(Environment.GetFolderPath(folder), program);

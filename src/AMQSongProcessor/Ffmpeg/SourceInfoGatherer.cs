@@ -43,11 +43,11 @@ namespace AMQSongProcessor.FFmpeg
 			#endregion Args
 
 			using var process = ProcessUtils.FFmpeg.CreateProcess(args);
-			process.WithCleanUp((s, e) =>
+			process.OnCancel((_, _) =>
 			{
 				process.Kill();
 				process.Dispose();
-			}, null);
+			});
 
 			var histograms = new Dictionary<int, int>();
 			var maxVolume = 0.00;
@@ -126,11 +126,11 @@ namespace AMQSongProcessor.FFmpeg
 			using var process = ProcessUtils.FFprobe.CreateProcess(args);
 			process.StartInfo.StandardOutputEncoding = Encoding.UTF8;
 			process.StartInfo.RedirectStandardOutput = true;
-			process.WithCleanUp((s, e) =>
+			process.OnCancel((_, _) =>
 			{
 				process.Kill();
 				process.Dispose();
-			}, null);
+			});
 
 			await process.RunAsync(OutputMode.Sync).ConfigureAwait(false);
 			// Must call WaitForExit otherwise the json may be incomplete

@@ -43,8 +43,7 @@ namespace AMQSongProcessor
 					}
 					return true;
 				});
-				var validJobs = GetJobs(anime, songs, resolutions).Where(x => !x.AlreadyExists);
-				jobs.AddRange(validJobs);
+				jobs.AddRange(GetJobs(anime, songs, resolutions).Where(x => !x.AlreadyExists));
 			}
 			return jobs;
 		}
