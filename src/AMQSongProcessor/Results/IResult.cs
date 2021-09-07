@@ -1,4 +1,4 @@
-﻿namespace AMQSongProcessor.Jobs.Results
+﻿namespace AMQSongProcessor.Results
 {
 	public interface IResult
 	{

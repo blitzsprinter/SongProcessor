@@ -56,13 +56,8 @@ namespace AMQSongProcessor.FFmpeg
 			var nSamples = 0;
 			process.ErrorDataReceived += (s, e) =>
 			{
-				if (e.Data is null)
-				{
-					return;
-				}
-
 				const string LINE_START = "[Parsed_volumedetect_0 @";
-				if (!e.Data.StartsWith(LINE_START))
+				if (e.Data?.StartsWith(LINE_START) != true)
 				{
 					return;
 				}

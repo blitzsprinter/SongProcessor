@@ -8,30 +8,29 @@ using AMQSongProcessor.Utils;
 
 namespace AMQSongProcessor
 {
-	public class SongLoader : ISongLoader
+	public sealed class SongLoader : ISongLoader
 	{
-		public IgnoreExceptions ExceptionsToIgnore { get; set; } = IgnoreExceptions.Video;
-		public string Extension { get; set; } = "amq";
-		protected ISourceInfoGatherer Gatherer { get; }
-		protected Type ModelType { get; set; } = typeof(AnimeBase);
-		protected JsonSerializerOptions Options { get; set; } = new()
+		private readonly ISourceInfoGatherer _Gatherer;
+		private readonly JsonSerializerOptions _Options = new()
 		{
 			WriteIndented = true,
 			IgnoreReadOnlyProperties = true,
 		};
+		public IgnoreExceptions ExceptionsToIgnore { get; set; } = IgnoreExceptions.Video;
+		public string Extension { get; set; } = "amq";
 
 		public SongLoader(ISourceInfoGatherer gatherer)
 		{
-			Gatherer = gatherer;
-			Options.Converters.Add(new JsonStringEnumConverter());
-			Options.Converters.Add(new SongTypeAndPositionJsonConverter());
-			Options.Converters.Add(new VolumeModifierJsonConverter());
-			Options.Converters.Add(new AspectRatioJsonConverter());
-			Options.Converters.Add(new ParseJsonConverter<TimeSpan>(TimeSpan.Parse));
-			Options.Converters.Add(new InterfaceJsonConverter<Song, ISong>());
+			_Gatherer = gatherer;
+			_Options.Converters.Add(new JsonStringEnumConverter());
+			_Options.Converters.Add(new SongTypeAndPositionJsonConverter());
+			_Options.Converters.Add(new VolumeModifierJsonConverter());
+			_Options.Converters.Add(new AspectRatioJsonConverter());
+			_Options.Converters.Add(new ParseJsonConverter<TimeSpan>(TimeSpan.Parse));
+			_Options.Converters.Add(new InterfaceJsonConverter<Song, ISong>());
 		}
 
-		public async Task<IAnime?> LoadAsync(string path)
+		public async Task<Anime?> LoadAsync(string path)
 		{
 			var fileInfo = new FileInfo(path);
 			if (!fileInfo.Exists || fileInfo.Length == 0)
@@ -41,15 +40,10 @@ namespace AMQSongProcessor
 
 			try
 			{
-				object? deserialized;
+				AnimeBase model;
 				using (var fs = new FileStream(path, FileMode.Open))
 				{
-					deserialized = await JsonSerializer.DeserializeAsync(fs, ModelType, Options).ConfigureAwait(false);
-				}
-
-				if (deserialized is not IAnimeBase model)
-				{
-					throw new InvalidOperationException("Invalid type supplied for deserializing.");
+					model = (await JsonSerializer.DeserializeAsync<AnimeBase>(fs, _Options).ConfigureAwait(false))!;
 				}
 				return await ConvertFromModelAsync(path, model).ConfigureAwait(false);
 			}
@@ -97,9 +91,12 @@ namespace AMQSongProcessor
 			return SaveAsync(file, anime);
 		}
 
-		protected virtual async Task<IAnime> ConvertFromModelAsync(string file, IAnimeBase model)
+		async Task<IAnime?> ISongLoader.LoadAsync(string path)
+			=> await LoadAsync(path).ConfigureAwait(false);
+
+		private async Task<Anime> ConvertFromModelAsync(string path, AnimeBase model)
 		{
-			var directory = Path.GetDirectoryName(file)!;
+			var directory = Path.GetDirectoryName(path)!;
 			var source = FileUtils.EnsureAbsolutePath(directory, model.Source);
 
 			SourceInfo<VideoInfo>? videoInfo = null;
@@ -107,7 +104,7 @@ namespace AMQSongProcessor
 			{
 				try
 				{
-					videoInfo = await Gatherer.GetVideoInfoAsync(source).ConfigureAwait(false);
+					videoInfo = await _Gatherer.GetVideoInfoAsync(source).ConfigureAwait(false);
 				}
 				catch (Exception) when ((ExceptionsToIgnore & IgnoreExceptions.Video) != 0)
 				{
@@ -118,32 +115,28 @@ namespace AMQSongProcessor
 				}
 			}
 
-			return new Anime(file, model, videoInfo);
+			return new Anime(path, model, videoInfo);
 		}
 
-		protected virtual Task<IAnimeBase> ConvertToModelAsync(string file, IAnimeBase anime)
-			=> Task.FromResult<IAnimeBase>(new AnimeBase(anime));
-
-		private async Task<string?> SaveAsync(string file, IAnimeBase anime)
+		private async Task<string?> SaveAsync(string path, IAnimeBase anime)
 		{
-			if (string.IsNullOrWhiteSpace(file))
+			if (string.IsNullOrWhiteSpace(path))
 			{
-				throw new ArgumentNullException(nameof(file));
+				throw new ArgumentNullException(nameof(path));
 			}
 
 			try
 			{
-				var model = await ConvertToModelAsync(file, anime).ConfigureAwait(false);
-				using (var fs = new FileStream(file, FileMode.Create))
+				var model = new AnimeBase(anime);
+				using (var fs = new FileStream(path, FileMode.Create))
 				{
-					await JsonSerializer.SerializeAsync(fs, model, ModelType, Options).ConfigureAwait(false);
+					await JsonSerializer.SerializeAsync(fs, model, _Options).ConfigureAwait(false);
 				}
-
-				return file;
+				return path;
 			}
 			catch (Exception e)
 			{
-				throw new InvalidOperationException($"Unable to save {anime.Name} to {file}.", e);
+				throw new InvalidOperationException($"Unable to save {anime.Name} to {path}.", e);
 			}
 		}
 	}

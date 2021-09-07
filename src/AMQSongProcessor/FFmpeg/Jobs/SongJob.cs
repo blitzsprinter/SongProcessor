@@ -1,9 +1,8 @@
-﻿using AMQSongProcessor.FFmpeg;
-using AMQSongProcessor.Jobs.Results;
-using AMQSongProcessor.Models;
+﻿using AMQSongProcessor.Models;
+using AMQSongProcessor.Results;
 using AMQSongProcessor.Utils;
 
-namespace AMQSongProcessor.Jobs
+namespace AMQSongProcessor.FFmpeg.Jobs
 {
 	public abstract class SongJob : ISongJob
 	{
@@ -78,7 +77,7 @@ namespace AMQSongProcessor.Jobs
 
 		protected abstract string GenerateArgs();
 
-		protected string GetSanitizedPath()
+		protected virtual string GetSanitizedPath()
 		{
 			var path = GetUnsanitizedPath();
 			var dir = Path.GetDirectoryName(path)!;

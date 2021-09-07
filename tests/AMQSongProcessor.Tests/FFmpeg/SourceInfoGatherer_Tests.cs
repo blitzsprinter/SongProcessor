@@ -1,15 +1,12 @@
-﻿using System.Collections.Concurrent;
-using System.Text.Json;
-
-using AMQSongProcessor.FFmpeg;
+﻿using AMQSongProcessor.FFmpeg;
 using AMQSongProcessor.Tests.Properties;
-using AMQSongProcessor.Utils;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace AMQSongProcessor.Tests.FFmpeg
 {
 	[TestClass]
+	[TestCategory("FFmpeg")]
 	public sealed class SourceInfoGatherer_Tests
 	{
 		public const string NonExistentPath = "DoesNotExist.txt";

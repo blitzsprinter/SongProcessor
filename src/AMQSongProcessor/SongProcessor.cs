@@ -1,7 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Text;
 
-using AMQSongProcessor.Jobs;
+using AMQSongProcessor.FFmpeg.Jobs;
 using AMQSongProcessor.Models;
 using AMQSongProcessor.Warnings;
 
@@ -13,9 +13,9 @@ namespace AMQSongProcessor
 
 		public event Action<IWarning>? WarningReceived;
 
-		public IReadOnlyList<ISongJob> CreateJobs(IEnumerable<IAnime> animes)
+		public List<SongJob> CreateJobs(IEnumerable<IAnime> animes)
 		{
-			var jobs = new List<ISongJob>();
+			var jobs = new List<SongJob>();
 			foreach (var anime in animes)
 			{
 				if (anime.Source is null)
@@ -134,6 +134,9 @@ namespace AMQSongProcessor
 				: "**I solemnly swear that I have checked that this song-anime combo isn't in the game already, and I have read and understand all the pins**";
 			await sw.WriteAsync(text).ConfigureAwait(false);
 		}
+
+		IReadOnlyList<ISongJob> ISongProcessor.CreateJobs(IEnumerable<IAnime> anime)
+			=> CreateJobs(anime);
 
 		private static IEnumerable<SongJob> GetJobs(
 			IAnime anime,

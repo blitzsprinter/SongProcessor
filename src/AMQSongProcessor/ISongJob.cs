@@ -1,7 +1,7 @@
 ﻿using AMQSongProcessor.FFmpeg;
-using AMQSongProcessor.Jobs.Results;
+using AMQSongProcessor.Results;
 
-namespace AMQSongProcessor.Jobs
+namespace AMQSongProcessor
 {
 	public interface ISongJob
 	{

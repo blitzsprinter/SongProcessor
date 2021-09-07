@@ -2,8 +2,7 @@
 using System.Text.Json;
 
 using AMQSongProcessor.FFmpeg;
-using AMQSongProcessor.Jobs;
-using AMQSongProcessor.Jobs.Results;
+using AMQSongProcessor.Results;
 
 namespace AMQSongProcessor.Utils
 {

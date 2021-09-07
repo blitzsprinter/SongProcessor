@@ -1,6 +1,6 @@
 ﻿using AMQSongProcessor.Models;
 
-namespace AMQSongProcessor.Jobs
+namespace AMQSongProcessor.FFmpeg.Jobs
 {
 	public class Mp3SongJob : SongJob
 	{
@@ -14,9 +14,9 @@ namespace AMQSongProcessor.Jobs
 				" -v level+error" + // Only output errors to stderr
 				" -nostats" + // Do not output the default stats
 				" -progress pipe:1" + // Output the stats to stdout in the easier to parse format
-				" -vn" + //No video
-				" -map_metadata -1" + //No metadata
-				" -map_chapters -1" + //No chapters
+				" -vn" + // No video
+				" -map_metadata -1" + // No metadata
+				" -map_chapters -1" + // No chapters
 				" -f mp3" +
 				" -b:a 320k";
 
@@ -24,10 +24,10 @@ namespace AMQSongProcessor.Jobs
 			if (Song.CleanPath is null)
 			{
 				args =
-					$" -ss {Song.Start}" + //Starting time
-					$" -to {Song.End}" + //Ending time
-					$" -i \"{Anime.GetAbsoluteSourcePath()}\"" + //Video source
-					$" -map 0:a:{Song.OverrideAudioTrack}"; //Use the first input's audio
+					$" -ss {Song.Start}" + // Starting time
+					$" -to {Song.End}" + // Ending time
+					$" -i \"{Anime.GetAbsoluteSourcePath()}\"" + // Video source
+					$" -map 0:a:{Song.OverrideAudioTrack}"; // Use the first input's audio
 			}
 			else
 			{

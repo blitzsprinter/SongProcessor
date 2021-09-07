@@ -3,10 +3,9 @@
 
 #undef AV1
 
-using AMQSongProcessor.FFmpeg;
 using AMQSongProcessor.Models;
 
-namespace AMQSongProcessor.Jobs
+namespace AMQSongProcessor.FFmpeg.Jobs
 {
 	public class VideoSongJob : SongJob
 	{
@@ -36,7 +35,7 @@ namespace AMQSongProcessor.Jobs
 				" -shortest" +
 				" -c:a libopus" + // Set the audio codec to libopus
 				" -b:a 320k" + // Set the audio bitrate to 320k
-				" -c:v " + LIB + // Set the video codec to whatever we're using
+				$" -c:v {LIB}" + // Set the video codec to whatever we're using
 				" -b:v 0" + // Constant bitrate = 0 so only the variable one is used
 				" -crf 20" + // Variable bitrate, 20 should look lossless
 				" -pix_fmt yuv420p" + // Set the pixel format to yuv420p
