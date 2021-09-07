@@ -1,24 +1,24 @@
 ﻿namespace AMQSongProcessor.Results
 {
-	public class FFmpegErrorResult : Result
+	public class CanceledResult : Result
+	{
+		public static CanceledResult Instance { get; } = new();
+
+		public CanceledResult() : base("Process was canceled.", false)
+		{
+		}
+	}
+
+	public class ErrorResult : Result
 	{
 		public int Code { get; }
 		public IReadOnlyList<string> Errors { get; }
 
-		public FFmpegErrorResult(int code, IReadOnlyList<string> errors)
-			: base($"FFmpeg encountered an error ({code}): {string.Join('\n', errors)}.", false)
+		public ErrorResult(int code, IReadOnlyList<string> errors)
+			: base($"Encountered an error ({code}): {string.Join('\n', errors)}.", false)
 		{
 			Code = code;
 			Errors = errors;
-		}
-	}
-
-	public class FFmpegSuccess : Result
-	{
-		public static FFmpegSuccess Instance { get; } = new();
-
-		public FFmpegSuccess() : base("FFmpeg successfully encoded the output.", true)
-		{
 		}
 	}
 
@@ -33,11 +33,11 @@
 		}
 	}
 
-	public class ProcessCanceled : Result
+	public class SuccessResult : Result
 	{
-		public static ProcessCanceled Instance { get; } = new();
+		public static SuccessResult Instance { get; } = new();
 
-		public ProcessCanceled() : base("Process was canceled.", false)
+		public SuccessResult() : base("Successfully encoded the output.", true)
 		{
 		}
 	}

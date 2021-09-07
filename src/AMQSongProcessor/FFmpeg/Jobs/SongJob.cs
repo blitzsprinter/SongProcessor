@@ -78,9 +78,9 @@ namespace AMQSongProcessor.FFmpeg.Jobs
 			var code = await process.RunAsync(OutputMode.Async).ConfigureAwait(false);
 			return code switch
 			{
-				FFMPEG_SUCCESS => FFmpegSuccess.Instance,
-				FFMPEG_ABORTED => ProcessCanceled.Instance,
-				_ => new FFmpegErrorResult(code, errors ?? new()),
+				FFMPEG_SUCCESS => SuccessResult.Instance,
+				FFMPEG_ABORTED => CanceledResult.Instance,
+				_ => new ErrorResult(code, errors ?? new()),
 			};
 		}
 

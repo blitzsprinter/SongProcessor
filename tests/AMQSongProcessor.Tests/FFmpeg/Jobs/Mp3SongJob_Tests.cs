@@ -24,6 +24,7 @@ namespace AMQSongProcessor.Tests.FFmpeg.Jobs
 			var newVolumeInfo = await Gatherer.GetVolumeInfoAsync(file).ConfigureAwait(false);
 			Assert.IsTrue(ValidVideoVolume.NSamples / DIV >= newVolumeInfo.Info.NSamples);
 
+			Assert.IsTrue(job.AlreadyExists);
 			var result = await job.ProcessAsync().ConfigureAwait(false);
 			Assert.IsFalse(result.IsSuccess);
 			Assert.IsInstanceOfType(result, typeof(FileAlreadyExistsResult));
@@ -43,7 +44,7 @@ namespace AMQSongProcessor.Tests.FFmpeg.Jobs
 
 			var result = await task.ConfigureAwait(false);
 			Assert.IsFalse(result.IsSuccess);
-			Assert.IsInstanceOfType(result, typeof(ProcessCanceled));
+			Assert.IsInstanceOfType(result, typeof(CanceledResult));
 		}
 
 		[TestMethod]
