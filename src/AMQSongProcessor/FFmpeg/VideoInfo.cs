@@ -7,8 +7,8 @@ namespace AMQSongProcessor.FFmpeg
 	public sealed record VideoInfo(
 		[property: JsonPropertyName("avg_frame_rate")]
 		string AverageFrameRate,
-		[property: JsonPropertyName("chroma_location")]
-		string ChromaLocation,
+		[property: JsonPropertyName("closed_captions")]
+		int ClosedCaptions,
 		[property: JsonPropertyName("codec_long_name")]
 		string CodecLongName,
 		[property: JsonPropertyName("codec_name")]
@@ -17,18 +17,12 @@ namespace AMQSongProcessor.FFmpeg
 		string CodecTag,
 		[property: JsonPropertyName("codec_tag_string")]
 		string CodecTagString,
-		[property: JsonPropertyName("codec_time_base")]
-		string CodecTimeBase,
 		[property: JsonPropertyName("codec_type")]
 		string CodecType,
 		[property: JsonPropertyName("coded_height")]
 		int CodedHeight,
 		[property: JsonPropertyName("coded_width")]
 		int CodedWidth,
-		[property: JsonPropertyName("color_range")]
-		string ColorRange,
-		[property: JsonPropertyName("display_aspect_ratio")]
-		AspectRatio DAR,
 		[property: JsonPropertyName("has_b_frames")]
 		int HasBFrames,
 		[property: JsonPropertyName("height")]
@@ -39,14 +33,10 @@ namespace AMQSongProcessor.FFmpeg
 		int Level,
 		[property: JsonPropertyName("pix_fmt")]
 		string PixelFormat,
-		[property: JsonPropertyName("profile")]
-		string Profile,
 		[property: JsonPropertyName("refs")]
-		int Ref,
+		int Refs,
 		[property: JsonPropertyName("r_frame_rate")]
 		string RFrameRate,
-		[property: JsonPropertyName("sample_aspect_ratio")]
-		AspectRatio SAR,
 		[property: JsonPropertyName("start_pts")]
 		int StartPoints,
 		[property: JsonPropertyName("start_time")]
@@ -54,6 +44,46 @@ namespace AMQSongProcessor.FFmpeg
 		[property: JsonPropertyName("time_base")]
 		string TimeBase,
 		[property: JsonPropertyName("width")]
-		int Width
-	);
+		int Width,
+		[property: JsonPropertyName("bit_rate")]
+		int? Bitrate = null,
+		[property: JsonPropertyName("bits_per_raw_sample")]
+		int? BitsPerRawSample = null,
+		[property: JsonPropertyName("chroma_location")]
+		string? ChromaLocation = null,
+		[property: JsonPropertyName("codec_time_base")]
+		string? CodecTimeBase = null,
+		[property: JsonPropertyName("color_primaries")]
+		string? ColorPrimaries = null,
+		[property: JsonPropertyName("color_range")]
+		string? ColorRange = null,
+		[property: JsonPropertyName("color_space")]
+		string? ColorSpace = null,
+		[property: JsonPropertyName("color_transfer")]
+		string? ColorTransfer = null,
+		[property: JsonPropertyName("display_aspect_ratio")]
+		AspectRatio? DAR = null,
+		[property: JsonPropertyName("divx_packed")]
+		bool? DivxPacked = null,
+		[property: JsonPropertyName("duration")]
+		double? Duration = null,
+		[property: JsonPropertyName("duration_ts")]
+		long? DurationTicks = null,
+		[property: JsonPropertyName("field_order")]
+		string? FieldOrder = null,
+		[property: JsonPropertyName("is_avc")]
+		bool? IsAvc = null,
+		[property: JsonPropertyName("nal_length_size")]
+		int? NalLengthSize = null,
+		[property: JsonPropertyName("nb_frames")]
+		int? NbFrames = null,
+		[property: JsonPropertyName("profile")]
+		string? Profile = null,
+		[property: JsonPropertyName("quarter_sample")]
+		bool? QuarterSample = null,
+		[property: JsonPropertyName("sample_aspect_ratio")]
+		AspectRatio? SAR = null
+	)
+	{
+	}
 }

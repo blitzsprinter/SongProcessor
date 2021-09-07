@@ -7,9 +7,9 @@ namespace AMQSongProcessor.Tests.Utils
 	[TestClass]
 	public sealed class FileUtils_Tests
 	{
-		private readonly string Dir = Path.Combine("C:", "joe", "mama");
-		private readonly string Name = "dn.txt";
-		private static string TempPath
+		public static string Dir { get; } = Path.Combine("C:", "joe", "mama");
+		public static string Name { get; } = "dn.txt";
+		public static string TempPath
 			=> Path.Combine(Directory.GetCurrentDirectory(), "temp", Guid.NewGuid().ToString());
 
 		[TestMethod]

@@ -1,4 +1,5 @@
-﻿using System.Threading.Channels;
+﻿using System.Diagnostics;
+using System.Threading.Channels;
 
 using AMQSongProcessor.Models;
 
@@ -8,7 +9,7 @@ namespace AMQSongProcessor.Utils
 	{
 		public static IEnumerable<string> GetFiles(this ISongLoader loader, string directory)
 		{
-			var pattern = "*." + loader.Extension;
+			var pattern = $"*.{loader.Extension}";
 			return Directory.EnumerateFiles(directory, pattern, SearchOption.AllDirectories);
 		}
 
@@ -41,13 +42,13 @@ namespace AMQSongProcessor.Utils
 				SingleWriter = false,
 			});
 
-			var totalCount = 0;
-			var currentCount = 0;
+			var totalTasks = 0;
+			var finishedTasks = 0;
 			foreach (var chunk in files.Chunk(filesPerTask))
 			{
 				_ = Task.Run(async () =>
 				{
-					Interlocked.Increment(ref totalCount);
+					Interlocked.Increment(ref totalTasks);
 
 					try
 					{
@@ -56,7 +57,7 @@ namespace AMQSongProcessor.Utils
 							await channel.Writer.WriteAsync(anime).ConfigureAwait(false);
 						}
 
-						if (Interlocked.Increment(ref currentCount) == totalCount)
+						if (Interlocked.Increment(ref finishedTasks) == totalTasks)
 						{
 							channel.Writer.Complete();
 						}
@@ -78,7 +79,7 @@ namespace AMQSongProcessor.Utils
 			foreach (var file in files)
 			{
 				var anime = await loader.LoadAsync(file).ConfigureAwait(false);
-				if (anime != null)
+				if (anime is not null)
 				{
 					yield return anime;
 				}

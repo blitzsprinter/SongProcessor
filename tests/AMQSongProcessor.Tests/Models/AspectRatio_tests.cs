@@ -7,8 +7,8 @@ namespace AMQSongProcessor.Tests.Models
 	[TestClass]
 	public sealed class AspectRatio_Tests
 	{
-		private const char SEP = AspectRatio.SEPARATOR;
-		private static readonly AspectRatio Default = new(16, 9);
+		public const char SEP = AspectRatio.SEPARATOR;
+		public static AspectRatio Default { get; } = new(16, 9);
 
 		[TestMethod]
 		public void CompareTo_Test()

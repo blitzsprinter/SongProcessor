@@ -170,7 +170,7 @@ namespace AMQSongProcessor.UI.ViewModels
 
 			var validClipboard = this
 				.WhenAnyValue(x => x.ClipboardSong)
-				.Select(x => x != null);
+				.Select(x => x is not null);
 			PasteSong = ReactiveCommand.CreateFromTask<ObservableAnime>(PrivatePasteSong, validClipboard);
 
 			var loading = Load.IsExecuting;
@@ -366,7 +366,7 @@ namespace AMQSongProcessor.UI.ViewModels
 
 			foreach (var path in paths)
 			{
-				var result = await _Gatherer.GetAverageVolumeAsync(path).ConfigureAwait(true);
+				var result = await _Gatherer.GetVolumeInfoAsync(path).ConfigureAwait(true);
 				var text = $"Volume information for \"{Path.GetFileName(path)}\":" +
 					$"\nMean volume: {result.Info.MeanVolume}dB" +
 					$"\nMax volume: {result.Info.MaxVolume}dB";
@@ -475,7 +475,7 @@ namespace AMQSongProcessor.UI.ViewModels
 			anime.Songs.Add(new ObservableSong(anime, clipboard.Value));
 			await _Loader.SaveAsync(anime.AbsoluteInfoPath, anime).ConfigureAwait(true);
 
-			if (clipboard.OnPasteCallback != null)
+			if (clipboard.OnPasteCallback is not null)
 			{
 				await clipboard.OnPasteCallback().ConfigureAwait(true);
 			}

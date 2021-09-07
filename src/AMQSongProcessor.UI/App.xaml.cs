@@ -36,10 +36,7 @@ namespace AMQSongProcessor.UI
 			Locator.CurrentMutable.RegisterConstant<IMessageBoxManager>(messageBoxManager);
 			Locator.CurrentMutable.RegisterConstant<IScreen>(screenWrapper);
 
-			var gatherer = new SourceInfoGatherer
-			{
-				RetryLimit = 3,
-			};
+			var gatherer = new SourceInfoGatherer();
 			var loader = new SongLoader(gatherer)
 			{
 				ExceptionsToIgnore = IgnoreExceptions.None,

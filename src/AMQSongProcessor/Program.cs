@@ -7,60 +7,34 @@ using AMQSongProcessor.Utils;
 
 namespace AMQSongProcessor
 {
-	public static class Program
+	public sealed class Program
 	{
-		private static string? _Current;
+		private string? _Current;
 
-		private static async Task Main()
+		private static async Task AddNewShowsAsync(ISongLoader loader, string directory)
 		{
-			string dir;
-#if true
-			dir = @"D:\Songs not in AMQ\Not Lupin";
-#else
-			Console.WriteLine("Enter a directory to process: ");
-			while (true)
+			var idFile = Path.Combine(directory, "new.txt");
+			if (!File.Exists(idFile))
 			{
-				try
-				{
-					var directory = new DirectoryInfo(Console.ReadLine());
-					if (directory.Exists)
-					{
-						dir = directory.FullName;
-						break;
-					}
-				}
-				catch
-				{
-				}
-
-				Console.WriteLine("Invalid directory provided; enter a valid one: ");
-			}
-#endif
-			if (OperatingSystem.IsWindows())
-			{
-				Console.SetBufferSize(Console.BufferWidth, short.MaxValue - 1);
-			}
-			Console.OutputEncoding = Encoding.UTF8;
-
-			var loader = new SongLoader(new SourceInfoGatherer());
-			await AddNewShowsAsync(loader, dir).ConfigureAwait(false);
-
-			var anime = new SortedSet<Anime>(new AnimeComparer());
-			await foreach (var item in loader.LoadFromDirectoryAsync(dir, 5))
-			{
-				var modifiable = new Anime(item);
-				modifiable.Songs.RemoveAll(x => x.ShouldIgnore);
-				anime.Add(modifiable);
+				return;
 			}
 
-			Display(anime);
+			var options = new SaveNewOptions
+			(
+				AddShowNameDirectory: true,
+				AllowOverwrite: false,
+				CreateDuplicateFile: false
+			);
+			var gatherer = new ANNGatherer();
+			foreach (var id in File.ReadAllLines(idFile).Select(int.Parse))
+			{
+				var model = await gatherer.GetAsync(id).ConfigureAwait(false);
+				await loader.SaveAsync(directory, model, options).ConfigureAwait(false);
+				Console.WriteLine($"Got information from ANN for {model.Name}.");
+			}
 
-			var processor = new SongProcessor();
-			processor.WarningReceived += Console.WriteLine;
-			await processor.ExportFixesAsync(dir, anime).ConfigureAwait(false);
-
-			var jobs = processor.CreateJobs(anime);
-			await jobs.ProcessAsync(OnProcessingReceived).ThrowIfAnyErrors().ConfigureAwait(false);
+			//Clear the file after getting all the information
+			File.Create(idFile);
 		}
 
 		private static void Display(IEnumerable<IAnime> anime)
@@ -180,7 +154,10 @@ namespace AMQSongProcessor
 			Console.WriteLine();
 		}
 
-		private static void OnProcessingReceived(ProcessingData value)
+		private static Task Main()
+							=> new Program().RunAsync();
+
+		private void OnProcessingReceived(ProcessingData value)
 		{
 			//For each new path, add in an extra line break for readability
 			var firstWrite = Interlocked.Exchange(ref _Current, value.Path) != value.Path;
@@ -205,30 +182,52 @@ namespace AMQSongProcessor
 				$"ETA on completion: {value.CompletionETA}");
 		}
 
-		private static async Task AddNewShowsAsync(ISongLoader loader, string directory)
+		private async Task RunAsync()
 		{
-			var idFile = Path.Combine(directory, "new.txt");
-			if (!File.Exists(idFile))
+			string dir;
+			Console.WriteLine("Enter a directory to process: ");
+			while (true)
 			{
-				return;
+				try
+				{
+					var directory = new DirectoryInfo(Console.ReadLine()!);
+					if (directory.Exists)
+					{
+						dir = directory.FullName;
+						break;
+					}
+				}
+				catch
+				{
+				}
+
+				Console.WriteLine("Invalid directory provided; enter a valid one: ");
+			}
+			if (OperatingSystem.IsWindows())
+			{
+				Console.SetBufferSize(Console.BufferWidth, short.MaxValue - 1);
+			}
+			Console.OutputEncoding = Encoding.UTF8;
+
+			var loader = new SongLoader(new SourceInfoGatherer());
+			await AddNewShowsAsync(loader, dir).ConfigureAwait(false);
+
+			var anime = new SortedSet<Anime>(new AnimeComparer());
+			await foreach (var item in loader.LoadFromDirectoryAsync(dir, 5))
+			{
+				var modifiable = new Anime(item);
+				modifiable.Songs.RemoveAll(x => x.ShouldIgnore);
+				anime.Add(modifiable);
 			}
 
-			var options = new SaveNewOptions
-			(
-				AddShowNameDirectory: true,
-				AllowOverwrite: false,
-				CreateDuplicateFile: false
-			);
-			var gatherer = new ANNGatherer();
-			foreach (var id in File.ReadAllLines(idFile).Select(int.Parse))
-			{
-				var model = await gatherer.GetAsync(id).ConfigureAwait(false);
-				await loader.SaveAsync(directory, model, options).ConfigureAwait(false);
-				Console.WriteLine($"Got information from ANN for {model.Name}.");
-			}
+			Display(anime);
 
-			//Clear the file after getting all the information
-			File.Create(idFile);
+			var processor = new SongProcessor();
+			processor.WarningReceived += Console.WriteLine;
+			await processor.ExportFixesAsync(dir, anime).ConfigureAwait(false);
+
+			var jobs = processor.CreateJobs(anime);
+			await jobs.ProcessAsync(OnProcessingReceived).ThrowIfAnyErrors().ConfigureAwait(false);
 		}
 	}
 }

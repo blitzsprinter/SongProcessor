@@ -78,13 +78,17 @@ namespace AMQSongProcessor.Jobs
 			)
 			{
 				var dar = Song.OverrideAspectRatio is AspectRatio ratio ? ratio : info.DAR;
+				if (dar is null)
+				{
+					throw new InvalidOperationException($"DAR cannot be null: {Anime.GetAbsoluteSourcePath()}.");
+				}
 				var videoFilterParts = new Dictionary<string, string>
 				{
 					["setsar"] = SquareSAR.ToString('/'),
-					["setdar"] = dar.ToString('/'),
+					["setdar"] = dar.Value.ToString('/'),
 				};
 
-				var width = (int)(Resolution * dar.Ratio);
+				var width = (int)(Resolution * dar.Value.Ratio);
 				// Make sure width is always even, otherwise sometimes things can break
 				if (width % 2 != 0)
 				{
@@ -97,7 +101,7 @@ namespace AMQSongProcessor.Jobs
 				args += $" -filter:v \"{string.Join(',', parts)}\"";
 			}
 
-			if (Song.VolumeModifier != null)
+			if (Song.VolumeModifier is not null)
 			{
 				args += $" -filter:a \"volume={Song.VolumeModifier}\"";
 			}

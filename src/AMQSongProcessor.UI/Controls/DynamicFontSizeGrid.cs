@@ -82,7 +82,7 @@ namespace AMQSongProcessor.UI.Controls
 				{
 					continue;
 				}
-				if (child != null)
+				if (child is not null)
 				{
 					SetAllChildren(child, overrideValue > 0 ? overrideValue : value);
 				}

@@ -206,7 +206,7 @@ namespace AMQSongProcessor.Utils
 
 			var files = Directory.EnumerateFiles(directory, program, SearchOption.TopDirectoryOnly);
 			path = files.FirstOrDefault();
-			return path != null;
+			return path is not null;
 		}
 	}
 }

@@ -6,15 +6,15 @@
 
 		public override int Compare(ISong? x, ISong? y)
 		{
-			if (x != null)
+			if (x is not null)
 			{
-				if (y != null)
+				if (y is not null)
 				{
 					return CompareNonNull(x, y);
 				}
 				return 1;
 			}
-			return y != null ? -1 : 0;
+			return y is not null ? -1 : 0;
 		}
 
 		private static int CompareNonNull(ISong x, ISong y)

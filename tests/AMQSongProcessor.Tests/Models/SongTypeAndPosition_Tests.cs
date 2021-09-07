@@ -7,7 +7,7 @@ namespace AMQSongProcessor.Tests.Models
 	[TestClass]
 	public sealed class SongTypeAndPosition_Tests
 	{
-		private static readonly SongTypeAndPosition Default = SongType.Op.Create(1);
+		public static SongTypeAndPosition Default { get; } = SongType.Op.Create(1);
 
 		[TestMethod]
 		public void CompareTo_Test()

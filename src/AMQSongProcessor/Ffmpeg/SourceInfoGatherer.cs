@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 using AMQSongProcessor.Converters;
 using AMQSongProcessor.Models;
@@ -12,35 +13,35 @@ namespace AMQSongProcessor.FFmpeg
 		private static readonly JsonSerializerOptions _Options = new();
 		private static readonly char[] _SplitChars = new[] { '_', 'd' };
 
-		public int RetryLimit { get; set; } = 0;
-
 		static SourceInfoGatherer()
 		{
+			_Options.NumberHandling = JsonNumberHandling.AllowReadingFromString;
 			_Options.Converters.Add(new AspectRatioJsonConverter());
+			_Options.Converters.Add(new ParseJsonConverter<bool>(bool.Parse));
 		}
 
 		public Task<SourceInfo<AudioInfo>> GetAudioInfoAsync(string file, int track = 0)
-			=> GetInfoAsync<AudioInfo>('a', file, track, 0);
+			=> GetInfoAsync<AudioInfo>('a', file, track);
 
-		public async Task<SourceInfo<VolumeInfo>> GetAverageVolumeAsync(string file)
+		public Task<SourceInfo<VideoInfo>> GetVideoInfoAsync(string file, int track = 0)
+			=> GetInfoAsync<VideoInfo>('v', file, track);
+
+		public async Task<SourceInfo<VolumeInfo>> GetVolumeInfoAsync(string file, int track = 0)
 		{
 			if (!File.Exists(file))
 			{
-				throw new FileNotFoundException("File does not exist to get average volume.", file);
+				throw FileNotFound('a', file);
 			}
 
-			#region Args
-			const string ARGS = "-vn " +
+			var args =
+				"-vn " +
 				"-sn " +
-				"-dn ";
-			const string OUTPUT_ARGS = " -af \"volumedetect\" " +
+				"-dn " +
+				$" -i \"{file}\"" +
+				$" -map 0:a:{track}" +
+				" -af \"volumedetect\" " +
 				"-f null " +
 				"-";
-
-			var args = ARGS +
-				$" -i \"{file}\"" +
-				OUTPUT_ARGS;
-			#endregion Args
 
 			using var process = ProcessUtils.FFmpeg.CreateProcess(args);
 			process.OnCancel((_, _) =>
@@ -100,28 +101,28 @@ namespace AMQSongProcessor.FFmpeg
 			));
 		}
 
-		public Task<SourceInfo<VideoInfo>> GetVideoInfoAsync(string file, int track = 0)
-			=> GetInfoAsync<VideoInfo>('v', file, track, 0);
-
 		private static SourceInfoGatheringException Exception(char stream, string file, Exception inner)
-			=> new($"Unable to gather {stream} info for {file}.", inner);
+			=> new($"Unable to gather '{stream}' stream info for {file}.", inner);
 
-		private async Task<SourceInfo<T>> GetInfoAsync<T>(char stream, string file, int track, int attempt)
+		private static SourceInfoGatheringException FileNotFound(char stream, string file)
+			=> Exception(stream, file, new FileNotFoundException("File does not exist", file));
+
+		private static async Task<SourceInfo<T>> GetInfoAsync<T>(
+			char stream,
+			string file,
+			int track)
 		{
 			if (!File.Exists(file))
 			{
-				throw Exception(stream, file, new FileNotFoundException("File does not exist.", file));
+				throw FileNotFound(stream, file);
 			}
 
-			#region Args
-			const string ARGS = "-v quiet" +
+			var args =
+				"-v quiet" +
 				" -print_format json" +
-				" -show_streams";
-
-			var args = ARGS +
+				" -show_streams" +
 				$" -select_streams {stream}:{track}" +
 				$" \"{file}\"";
-			#endregion Args
 
 			using var process = ProcessUtils.FFprobe.CreateProcess(args);
 			process.StartInfo.StandardOutputEncoding = Encoding.UTF8;
@@ -156,10 +157,6 @@ namespace AMQSongProcessor.FFmpeg
 			}
 			catch (Exception e) when (!(e is SourceInfoGatheringException))
 			{
-				if (RetryLimit > attempt)
-				{
-					return await GetInfoAsync<T>(stream, file, track, attempt + 1).ConfigureAwait(false);
-				}
 				throw Exception(stream, file, e);
 			}
 		}

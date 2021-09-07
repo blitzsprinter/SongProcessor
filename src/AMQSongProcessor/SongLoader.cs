@@ -25,9 +25,9 @@ namespace AMQSongProcessor
 			Gatherer = gatherer;
 			Options.Converters.Add(new JsonStringEnumConverter());
 			Options.Converters.Add(new SongTypeAndPositionJsonConverter());
-			Options.Converters.Add(new TimeSpanJsonConverter());
 			Options.Converters.Add(new VolumeModifierJsonConverter());
 			Options.Converters.Add(new AspectRatioJsonConverter());
+			Options.Converters.Add(new ParseJsonConverter<TimeSpan>(TimeSpan.Parse));
 			Options.Converters.Add(new InterfaceJsonConverter<Song, ISong>());
 		}
 
@@ -69,7 +69,7 @@ namespace AMQSongProcessor
 			{
 				return SaveAsync(path, anime);
 			}
-			if (options == null)
+			if (options is null)
 			{
 				return SaveAsync(Path.Combine(path, $"info.{Extension}"), anime);
 			}
@@ -103,7 +103,7 @@ namespace AMQSongProcessor
 			var source = FileUtils.EnsureAbsolutePath(directory, model.Source);
 
 			SourceInfo<VideoInfo>? videoInfo = null;
-			if (source != null)
+			if (source is not null)
 			{
 				try
 				{

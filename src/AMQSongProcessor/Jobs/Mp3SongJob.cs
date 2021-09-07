@@ -37,7 +37,7 @@ namespace AMQSongProcessor.Jobs
 					$" -map 0:a:{Song.OverrideAudioTrack}";
 			}
 
-			if (Song.VolumeModifier != null)
+			if (Song.VolumeModifier is not null)
 			{
 				args += $" -filter:a \"volume={Song.VolumeModifier}\"";
 			}

@@ -113,7 +113,7 @@ namespace AMQSongProcessor.Gatherers
 						{
 							if (dict.TryGetValue(@class, out var current))
 							{
-								if (current != null)
+								if (current is not null)
 								{
 									throw new InvalidOperationException($"Duplicate {@class}.");
 								}
