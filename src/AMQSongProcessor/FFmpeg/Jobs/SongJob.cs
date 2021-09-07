@@ -8,7 +8,6 @@ namespace AMQSongProcessor.FFmpeg.Jobs
 	{
 		public const int FFMPEG_ABORTED = -1;
 		public const int FFMPEG_SUCCESS = 0;
-		public static readonly AspectRatio SquareSAR = new(1, 1);
 
 		public bool AlreadyExists => File.Exists(GetSanitizedPath());
 		public IAnime Anime { get; }

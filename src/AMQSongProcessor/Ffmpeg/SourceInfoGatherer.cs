@@ -131,7 +131,7 @@ namespace AMQSongProcessor.FFmpeg
 				{
 					throw Exception(stream, path, new JsonException("Invalid JSON supplied."));
 				}
-				return new SourceInfo<T>(path, result);
+				return new(path, result);
 			}
 			catch (Exception e) when (!(e is SourceInfoGatheringException))
 			{

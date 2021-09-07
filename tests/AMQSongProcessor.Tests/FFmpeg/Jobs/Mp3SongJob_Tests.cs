@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace AMQSongProcessor.Tests.FFmpeg.Jobs
 {
 	[TestClass]
-	[TestCategory(CATEGORY)]
+	[TestCategory(FFMPEG_CATEGORY)]
 	public sealed class Mp3SongJob_Tests : FFmpeg_TestsBase
 	{
 		private const int DIV = 4;
@@ -66,15 +66,49 @@ namespace AMQSongProcessor.Tests.FFmpeg.Jobs
 		[TestMethod]
 		public async Task ProcessWithClean_Test()
 		{
+			using var temp = new TempDirectory();
+
+			var (anime, song) = GenerateAnimeAndSong(temp.Dir);
+			song.End = TimeSpan.FromSeconds(anime.VideoInfo!.Value.Info.Duration!.Value);
+			var job = new Mp3SongJob(anime, song);
+			// Create a duplicate version to treat as a clean version
+			var cleanPath = await GetSingleFileProducedAsync(temp.Dir, job).ConfigureAwait(false);
+			var cleanVolumeInfo = await Gatherer.GetVolumeInfoAsync(cleanPath).ConfigureAwait(false);
+			Assert.AreEqual(ValidVideoVolume.NSamples, cleanVolumeInfo.Info.NSamples, 2000);
+			{
+				var movedPath = Path.Combine(
+					Path.GetDirectoryName(cleanPath)!,
+					$"clean{Path.GetExtension(cleanPath)}");
+				File.Move(cleanPath, movedPath);
+				cleanPath = movedPath;
+			}
+
+			// Set the length back to being shorter than the produced clean version
+			song.End = TimeSpan.FromSeconds(anime.VideoInfo!.Value.Info.Duration!.Value / DIV);
+			song.CleanPath = cleanPath;
+			var result = await job.ProcessAsync().ConfigureAwait(false);
+			Assert.IsTrue(result.IsSuccess);
+
+			// Delete the clean version so we can get the output easier
+			File.Delete(cleanPath);
+			var file = GetSingleFile(temp.Dir);
+
+			var newVolumeInfo = await Gatherer.GetVolumeInfoAsync(file).ConfigureAwait(false);
+			Assert.IsTrue(ValidVideoVolume.NSamples / DIV >= newVolumeInfo.Info.NSamples);
+		}
+
+		private static string GetSingleFile(string directory)
+		{
+			var files = Directory.GetFiles(directory);
+			Assert.AreEqual(1, files.Length);
+			return files.Single();
 		}
 
 		private static async Task<string> GetSingleFileProducedAsync(string directory, ISongJob job)
 		{
 			var result = await job.ProcessAsync().ConfigureAwait(false);
 			Assert.IsTrue(result.IsSuccess);
-			var files = Directory.GetFiles(directory);
-			Assert.AreEqual(1, files.Length);
-			return files[0];
+			return GetSingleFile(directory);
 		}
 
 		private Anime GenerateAnime(string directory)

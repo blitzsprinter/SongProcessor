@@ -5,7 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace AMQSongProcessor.Tests.FFmpeg
 {
 	[TestClass]
-	[TestCategory(CATEGORY)]
+	[TestCategory(FFMPEG_CATEGORY)]
 	public sealed class SourceInfoGatherer_Tests : FFmpeg_TestsBase
 	{
 		[TestMethod]

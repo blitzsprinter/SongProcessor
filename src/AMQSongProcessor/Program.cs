@@ -199,9 +199,8 @@ namespace AMQSongProcessor
 				}
 				catch
 				{
+					Console.WriteLine("Invalid directory provided; enter a valid one: ");
 				}
-
-				Console.WriteLine("Invalid directory provided; enter a valid one: ");
 			}
 			if (OperatingSystem.IsWindows())
 			{

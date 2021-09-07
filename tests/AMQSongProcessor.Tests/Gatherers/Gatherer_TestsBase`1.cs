@@ -7,7 +7,7 @@ namespace AMQSongProcessor.Tests.Gatherers
 {
 	public abstract class Gatherer_TestsBase
 	{
-		public const string CATEGORY = "HTML";
+		public const string GATHERERS_CATEGORY = "HTML";
 	}
 
 	public abstract class Gatherer_TestsBase<T> : Gatherer_TestsBase where T : IAnimeGatherer

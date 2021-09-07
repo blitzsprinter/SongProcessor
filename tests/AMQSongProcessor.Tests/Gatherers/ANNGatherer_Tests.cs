@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace AMQSongProcessor.Tests.Gatherers
 {
 	[TestClass]
-	[TestCategory(CATEGORY)]
+	[TestCategory(GATHERERS_CATEGORY)]
 	public sealed class ANNGatherer_Tests : Gatherer_TestsBase<ANNGatherer>
 	{
 		public override ANNGatherer Gatherer { get; } = new();
