@@ -123,26 +123,25 @@ namespace AMQSongProcessor.FFmpeg
 
 			try
 			{
-				using var doc = await JsonDocument.ParseAsync(process.StandardOutput.BaseStream).ConfigureAwait(false);
-				if (!doc.RootElement.TryGetProperty("streams", out var property))
+				var output = await JsonSerializer.DeserializeAsync<Output<T>>(
+					process.StandardOutput.BaseStream,
+					_Options
+				).ConfigureAwait(false);
+				if (output is null || output.Streams.FirstOrDefault() is not T result)
 				{
-					throw Exception(stream, path, new InvalidFileTypeException("Invalid file type."));
+					throw Exception(stream, path, new JsonException("Invalid JSON supplied."));
 				}
-				var info = property[0].ToObject<T>(_Options);
-				if (info is null)
-				{
-					throw Exception(stream, path, new JsonException("Invalid json supplied."));
-				}
-				return new SourceInfo<T>(path, info);
-			}
-			catch (JsonException je)
-			{
-				throw Exception(stream, path, new JsonException("Unable to parse JSON. Possibly attempted to parse before stream was fully written to.", je));
+				return new SourceInfo<T>(path, result);
 			}
 			catch (Exception e) when (!(e is SourceInfoGatheringException))
 			{
 				throw Exception(stream, path, e);
 			}
 		}
+
+		private sealed record Output<T>(
+			[property: JsonPropertyName("streams")]
+			T[] Streams
+		);
 	}
 }
