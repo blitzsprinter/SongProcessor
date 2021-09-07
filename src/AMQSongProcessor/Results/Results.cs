@@ -32,4 +32,13 @@
 			Path = path;
 		}
 	}
+
+	public class ProcessCanceled : Result
+	{
+		public static ProcessCanceled Instance { get; } = new();
+
+		public ProcessCanceled() : base("Process was canceled.", false)
+		{
+		}
+	}
 }

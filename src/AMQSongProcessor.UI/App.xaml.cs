@@ -37,10 +37,7 @@ namespace AMQSongProcessor.UI
 			Locator.CurrentMutable.RegisterConstant<IScreen>(screenWrapper);
 
 			var gatherer = new SourceInfoGatherer();
-			var loader = new SongLoader(gatherer)
-			{
-				ExceptionsToIgnore = IgnoreExceptions.None,
-			};
+			var loader = new SongLoader(gatherer);
 			var processor = new SongProcessor();
 			var gatherers = new IAnimeGatherer[]
 			{

@@ -23,9 +23,17 @@ namespace AMQSongProcessor.Tests.Utils
 			var dir = Path.Combine(Environment.CurrentDirectory, "bin");
 			Directory.CreateDirectory(dir);
 			var path = Path.Combine(dir, $"{PROGRAM}.exe");
-			File.Create(path);
+			File.Create(path).Dispose();
 
 			_ = ProcessUtils.FindProgram(PROGRAM);
+
+			// Some cleanup, not important if it fails
+			File.Delete(path);
+			try
+			{
+				Directory.Delete(dir);
+			}
+			catch { }
 		}
 
 		[TestMethod]

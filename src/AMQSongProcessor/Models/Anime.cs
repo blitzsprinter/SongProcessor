@@ -17,18 +17,18 @@ namespace AMQSongProcessor.Models
 		IReadOnlyList<ISong> IAnimeBase.Songs => Songs;
 		private string DebuggerDisplay => Name;
 
-		public Anime(string file, IAnimeBase other, SourceInfo<VideoInfo>? videoInfo)
+		public Anime(string path, IAnimeBase other, SourceInfo<VideoInfo>? videoInfo)
 		{
-			if (file is null)
+			if (path is null)
 			{
-				throw new ArgumentNullException(nameof(file));
+				throw new ArgumentNullException(nameof(path));
 			}
-			if (Path.GetDirectoryName(file) is null)
+			if (Path.GetDirectoryName(path) is null)
 			{
-				throw new ArgumentException("Must be an absolute path.", nameof(file));
+				throw new ArgumentException("Must be an absolute path.", nameof(path));
 			}
 
-			AbsoluteInfoPath = file;
+			AbsoluteInfoPath = path;
 			Id = other.Id;
 			Name = other.Name;
 			Songs = other.Songs?.Select(x => new Song(x))?.ToList() ?? new List<Song>();

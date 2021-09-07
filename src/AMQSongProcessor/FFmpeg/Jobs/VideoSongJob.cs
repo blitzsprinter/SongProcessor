@@ -61,7 +61,7 @@ namespace AMQSongProcessor.FFmpeg.Jobs
 			else
 			{
 				args +=
-					$" -i \"{Song.GetCleanSongPath(Anime.GetDirectory())}\"" + // Audio source
+					$" -i \"{Anime.GetCleanSongPath(Song)}\"" + // Audio source
 					$" -map 0:v:{Song.OverrideVideoTrack}" + // Use the first input's video
 					$" -map 1:a:{Song.OverrideAudioTrack}"; // Use the second input's audio
 			}
@@ -71,7 +71,7 @@ namespace AMQSongProcessor.FFmpeg.Jobs
 			// Resize video if needed
 			if (Anime.VideoInfo?.Info is VideoInfo info
 				&& (info.Height != Resolution
-					|| info.SAR != SquareSAR
+					|| info.SAR != AspectRatio.Square
 					|| (Song.OverrideAspectRatio is AspectRatio r && info.DAR != r)
 				)
 			)
@@ -83,7 +83,7 @@ namespace AMQSongProcessor.FFmpeg.Jobs
 				}
 				var videoFilterParts = new Dictionary<string, string>
 				{
-					["setsar"] = SquareSAR.ToString('/'),
+					["setsar"] = AspectRatio.Square.ToString('/'),
 					["setdar"] = dar.Value.ToString('/'),
 				};
 

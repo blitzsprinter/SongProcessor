@@ -242,7 +242,7 @@
             </TextBlock>
           </HeaderedContentControl>
           <HeaderedContentControl Header="File">
-            <TextBlock Text="{Binding ProcessingData.File}" />
+            <TextBlock Text="{Binding ProcessingData.FileName}" />
           </HeaderedContentControl>
           <HeaderedContentControl Header="Percentage Complete">
             <TextBlock>

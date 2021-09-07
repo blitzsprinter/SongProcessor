@@ -6,6 +6,7 @@ namespace AMQSongProcessor.Models
 	public readonly struct AspectRatio : IEquatable<AspectRatio>, IComparable<AspectRatio>
 	{
 		public const char SEPARATOR = '/';
+		public static AspectRatio Square { get; } = new(1, 1);
 
 		public int Height { get; }
 		public float Ratio => Width / (float)Height;

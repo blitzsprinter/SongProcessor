@@ -9,8 +9,6 @@ namespace AMQSongProcessor.Tests.Utils
 	{
 		public static string Dir { get; } = Path.Combine("C:", "joe", "mama");
 		public static string Name { get; } = "dn.txt";
-		public static string TempPath
-			=> Path.Combine(Directory.GetCurrentDirectory(), "temp", Guid.NewGuid().ToString());
 
 		[TestMethod]
 		public void EnsureAbsolutePathNotQualified_Test()
@@ -59,7 +57,9 @@ namespace AMQSongProcessor.Tests.Utils
 		[TestMethod]
 		public void NextAvailableFileNameAvailable_Test()
 		{
-			var path = Path.Combine(TempPath, Name);
+			using var temp = new TempDirectory();
+
+			var path = Path.Combine(temp.Dir, Name);
 			Assert.AreEqual(path, FileUtils.NextAvailableFilename(path));
 		}
 
@@ -86,26 +86,26 @@ namespace AMQSongProcessor.Tests.Utils
 		{
 			const string NAME = "dn";
 
-			var temp = TempPath;
-			var file = Path.Combine(temp, NAME + extension);
-			Directory.CreateDirectory(temp);
-			File.Create(file);
+			using var temp = new TempDirectory();
+
+			var file = Path.Combine(temp.Dir, NAME + extension);
+			File.Create(file).Dispose();
 
 			for (var i = 0; i < 5; ++i)
 			{
-				File.Create(FileUtils.NextAvailableFilename(file));
+				File.Create(FileUtils.NextAvailableFilename(file)).Dispose();
 			}
 
 			var expected = new HashSet<string>
 			{
 				file,
-				Path.Combine(temp, $"{NAME}_(1){extension}"),
-				Path.Combine(temp, $"{NAME}_(2){extension}"),
-				Path.Combine(temp, $"{NAME}_(3){extension}"),
-				Path.Combine(temp, $"{NAME}_(4){extension}"),
-				Path.Combine(temp, $"{NAME}_(5){extension}"),
+				Path.Combine(temp.Dir, $"{NAME}_(1){extension}"),
+				Path.Combine(temp.Dir, $"{NAME}_(2){extension}"),
+				Path.Combine(temp.Dir, $"{NAME}_(3){extension}"),
+				Path.Combine(temp.Dir, $"{NAME}_(4){extension}"),
+				Path.Combine(temp.Dir, $"{NAME}_(5){extension}"),
 			};
-			foreach (var item in Directory.EnumerateFiles(temp))
+			foreach (var item in Directory.EnumerateFiles(temp.Dir))
 			{
 				Assert.IsTrue(expected.Contains(item));
 			}

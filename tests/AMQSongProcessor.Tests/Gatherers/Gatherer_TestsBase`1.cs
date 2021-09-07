@@ -5,7 +5,12 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace AMQSongProcessor.Tests.Gatherers
 {
-	public abstract class Gatherer_TestsBase<T> where T : IAnimeGatherer
+	public abstract class Gatherer_TestsBase
+	{
+		public const string CATEGORY = "HTML";
+	}
+
+	public abstract class Gatherer_TestsBase<T> : Gatherer_TestsBase where T : IAnimeGatherer
 	{
 		public abstract T Gatherer { get; }
 

@@ -34,7 +34,7 @@ namespace AMQSongProcessor
 			}
 
 			//Clear the file after getting all the information
-			File.Create(idFile);
+			File.Create(idFile).Dispose();
 		}
 
 		private static void Display(IEnumerable<IAnime> anime)

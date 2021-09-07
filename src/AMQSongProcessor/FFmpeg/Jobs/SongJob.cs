@@ -1,4 +1,6 @@
-﻿using AMQSongProcessor.Models;
+﻿using System.Diagnostics;
+
+using AMQSongProcessor.Models;
 using AMQSongProcessor.Results;
 using AMQSongProcessor.Utils;
 
@@ -6,6 +8,7 @@ namespace AMQSongProcessor.FFmpeg.Jobs
 {
 	public abstract class SongJob : ISongJob
 	{
+		public const int FFMPEG_ABORTED = -1;
 		public const int FFMPEG_SUCCESS = 0;
 		public static readonly AspectRatio SquareSAR = new(1, 1);
 
@@ -30,16 +33,21 @@ namespace AMQSongProcessor.FFmpeg.Jobs
 			}
 
 			using var process = ProcessUtils.FFmpeg.CreateProcess(GenerateArgs());
-			process.OnCancel((_, _) =>
+			if (token is not null)
 			{
-				process.Kill();
-				process.Dispose();
-				// Without this sleep the file is not released in time and an exception happens
-				Thread.Sleep(25);
-				File.Delete(path);
-			}, token);
-
-			// ffmpeg will output the information we want to std:out
+				process.OnCancel((_, _) =>
+				{
+					process.Kill();
+					// Without this sleep the file is not released in time
+					Thread.Sleep(25);
+					try
+					{
+						File.Delete(path);
+					}
+					catch { } // Nothing we can do if it fails to be deleted
+				}, token);
+			}
+			// FFmpeg will output the information we want to std:out
 			var progressBuilder = new ProgressBuilder();
 			process.OutputDataReceived += (_, e) =>
 			{
@@ -54,6 +62,7 @@ namespace AMQSongProcessor.FFmpeg.Jobs
 					ProcessingDataReceived?.Invoke(data);
 				}
 			};
+			// Since we set the loglevel to error we don't need to filter
 			var errors = default(List<string>);
 			process.ErrorDataReceived += (_, e) =>
 			{
@@ -67,12 +76,12 @@ namespace AMQSongProcessor.FFmpeg.Jobs
 			};
 
 			var code = await process.RunAsync(OutputMode.Async).ConfigureAwait(false);
-			if (code != FFMPEG_SUCCESS)
+			return code switch
 			{
-				errors ??= new();
-				return new FFmpegErrorResult(code, errors);
-			}
-			return FFmpegSuccess.Instance;
+				FFMPEG_SUCCESS => FFmpegSuccess.Instance,
+				FFMPEG_ABORTED => ProcessCanceled.Instance,
+				_ => new FFmpegErrorResult(code, errors ?? new()),
+			};
 		}
 
 		protected abstract string GenerateArgs();

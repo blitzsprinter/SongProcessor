@@ -20,35 +20,29 @@ namespace AMQSongProcessor.FFmpeg
 			_Options.Converters.Add(new ParseJsonConverter<bool>(bool.Parse));
 		}
 
-		public Task<SourceInfo<AudioInfo>> GetAudioInfoAsync(string file, int track = 0)
-			=> GetInfoAsync<AudioInfo>('a', file, track);
+		public Task<SourceInfo<AudioInfo>> GetAudioInfoAsync(string path, int track = 0)
+			=> GetInfoAsync<AudioInfo>('a', path, track);
 
-		public Task<SourceInfo<VideoInfo>> GetVideoInfoAsync(string file, int track = 0)
-			=> GetInfoAsync<VideoInfo>('v', file, track);
+		public Task<SourceInfo<VideoInfo>> GetVideoInfoAsync(string path, int track = 0)
+			=> GetInfoAsync<VideoInfo>('v', path, track);
 
-		public async Task<SourceInfo<VolumeInfo>> GetVolumeInfoAsync(string file, int track = 0)
+		public async Task<SourceInfo<VolumeInfo>> GetVolumeInfoAsync(string path, int track = 0)
 		{
-			if (!File.Exists(file))
+			if (!File.Exists(path))
 			{
-				throw FileNotFound('a', file);
+				throw FileNotFound('a', path);
 			}
 
 			var args =
 				"-vn " +
 				"-sn " +
 				"-dn " +
-				$" -i \"{file}\"" +
+				$" -i \"{path}\"" +
 				$" -map 0:a:{track}" +
 				" -af \"volumedetect\" " +
 				"-f null " +
 				"-";
-
 			using var process = ProcessUtils.FFmpeg.CreateProcess(args);
-			process.OnCancel((_, _) =>
-			{
-				process.Kill();
-				process.Dispose();
-			});
 
 			var histograms = new Dictionary<int, int>();
 			var maxVolume = 0.00;
@@ -88,7 +82,7 @@ namespace AMQSongProcessor.FFmpeg
 			};
 			await process.RunAsync(OutputMode.Async).ConfigureAwait(false);
 
-			return new SourceInfo<VolumeInfo>(file, new VolumeInfo(
+			return new SourceInfo<VolumeInfo>(path, new VolumeInfo(
 				histograms,
 				maxVolume,
 				meanVolume,
@@ -96,20 +90,20 @@ namespace AMQSongProcessor.FFmpeg
 			));
 		}
 
-		private static SourceInfoGatheringException Exception(char stream, string file, Exception inner)
-			=> new($"Unable to gather '{stream}' stream info for {file}.", inner);
+		private static SourceInfoGatheringException Exception(char stream, string path, Exception inner)
+			=> new($"Unable to gather '{stream}' stream info for {path}.", inner);
 
-		private static SourceInfoGatheringException FileNotFound(char stream, string file)
-			=> Exception(stream, file, new FileNotFoundException("File does not exist", file));
+		private static SourceInfoGatheringException FileNotFound(char stream, string path)
+			=> Exception(stream, path, new FileNotFoundException("File does not exist", path));
 
 		private static async Task<SourceInfo<T>> GetInfoAsync<T>(
 			char stream,
-			string file,
+			string path,
 			int track)
 		{
-			if (!File.Exists(file))
+			if (!File.Exists(path))
 			{
-				throw FileNotFound(stream, file);
+				throw FileNotFound(stream, path);
 			}
 
 			var args =
@@ -117,16 +111,11 @@ namespace AMQSongProcessor.FFmpeg
 				" -print_format json" +
 				" -show_streams" +
 				$" -select_streams {stream}:{track}" +
-				$" \"{file}\"";
+				$" \"{path}\"";
 
 			using var process = ProcessUtils.FFprobe.CreateProcess(args);
 			process.StartInfo.StandardOutputEncoding = Encoding.UTF8;
 			process.StartInfo.RedirectStandardOutput = true;
-			process.OnCancel((_, _) =>
-			{
-				process.Kill();
-				process.Dispose();
-			});
 
 			await process.RunAsync(OutputMode.Sync).ConfigureAwait(false);
 			// Must call WaitForExit otherwise the json may be incomplete
@@ -137,22 +126,22 @@ namespace AMQSongProcessor.FFmpeg
 				using var doc = await JsonDocument.ParseAsync(process.StandardOutput.BaseStream).ConfigureAwait(false);
 				if (!doc.RootElement.TryGetProperty("streams", out var property))
 				{
-					throw Exception(stream, file, new InvalidFileTypeException("Invalid file type."));
+					throw Exception(stream, path, new InvalidFileTypeException("Invalid file type."));
 				}
 				var info = property[0].ToObject<T>(_Options);
 				if (info is null)
 				{
-					throw Exception(stream, file, new JsonException("Invalid json supplied."));
+					throw Exception(stream, path, new JsonException("Invalid json supplied."));
 				}
-				return new SourceInfo<T>(file, info);
+				return new SourceInfo<T>(path, info);
 			}
 			catch (JsonException je)
 			{
-				throw Exception(stream, file, new JsonException("Unable to parse JSON. Possibly attempted to parse before stream was fully written to.", je));
+				throw Exception(stream, path, new JsonException("Unable to parse JSON. Possibly attempted to parse before stream was fully written to.", je));
 			}
 			catch (Exception e) when (!(e is SourceInfoGatheringException))
 			{
-				throw Exception(stream, file, e);
+				throw Exception(stream, path, e);
 			}
 		}
 	}

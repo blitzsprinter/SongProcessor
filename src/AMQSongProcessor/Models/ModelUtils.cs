@@ -10,8 +10,8 @@ namespace AMQSongProcessor.Models
 		public static string GetAbsoluteSourcePath(this IAnime anime)
 			=> FileUtils.EnsureAbsolutePath(anime.GetDirectory(), anime.Source)!;
 
-		public static string? GetCleanSongPath(this ISong song, string directory)
-			=> FileUtils.EnsureAbsolutePath(directory, song.CleanPath);
+		public static string? GetCleanSongPath(this IAnime anime, ISong song)
+			=> FileUtils.EnsureAbsolutePath(anime.GetDirectory(), song.CleanPath);
 
 		public static string GetDirectory(this IAnime anime)
 			=> Path.GetDirectoryName(anime.AbsoluteInfoPath)!;

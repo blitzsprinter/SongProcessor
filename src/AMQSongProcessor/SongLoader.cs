@@ -16,7 +16,6 @@ namespace AMQSongProcessor
 			WriteIndented = true,
 			IgnoreReadOnlyProperties = true,
 		};
-		public IgnoreExceptions ExceptionsToIgnore { get; set; } = IgnoreExceptions.Video;
 		public string Extension { get; set; } = "amq";
 
 		public SongLoader(ISourceInfoGatherer gatherer)
@@ -46,10 +45,6 @@ namespace AMQSongProcessor
 					model = (await JsonSerializer.DeserializeAsync<AnimeBase>(fs, _Options).ConfigureAwait(false))!;
 				}
 				return await ConvertFromModelAsync(path, model).ConfigureAwait(false);
-			}
-			catch (JsonException) when ((ExceptionsToIgnore & IgnoreExceptions.Json) != 0)
-			{
-				return null;
 			}
 			catch (Exception e)
 			{
@@ -105,9 +100,6 @@ namespace AMQSongProcessor
 				try
 				{
 					videoInfo = await _Gatherer.GetVideoInfoAsync(source).ConfigureAwait(false);
-				}
-				catch (Exception) when ((ExceptionsToIgnore & IgnoreExceptions.Video) != 0)
-				{
 				}
 				catch (Exception e)
 				{

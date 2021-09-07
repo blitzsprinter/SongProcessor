@@ -33,7 +33,7 @@ namespace AMQSongProcessor.FFmpeg.Jobs
 			{
 				args =
 					$" -to {Song.GetLength()}" +
-					$" -i \"{Song.GetCleanSongPath(Anime.GetDirectory())}\"" +
+					$" -i \"{Anime.GetCleanSongPath(Song)}\"" +
 					$" -map 0:a:{Song.OverrideAudioTrack}";
 			}
 

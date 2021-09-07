@@ -19,7 +19,7 @@ namespace AMQSongProcessor.Gatherers
 			_Client = client ?? CreateClient();
 		}
 
-		public async Task<IAnimeBase> GetAsync(int id, GatherOptions? options = null)
+		public async Task<AnimeBase> GetAsync(int id, GatherOptions? options = null)
 		{
 			var url = URL + id;
 			var result = await _Client.GetAsync(url).ConfigureAwait(false);
@@ -59,6 +59,9 @@ namespace AMQSongProcessor.Gatherers
 
 		public override string ToString()
 			=> Name;
+
+		async Task<IAnimeBase> IAnimeGatherer.GetAsync(int id, GatherOptions? options)
+			=> await GetAsync(id, options).ConfigureAwait(false);
 
 		private static HttpClient CreateClient()
 		{

@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace AMQSongProcessor.Tests.Gatherers
 {
 	[TestClass]
-	[TestCategory("HTML")]
+	[TestCategory(CATEGORY)]
 	public sealed class AniDBGatherer_Tests : Gatherer_TestsBase<AniDBGatherer>
 	{
 		public override AniDBGatherer Gatherer { get; } = new();
