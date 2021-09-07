@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-using AMQSongProcessor.Models;
+﻿using AMQSongProcessor.Models;
 using AMQSongProcessor.Results;
 using AMQSongProcessor.Utils;
 
@@ -33,20 +31,17 @@ namespace AMQSongProcessor.FFmpeg.Jobs
 			}
 
 			using var process = ProcessUtils.FFmpeg.CreateProcess(GenerateArgs());
-			if (token is not null)
+			process.OnCancel((_, _) =>
 			{
-				process.OnCancel((_, _) =>
+				process.Kill();
+				// Without this sleep the file is not released in time
+				Thread.Sleep(25);
+				try
 				{
-					process.Kill();
-					// Without this sleep the file is not released in time
-					Thread.Sleep(25);
-					try
-					{
-						File.Delete(path);
-					}
-					catch { } // Nothing we can do if it fails to be deleted
-				}, token);
-			}
+					File.Delete(path);
+				}
+				catch { } // Nothing we can do if it fails to be deleted
+			}, token);
 			// FFmpeg will output the information we want to std:out
 			var progressBuilder = new ProgressBuilder();
 			process.OutputDataReceived += (_, e) =>

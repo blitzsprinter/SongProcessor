@@ -18,7 +18,7 @@ namespace AMQSongProcessor.FFmpeg
 		public const string STREAM00Q = "stream_0_0_q";
 		public const string TOTAL_SIZE = "total_size";
 
-		private Dictionary<string, string> _Values = new();
+		private Dictionary<string, string> _Values = new(ValidKeys.Count);
 
 		public static ImmutableHashSet<string> ValidKeys { get; } = ImmutableHashSet.Create(new[]
 		{
