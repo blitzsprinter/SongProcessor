@@ -4,7 +4,8 @@
 	{
 		public static CanceledResult Instance { get; } = new();
 
-		public CanceledResult() : base("Process was canceled.", false)
+		// IsSuccess = null because cancellation isn't really an error
+		public CanceledResult() : base("Process was canceled.", null)
 		{
 		}
 	}
@@ -26,8 +27,7 @@
 	{
 		public string Path { get; }
 
-		public FileAlreadyExistsResult(string path)
-			: base($"{path} already exists.", false)
+		public FileAlreadyExistsResult(string path) : base($"{path} already exists.", false)
 		{
 			Path = path;
 		}

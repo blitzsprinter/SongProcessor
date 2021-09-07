@@ -38,12 +38,13 @@ namespace AMQSongProcessor.Utils
 			{
 				StartInfo = new()
 				{
-					FileName = program,
 					Arguments = args,
-					UseShellExecute = false,
 					CreateNoWindow = true,
-					RedirectStandardOutput = true,
+					FileName = program,
 					RedirectStandardError = true,
+					RedirectStandardInput = true,
+					RedirectStandardOutput = true,
+					UseShellExecute = false,
 				},
 				EnableRaisingEvents = true,
 			};

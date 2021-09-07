@@ -57,7 +57,11 @@ namespace AMQSongProcessor.Utils
 		{
 			await foreach (var result in results)
 			{
-				if (!result.IsSuccess)
+				if (result.IsSuccess is null)
+				{
+					return;
+				}
+				else if (result.IsSuccess == false)
 				{
 					throw new InvalidOperationException(result.ToString());
 				}

@@ -43,7 +43,7 @@ namespace AMQSongProcessor.Tests.FFmpeg.Jobs
 			source.Cancel();
 
 			var result = await task.ConfigureAwait(false);
-			Assert.IsFalse(result.IsSuccess);
+			Assert.IsNull(result.IsSuccess);
 			Assert.IsInstanceOfType(result, typeof(CanceledResult));
 		}
 

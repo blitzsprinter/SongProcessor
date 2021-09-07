@@ -504,7 +504,7 @@ namespace AMQSongProcessor.UI.ViewModels
 				// If any result is an error stop processing and display it
 				await foreach (var result in results.WithCancellation(token))
 				{
-					if (!result.IsSuccess)
+					if (result.IsSuccess == false)
 					{
 						await _MessageBoxManager.ShowNoResultAsync(new()
 						{

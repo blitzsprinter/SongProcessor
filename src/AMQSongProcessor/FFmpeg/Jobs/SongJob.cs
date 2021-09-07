@@ -32,14 +32,15 @@ namespace AMQSongProcessor.FFmpeg.Jobs
 			using var process = ProcessUtils.FFmpeg.CreateProcess(GenerateArgs());
 			process.OnCancel((_, _) =>
 			{
+				// We can't just send 'q' to FFmpeg and have it quit gracefully because
+				// sometimes the path never gets released and then can't get deleted
 				process.Kill();
-				// Without this sleep the file is not released in time
-				Thread.Sleep(25);
+				process.WaitForExit(500);
 				try
 				{
 					File.Delete(path);
 				}
-				catch { } // Nothing we can do if it fails to be deleted
+				catch { } // Nothing we can do
 			}, token);
 			// FFmpeg will output the information we want to std:out
 			var progressBuilder = new ProgressBuilder();
