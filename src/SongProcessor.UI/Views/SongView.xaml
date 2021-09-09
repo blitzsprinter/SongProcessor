@@ -1,0 +1,291 @@
+﻿<UserControl xmlns = "https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:models="clr-namespace:SongProcessor.Models;assembly=SongProcessor"
+             xmlns:uimodels="clr-namespace:SongProcessor.UI.Models;assembly=SongProcessor.UI"
+             xmlns:controls="clr-namespace:SongProcessor.UI.Controls;assembly=SongProcessor.UI"
+             xmlns:converters="clr-namespace:SongProcessor.UI.Converters;assembly=SongProcessor.UI"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="800"
+             Name="Me"
+             x:Class="SongProcessor.UI.Views.SongView">
+
+  <UserControl.Styles>
+    <Style Selector=":is(InputElement).notWhenBusy">
+      <Setter Property="IsEnabled"
+              Value="{Binding ElementName=Me, Path=!DataContext.IsBusy}" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="1*,19*">
+    <Grid ColumnDefinitions="8*,1*,1*" Classes="notWhenBusy">
+      <TextBox Watermark="Directory" Text="{Binding Directory}"
+               KeyDown="OnKeyDown"
+               IsEnabled="{Binding !Anime.Count}" />
+      <Button Grid.Column="1" Content="Select"
+              Command="{Binding SelectDirectory}"
+              IsEnabled="{Binding !Anime.Count}" />
+      <Button Grid.Column="2" Content="Load"
+              Command="{Binding Load}"
+              IsVisible="{Binding !Anime.Count}" />
+      <Button Grid.Column="2" Content="Unload"
+              Command="{Binding Unload}"
+              IsVisible="{Binding Anime.Count}" />
+    </Grid>
+
+    <Grid Grid.Row="1" ColumnDefinitions="9*,1*">
+      <Grid.ContextMenu>
+        <ContextMenu>
+          <HeaderedContentControl Header="Search By Anime Name">
+            <TextBox Text="{Binding Search.AnimeName}" />
+          </HeaderedContentControl>
+          <HeaderedContentControl Header="Search By Song Name">
+            <TextBox Text="{Binding Search.SongName}" />
+          </HeaderedContentControl>
+          <HeaderedContentControl Header="Search By Artist Name">
+            <TextBox Text="{Binding Search.ArtistName}" />
+          </HeaderedContentControl>
+          <MenuItem Header="-" />
+          <MenuItem Header="Expand All">
+            <MenuItem.Icon>
+              <CheckBox IsChecked="{Binding SongVisibility.IsExpanded}" />
+            </MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="-" />
+          <MenuItem Header="Show Ignored Songs">
+            <MenuItem.Icon>
+              <CheckBox IsChecked="{Binding SongVisibility.ShowIgnoredSongs}" />
+            </MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="-" />
+          <MenuItem Header="Show Unsubmitted Songs">
+            <MenuItem.Icon>
+              <CheckBox IsChecked="{Binding SongVisibility.ShowUnsubmittedSongs}" />
+            </MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="Show Missing Mp3 Songs">
+            <MenuItem.Icon>
+              <CheckBox IsChecked="{Binding SongVisibility.ShowMissingMp3Songs}" />
+            </MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="Show Missing 480p Songs">
+            <MenuItem.Icon>
+              <CheckBox IsChecked="{Binding SongVisibility.ShowMissing480pSongs}" />
+            </MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="Show Missing 720p Songs">
+            <MenuItem.Icon>
+              <CheckBox IsChecked="{Binding SongVisibility.ShowMissing720pSongs}" />
+            </MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="Show Completed Songs">
+            <MenuItem.Icon>
+              <CheckBox IsChecked="{Binding SongVisibility.ShowCompletedSongs}" />
+            </MenuItem.Icon>
+          </MenuItem>
+        </ContextMenu>
+      </Grid.ContextMenu>
+
+      <TreeView SelectionMode="Multiple" ClipToBounds="True"
+                Items="{Binding Anime}" SelectedItems="{Binding SelectedItems}">
+        <TreeView.DataTemplates>
+          <TreeDataTemplate DataType="uimodels:ObservableAnime" ItemsSource="{Binding Songs}">
+            <TextBlock Classes="anime"
+                       Background="{Binding VideoInfo, Converter={x:Static converters:MiscConverters.SourceColor}}">
+              <TextBlock.ContextMenu>
+                <ContextMenu Classes="notWhenBusy disallowMultiple">
+                  <MenuItem Header="Copy ANNID" CommandParameter="{Binding Id}"
+                            Command="{Binding ElementName=Me, Path=DataContext.CopyANNID}" />
+                  <MenuItem Header="Open Info File" CommandParameter="{Binding}"
+                            Command="{Binding ElementName=Me, Path=DataContext.OpenInfoFile}" />
+                  <MenuItem Header="Get Volume Info" CommandParameter="{Binding}"
+                            Command="{Binding ElementName=Me, Path=DataContext.GetVolumeInfo}" />
+                  <MenuItem Header="-" />
+                  <MenuItem Header="Duplicate Anime" CommandParameter="{Binding}"
+                            Command="{Binding ElementName=Me, Path=DataContext.DuplicateAnime}" />
+                  <MenuItem Header="Delete Anime" CommandParameter="{Binding}"
+                            Command="{Binding ElementName=Me, Path=DataContext.DeleteAnime}" />
+                  <MenuItem Header="Clear Songs" CommandParameter="{Binding}"
+                            Command="{Binding ElementName=Me, Path=DataContext.ClearSongs}" />
+                  <MenuItem Header="-" />
+                  <MenuItem Header="Change Source" CommandParameter="{Binding}"
+                            Command="{Binding ElementName=Me, Path=DataContext.ChangeSource}" />
+                  <MenuItem Header="Clear Source" CommandParameter="{Binding}"
+                            Command="{Binding ElementName=Me, Path=DataContext.ClearSource}" />
+                  <MenuItem Header="-" />
+                  <MenuItem Header="Add Song" CommandParameter="{Binding}"
+                            Command="{Binding ElementName=Me, Path=DataContext.AddSong}" />
+                  <MenuItem Header="Paste Song" CommandParameter="{Binding}"
+                            Command="{Binding ElementName=Me, Path=DataContext.PasteSong}" />
+                </ContextMenu>
+              </TextBlock.ContextMenu>
+            </TextBlock>
+          </TreeDataTemplate>
+
+          <DataTemplate DataType="uimodels:ObservableSong">
+            <TextBlock Classes="song"
+                       Background="{Binding Status, Converter={x:Static converters:MiscConverters.StatusColor}}">
+              <TextBlock.ContextMenu>
+                <ContextMenu Classes="notWhenBusy">
+                  <MenuItem Classes="disallowMultiple" Header="Edit Song"
+                            CommandParameter="{Binding}"
+                            Command="{Binding ElementName=Me, Path=DataContext.EditSong}" />
+                  <MenuItem Classes="disallowMultiple" Header="-" />
+                  <MenuItem Classes="disallowMultiple" Header="Copy Song"
+                            CommandParameter="{Binding}"
+                            Command="{Binding ElementName=Me, Path=DataContext.CopySong}" />
+                  <MenuItem Classes="disallowMultiple" Header="Cut Song"
+                            CommandParameter="{Binding}"
+                            Command="{Binding ElementName=Me, Path=DataContext.CutSong}" />
+                  <MenuItem Classes="disallowMultiple" Header="Delete Song"
+                            CommandParameter="{Binding}"
+                            Command="{Binding ElementName=Me, Path=DataContext.DeleteSong}" />
+
+                  <MenuItem Classes="onlySongs" Header="Set Songs As Submitted"
+                            CommandParameter="{x:Static uimodels:StatusModifier.Submitted}"
+                            Command="{Binding ElementName=Me, Path=DataContext.ModifyMultipleSongsStatus}" />
+                  <MenuItem Classes="onlySongs" Header="Set Songs As Mp3 Uploaded"
+                            CommandParameter="{x:Static uimodels:StatusModifier.Mp3}"
+                            Command="{Binding ElementName=Me, Path=DataContext.ModifyMultipleSongsStatus}" />
+                  <MenuItem Classes="onlySongs" Header="Set Songs As 480p Uploaded"
+                            CommandParameter="{x:Static uimodels:StatusModifier.Res480}"
+                            Command="{Binding ElementName=Me, Path=DataContext.ModifyMultipleSongsStatus}" />
+                  <MenuItem Classes="onlySongs" Header="Set Songs As 720p Uploaded"
+                            CommandParameter="{x:Static uimodels:StatusModifier.Res720}"
+                            Command="{Binding ElementName=Me, Path=DataContext.ModifyMultipleSongsStatus}" />
+                  <MenuItem Classes="onlySongs" Header="-" />
+                  <MenuItem Classes="onlySongs" Header="Unset Songs As Submitted"
+                            CommandParameter="{x:Static uimodels:StatusModifier.NotSubmitted}"
+                            Command="{Binding ElementName=Me, Path=DataContext.ModifyMultipleSongsStatus}" />
+                  <MenuItem Classes="onlySongs" Header="Unset Songs As Mp3 Uploaded"
+                            CommandParameter="{x:Static uimodels:StatusModifier.NotMp3}"
+                            Command="{Binding ElementName=Me, Path=DataContext.ModifyMultipleSongsStatus}" />
+                  <MenuItem Classes="onlySongs" Header="Unset Songs As 480p Uploaded"
+                            CommandParameter="{x:Static uimodels:StatusModifier.NotRes480}"
+                            Command="{Binding ElementName=Me, Path=DataContext.ModifyMultipleSongsStatus}" />
+                  <MenuItem Classes="onlySongs" Header="Unset Songs As 720p Uploaded"
+                            CommandParameter="{x:Static uimodels:StatusModifier.NotRes720}"
+                            Command="{Binding ElementName=Me, Path=DataContext.ModifyMultipleSongsStatus}" />
+                </ContextMenu>
+              </TextBlock.ContextMenu>
+            </TextBlock>
+          </DataTemplate>
+        </TreeView.DataTemplates>
+
+        <TreeView.Styles>
+          <Style Selector=":is(Visual).disallowMultiple">
+            <Setter Property="IsVisible"
+                    Value="{Binding ElementName=Me, Path=!DataContext.MultipleItemsSelected}" />
+          </Style>
+
+          <Style Selector=":is(Visual).onlySongs">
+            <Setter Property="IsVisible">
+              <MultiBinding Converter="{x:Static BoolConverters.And}">
+                <Binding ElementName="Me" Path="DataContext.MultipleItemsSelected" />
+                <Binding ElementName="Me" Path="DataContext.OnlySongsSelected" />
+              </MultiBinding>
+            </Setter>
+          </Style>
+
+          <Style Selector="TreeViewItem > TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+          </Style>
+
+          <!-- Anime -->
+          <Style Selector="TreeView > TreeViewItem">
+            <Setter Property="IsExpanded"
+                    Value="{Binding IsExpanded}" />
+            <Setter Property="IsVisible"
+                    Value="{Binding IsVisible}" />
+          </Style>
+
+          <!-- Anime -->
+          <Style Selector="TreeView > TreeViewItem /template/ ToggleButton#expander">
+            <Setter Property="IsVisible"
+                    Value="{Binding IsExpanderVisible}" />
+          </Style>
+
+          <!-- Song -->
+          <Style Selector="TreeView > TreeViewItem > TreeViewItem">
+            <Setter Property="IsVisible"
+                    Value="{Binding IsVisible}" />
+          </Style>
+        </TreeView.Styles>
+      </TreeView>
+
+      <Grid Grid.Column="1" RowDefinitions="1*,1*,1*,12*,6*" IsEnabled="{Binding Anime.Count}">
+        <Button Grid.Row="0" Classes="notWhenBusy" Content="Export Fixes"
+                Command="{Binding ExportFixes}" />
+        <Button Grid.Row="1" Classes="notWhenBusy" Content="Process Songs"
+                Command="{Binding ProcessSongs}" />
+        <Button Grid.Row="1" Content="Cancel"
+                Command="{Binding CancelProcessing}"
+                IsVisible="{Binding IsProcessing}" />
+
+        <UniformGrid Grid.Row="3" Columns="1" IsVisible="{Binding !!ProcessingData}">
+          <UniformGrid.Styles>
+            <Style Selector=":is(TextBlock)">
+              <Setter Property="TextWrapping" Value="Wrap" />
+            </Style>
+          </UniformGrid.Styles>
+
+          <!-- Zero width spaces are used in the start of the StringFormats -->
+          <HeaderedContentControl Header="Current Item">
+            <TextBlock>
+              <TextBlock.Text>
+                <MultiBinding StringFormat="#{0} out of {1}">
+                  <Binding Path="CurrentJob" />
+                  <Binding Path="QueuedJobs" />
+                </MultiBinding>
+              </TextBlock.Text>
+            </TextBlock>
+          </HeaderedContentControl>
+          <HeaderedContentControl Header="File">
+            <TextBlock Text="{Binding ProcessingData.FileName}" />
+          </HeaderedContentControl>
+          <HeaderedContentControl Header="Percentage Complete">
+            <TextBlock>
+              <TextBlock.Text>
+                <Binding Path="ProcessingData.Percentage" StringFormat="​{0:P2}" />
+              </TextBlock.Text>
+            </TextBlock>
+          </HeaderedContentControl>
+          <HeaderedContentControl Header="Completion ETA">
+            <TextBlock Text="{Binding ProcessingData.CompletionETA}" />
+          </HeaderedContentControl>
+          <HeaderedContentControl Header="Bitrate">
+            <TextBlock>
+              <TextBlock.Text>
+                <Binding Path="ProcessingData.Progress.Bitrate" StringFormat="​{0}Kbp/s" />
+              </TextBlock.Text>
+            </TextBlock>
+          </HeaderedContentControl>
+          <HeaderedContentControl Header="Fps">
+            <TextBlock Text="{Binding ProcessingData.Progress.Fps}" />
+          </HeaderedContentControl>
+          <HeaderedContentControl Header="Dropped Frames">
+            <TextBlock Text="{Binding ProcessingData.Progress.DroppedFrames}" />
+          </HeaderedContentControl>
+          <HeaderedContentControl Header="Duplicate Frames">
+            <TextBlock Text="{Binding ProcessingData.Progress.DuplicateFrames}" />
+          </HeaderedContentControl>
+          <HeaderedContentControl Header="Speed">
+            <TextBlock>
+              <TextBlock.Text>
+                <Binding Path="ProcessingData.Progress.Speed" StringFormat="​{0}x" />
+              </TextBlock.Text>
+            </TextBlock>
+          </HeaderedContentControl>
+          <HeaderedContentControl Header="Total Size">
+            <TextBlock>
+              <TextBlock.Text>
+                <Binding Path="ProcessingData.Progress.TotalSize" StringFormat="​{0:n0} bytes" />
+              </TextBlock.Text>
+            </TextBlock>
+          </HeaderedContentControl>
+        </UniformGrid>
+      </Grid>
+    </Grid>
+  </Grid>
+</UserControl>

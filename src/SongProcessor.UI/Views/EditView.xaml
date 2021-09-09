@@ -1,0 +1,75 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="SongProcessor.UI.Views.EditView">
+
+  <Grid ColumnDefinitions="5*,10*,3*,10*,5*" RowDefinitions="10*,100*,10*,3*,10*,10*">
+    <UniformGrid Grid.Column="1" Grid.Row="1" Columns="1">
+      <HeaderedContentControl Header="Name">
+        <TextBox Text="{Binding Name}" />
+      </HeaderedContentControl>
+      <HeaderedContentControl Header="Start Time">
+        <TextBox Text="{Binding Start}" />
+      </HeaderedContentControl>
+      <HeaderedContentControl Header="Clean Path">
+        <Grid ColumnDefinitions="8*,2*">
+          <TextBox Grid.Column="0" Text="{Binding CleanPath}" />
+          <Button Grid.Column="1" Content="Select" Command="{Binding SelectCleanPath}" />
+        </Grid>
+      </HeaderedContentControl>
+      <UniformGrid Columns="2">
+        <HeaderedContentControl Header="Override Video Track">
+          <NumericUpDown Minimum="0" Value="{Binding VideoTrack}" />
+        </HeaderedContentControl>
+        <HeaderedContentControl Header="Override Audio Track">
+          <NumericUpDown Minimum="0" Value="{Binding AudioTrack}" />
+        </HeaderedContentControl>
+      </UniformGrid>
+      <HeaderedContentControl Header="Episode Number">
+        <NumericUpDown Minimum="0" Value="{Binding Episode}" />
+      </HeaderedContentControl>
+    </UniformGrid>
+    <UniformGrid Grid.Column="3" Grid.Row="1" Columns="1">
+      <HeaderedContentControl Header="Artist">
+        <TextBox Text="{Binding Artist}" />
+      </HeaderedContentControl>
+      <HeaderedContentControl Header="End Time">
+        <TextBox Text="{Binding End}" />
+      </HeaderedContentControl>
+      <HeaderedContentControl Header="Song Type">
+        <Grid ColumnDefinitions="5*,1*">
+          <ComboBox Grid.Column="0" Items="{Binding SongTypes}" SelectedItem="{Binding SongType}" />
+          <NumericUpDown Grid.Column="1" Minimum="0" Value="{Binding SongPosition}" />
+        </Grid>
+      </HeaderedContentControl>
+      <HeaderedContentControl Header="Override Aspect Ratio">
+        <ComboBox Items="{Binding AspectRatios}" SelectedItem="{Binding AspectRatio}" />
+      </HeaderedContentControl>
+      <HeaderedContentControl Header="Volume Modifier">
+        <NumericUpDown Value="{Binding VolumeModifier}" />
+      </HeaderedContentControl>
+    </UniformGrid>
+    <UniformGrid Grid.Column="1" Grid.ColumnSpan="3" Grid.Row="2" Rows="1">
+      <HeaderedContentControl Header="Should Ignore" HorizontalAlignment="Center">
+        <CheckBox IsChecked="{Binding ShouldIgnore}" />
+      </HeaderedContentControl>
+      <HeaderedContentControl Header="Is Submitted" HorizontalAlignment="Center">
+        <CheckBox IsChecked="{Binding IsSubmitted}" />
+      </HeaderedContentControl>
+      <HeaderedContentControl Header="Has MP3" HorizontalAlignment="Center">
+        <CheckBox IsChecked="{Binding HasMp3}" />
+      </HeaderedContentControl>
+      <HeaderedContentControl Header="Has 480p" HorizontalAlignment="Center">
+        <CheckBox IsChecked="{Binding Has480p}" />
+      </HeaderedContentControl>
+      <HeaderedContentControl Header="Has 720p" HorizontalAlignment="Center">
+        <CheckBox IsChecked="{Binding Has720p}" />
+      </HeaderedContentControl>
+    </UniformGrid>
+    <UniformGrid Grid.Column="1" Grid.ColumnSpan="3" Grid.Row="4">
+      <Button Content="{Binding ButtonText}" Command="{Binding Save}" />
+    </UniformGrid>
+  </Grid>
+</UserControl>
