@@ -1,4 +1,4 @@
-# AMQSongProcessor
+# SongProcessor
 
 FFmpeg and ffprobe must be installed for this program to work.
 
