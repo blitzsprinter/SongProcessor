@@ -3,6 +3,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>preview</LangVersion>
     <OutputType>Exe</OutputType>
     <ApplicationIcon>cirno_at_computer_pTB_icon.ico</ApplicationIcon>
