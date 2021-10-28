@@ -34,9 +34,18 @@ namespace SongProcessor.Tests.FFmpeg
 
 			foreach (var property in typeof(VideoInfo).GetProperties())
 			{
-				var expectedValue = property.GetValue(ValidVideoInfo);
-				var actualValue = property.GetValue(actual.Info);
-				Assert.AreEqual(expectedValue, actualValue, property.Name);
+				if (property.Name.Equals(nameof(VideoInfo.Tags)))
+				{
+					var expectedValue = ValidVideoInfo.Tags;
+					var actualValue = actual.Info.Tags;
+					CollectionAssert.AreEqual(expectedValue, actualValue, property.Name);
+				}
+				else
+				{
+					var expectedValue = property.GetValue(ValidVideoInfo);
+					var actualValue = property.GetValue(actual.Info);
+					Assert.AreEqual(expectedValue, actualValue, property.Name);
+				}
 			}
 		}
 

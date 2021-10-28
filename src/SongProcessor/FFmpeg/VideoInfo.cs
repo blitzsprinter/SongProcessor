@@ -45,6 +45,8 @@ namespace SongProcessor.FFmpeg
 		string TimeBase,
 		[property: JsonPropertyName("width")]
 		int Width,
+		[property: JsonPropertyName("tags")]
+		Dictionary<string, string> Tags,
 		[property: JsonPropertyName("bit_rate")]
 		int? Bitrate = null,
 		[property: JsonPropertyName("bits_per_raw_sample")]

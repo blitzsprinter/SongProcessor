@@ -7,11 +7,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace SongProcessor.Tests.FFmpeg.Jobs
 {
 	[TestClass]
-	[TestCategory(FFMPEG_CATEGORY)]
-	public sealed class Mp3SongJob_Tests : FFmpeg_TestsBase
+	public sealed class Mp3SongJob_Tests : SongJob_TestsBase
 	{
-		private const int DIV = 4;
-
 		[TestMethod]
 		public async Task Process_Test()
 		{
@@ -22,7 +19,8 @@ namespace SongProcessor.Tests.FFmpeg.Jobs
 			var file = await GetSingleFileProducedAsync(temp.Dir, job).ConfigureAwait(false);
 
 			var newVolumeInfo = await Gatherer.GetVolumeInfoAsync(file).ConfigureAwait(false);
-			Assert.IsTrue(ValidVideoVolume.NSamples / DIV >= newVolumeInfo.Info.NSamples);
+			var expected = ValidVideoVolume.NSamples / DIV;
+			Assert.AreEqual(expected, newVolumeInfo.Info.NSamples, expected * 0.05);
 
 			Assert.IsTrue(job.AlreadyExists);
 			var result = await job.ProcessAsync().ConfigureAwait(false);
@@ -58,7 +56,8 @@ namespace SongProcessor.Tests.FFmpeg.Jobs
 			var file = await GetSingleFileProducedAsync(temp.Dir, job).ConfigureAwait(false);
 
 			var newVolumeInfo = await Gatherer.GetVolumeInfoAsync(file).ConfigureAwait(false);
-			Assert.IsTrue(ValidVideoVolume.NSamples / DIV >= newVolumeInfo.Info.NSamples);
+			var expected = ValidVideoVolume.NSamples / DIV;
+			Assert.AreEqual(expected, newVolumeInfo.Info.NSamples, expected * 0.05);
 			Assert.IsTrue(ValidVideoVolume.MaxVolume > newVolumeInfo.Info.MaxVolume);
 			Assert.IsTrue(ValidVideoVolume.MeanVolume > newVolumeInfo.Info.MeanVolume);
 		}
@@ -94,49 +93,8 @@ namespace SongProcessor.Tests.FFmpeg.Jobs
 			var file = GetSingleFile(temp.Dir);
 
 			var newVolumeInfo = await Gatherer.GetVolumeInfoAsync(file).ConfigureAwait(false);
-			Assert.IsTrue(ValidVideoVolume.NSamples / DIV >= newVolumeInfo.Info.NSamples);
-		}
-
-		private static string GetSingleFile(string directory)
-		{
-			var files = Directory.GetFiles(directory);
-			Assert.AreEqual(1, files.Length);
-			return files.Single();
-		}
-
-		private static async Task<string> GetSingleFileProducedAsync(string directory, ISongJob job)
-		{
-			var result = await job.ProcessAsync().ConfigureAwait(false);
-			Assert.IsTrue(result.IsSuccess);
-			return GetSingleFile(directory);
-		}
-
-		private Anime GenerateAnime(string directory)
-		{
-			return new Anime(Path.Combine(directory, "info.amq"), new AnimeBase
-			{
-				Id = 73,
-				Name = "Extremely Long Light Novel Title",
-				Songs = new(),
-				Source = ValidVideoPath,
-				Year = 2500
-			}, new(ValidVideoPath, ValidVideoInfo with
-			{
-				DAR = new(16, 9),
-				SAR = AspectRatio.Square,
-			}));
-		}
-
-		private (Anime, Song) GenerateAnimeAndSong(string directory)
-		{
-			var anime = GenerateAnime(directory);
-			var song = new Song()
-			{
-				Start = TimeSpan.FromSeconds(0),
-				End = TimeSpan.FromSeconds(anime.VideoInfo!.Value.Info.Duration!.Value / DIV),
-				Name = Guid.NewGuid().ToString(),
-			};
-			return (anime, song);
+			var expected = ValidVideoVolume.NSamples / DIV;
+			Assert.AreEqual(expected, newVolumeInfo.Info.NSamples, expected * 0.05);
 		}
 	}
 }

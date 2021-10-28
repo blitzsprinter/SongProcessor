@@ -29,6 +29,14 @@ namespace SongProcessor.Tests.FFmpeg
 			StartTime: "0.000000",
 			TimeBase: "1/24000",
 			Width: 360,
+			Tags: new()
+			{
+				["creation_time"] = "2020-07-23T18:42:17.000000Z",
+				["language"] = "und",
+				["handler_name"] = "Vireo Eyes v2.5.3",
+				["vendor_id"] = "[0][0][0][0]",
+				["encoder"] = "AVC Coding",
+			},
 			// Optional
 			Bitrate: 11338,
 			BitsPerRawSample: 8,
