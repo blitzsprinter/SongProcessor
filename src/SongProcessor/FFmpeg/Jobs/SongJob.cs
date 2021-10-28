@@ -26,7 +26,7 @@ namespace SongProcessor.FFmpeg.Jobs
 			var path = GetSanitizedPath();
 			if (File.Exists(path))
 			{
-				return new FileAlreadyExistsResult(path);
+				return new FileAlreadyExists(path);
 			}
 
 			using var process = ProcessUtils.FFmpeg.CreateProcess(GenerateArgs());
@@ -73,9 +73,9 @@ namespace SongProcessor.FFmpeg.Jobs
 			var code = await process.RunAsync(OutputMode.Async).ConfigureAwait(false);
 			return code switch
 			{
-				FFMPEG_SUCCESS => SuccessResult.Instance,
-				FFMPEG_ABORTED => CanceledResult.Instance,
-				_ => new ErrorResult(code, errors ?? new()),
+				FFMPEG_SUCCESS => Success.Instance,
+				FFMPEG_ABORTED => Canceled.Instance,
+				_ => new Error(code, errors ?? new()),
 			};
 		}
 

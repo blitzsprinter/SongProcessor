@@ -27,7 +27,7 @@ namespace SongProcessor.Tests.FFmpeg.Jobs
 			Assert.IsTrue(job.AlreadyExists);
 			var result = await job.ProcessAsync().ConfigureAwait(false);
 			Assert.IsFalse(result.IsSuccess);
-			Assert.IsInstanceOfType(result, typeof(FileAlreadyExistsResult));
+			Assert.IsInstanceOfType(result, typeof(FileAlreadyExists));
 		}
 
 		[TestMethod]
@@ -44,7 +44,7 @@ namespace SongProcessor.Tests.FFmpeg.Jobs
 
 			var result = await task.ConfigureAwait(false);
 			Assert.IsNull(result.IsSuccess);
-			Assert.IsInstanceOfType(result, typeof(CanceledResult));
+			Assert.IsInstanceOfType(result, typeof(Canceled));
 		}
 
 		[TestMethod]

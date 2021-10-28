@@ -3,7 +3,7 @@ using System.Text;
 
 using SongProcessor.FFmpeg.Jobs;
 using SongProcessor.Models;
-using SongProcessor.Warnings;
+using SongProcessor.Results;
 
 namespace SongProcessor
 {
@@ -11,7 +11,7 @@ namespace SongProcessor
 	{
 		public string FixesFile { get; set; } = "fixes.txt";
 
-		public event Action<IWarning>? WarningReceived;
+		public event Action<IResult>? WarningReceived;
 
 		public List<SongJob> CreateJobs(IEnumerable<IAnime> animes)
 		{
