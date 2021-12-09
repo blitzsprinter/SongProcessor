@@ -1,8 +1,10 @@
 # SongProcessor
 
+This program exists to cut out clips of videos for AMQ.
+
 FFmpeg and ffprobe must be installed for this program to work.
 
-This program mostly exists to cut out clips of videos for AMQ.
+![](https://i.imgur.com/ExcDfez.png)
 
 ## Compiling
 
