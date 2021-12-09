@@ -1,13 +1,12 @@
 ﻿using SongProcessor.Models;
 
-namespace SongProcessor
+namespace SongProcessor;
+
+public interface ISongLoader
 {
-	public interface ISongLoader
-	{
-		string Extension { get; set; }
+	string Extension { get; set; }
 
-		Task<IAnime?> LoadAsync(string path);
+	Task<IAnime?> LoadAsync(string path);
 
-		Task<string?> SaveAsync(string directory, IAnimeBase anime, SaveNewOptions? options = null);
-	}
+	Task<string?> SaveAsync(string directory, IAnimeBase anime, SaveNewOptions? options = null);
 }

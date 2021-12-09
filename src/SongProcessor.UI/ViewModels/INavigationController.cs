@@ -1,7 +1,6 @@
-﻿namespace SongProcessor.UI.ViewModels
+﻿namespace SongProcessor.UI.ViewModels;
+
+public interface INavigationController
 {
-	public interface INavigationController
-	{
-		IObservable<bool> CanNavigate { get; }
-	}
+	IObservable<bool> CanNavigate { get; }
 }

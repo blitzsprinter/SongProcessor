@@ -1,11 +1,10 @@
 ﻿using SongProcessor.Models;
 
-namespace SongProcessor
-{
-	public interface ISongProcessor
-	{
-		IReadOnlyList<ISongJob> CreateJobs(IEnumerable<IAnime> anime);
+namespace SongProcessor;
 
-		Task ExportFixesAsync(string dir, IEnumerable<IAnime> anime);
-	}
+public interface ISongProcessor
+{
+	IReadOnlyList<ISongJob> CreateJobs(IEnumerable<IAnime> anime);
+
+	Task ExportFixesAsync(string dir, IEnumerable<IAnime> anime);
 }

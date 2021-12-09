@@ -1,20 +1,19 @@
 ﻿using SongProcessor.FFmpeg;
 
-namespace SongProcessor.Tests
+namespace SongProcessor.Tests;
+
+public class FakeSourceInfoGatherer : ISourceInfoGatherer
 {
-	public class FakeSourceInfoGatherer : ISourceInfoGatherer
-	{
-		public SourceInfo<AudioInfo> AudioInfo { get; set; }
-		public SourceInfo<VideoInfo> VideoInfo { get; set; }
-		public SourceInfo<VolumeInfo> VolumeInfo { get; set; }
+	public SourceInfo<AudioInfo> AudioInfo { get; set; }
+	public SourceInfo<VideoInfo> VideoInfo { get; set; }
+	public SourceInfo<VolumeInfo> VolumeInfo { get; set; }
 
-		public Task<SourceInfo<AudioInfo>> GetAudioInfoAsync(string path, int track = 0)
-			=> Task.FromResult(AudioInfo);
+	public Task<SourceInfo<AudioInfo>> GetAudioInfoAsync(string path, int track = 0)
+		=> Task.FromResult(AudioInfo);
 
-		public Task<SourceInfo<VideoInfo>> GetVideoInfoAsync(string path, int track = 0)
-			=> Task.FromResult(VideoInfo);
+	public Task<SourceInfo<VideoInfo>> GetVideoInfoAsync(string path, int track = 0)
+		=> Task.FromResult(VideoInfo);
 
-		public Task<SourceInfo<VolumeInfo>> GetVolumeInfoAsync(string path, int track = 0)
-			=> Task.FromResult(VolumeInfo);
-	}
+	public Task<SourceInfo<VolumeInfo>> GetVolumeInfoAsync(string path, int track = 0)
+		=> Task.FromResult(VolumeInfo);
 }

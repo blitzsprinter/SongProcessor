@@ -1,8 +1,7 @@
-﻿namespace SongProcessor.Models
+﻿namespace SongProcessor.Models;
+
+public enum VolumeModifierType
 {
-	public enum VolumeModifierType
-	{
-		Decibels,
-		Percentage
-	}
+	Decibels,
+	Percentage
 }

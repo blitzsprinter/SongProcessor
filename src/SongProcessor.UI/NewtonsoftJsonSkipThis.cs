@@ -1,18 +1,17 @@
 ﻿
 using Newtonsoft.Json;
 
-namespace SongProcessor.UI
+namespace SongProcessor.UI;
+
+public sealed class NewtonsoftJsonSkipThis : JsonConverter
 {
-	public sealed class NewtonsoftJsonSkipThis : JsonConverter
+	public override bool CanConvert(Type objectType)
+		=> true;
+
+	public override object ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
+		=> throw new NotSupportedException();
+
+	public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
 	{
-		public override bool CanConvert(Type objectType)
-			=> true;
-
-		public override object ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
-			=> throw new NotSupportedException();
-
-		public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
-		{
-		}
 	}
 }

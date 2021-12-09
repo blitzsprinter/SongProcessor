@@ -1,31 +1,30 @@
 ﻿using System.Diagnostics;
 
-namespace SongProcessor.Models
+namespace SongProcessor.Models;
+
+[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
+public class AnimeBase : IAnimeBase
 {
-	[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
-	public class AnimeBase : IAnimeBase
+	public int Id { get; set; }
+	public string Name { get; set; }
+	public List<Song> Songs { get; set; }
+	public string? Source { get; set; }
+	public int Year { get; set; }
+	IReadOnlyList<ISong> IAnimeBase.Songs => Songs;
+	private string DebuggerDisplay => Name;
+
+	public AnimeBase()
 	{
-		public int Id { get; set; }
-		public string Name { get; set; }
-		public List<Song> Songs { get; set; }
-		public string? Source { get; set; }
-		public int Year { get; set; }
-		IReadOnlyList<ISong> IAnimeBase.Songs => Songs;
-		private string DebuggerDisplay => Name;
+		Name = null!;
+		Songs = new();
+	}
 
-		public AnimeBase()
-		{
-			Name = null!;
-			Songs = new();
-		}
-
-		public AnimeBase(IAnimeBase other)
-		{
-			Id = other.Id;
-			Name = other.Name;
-			Songs = other.Songs?.Select(x => new Song(x))?.ToList() ?? new();
-			Source = other.Source;
-			Year = other.Year;
-		}
+	public AnimeBase(IAnimeBase other)
+	{
+		Id = other.Id;
+		Name = other.Name;
+		Songs = other.Songs?.Select(x => new Song(x))?.ToList() ?? new();
+		Source = other.Source;
+		Year = other.Year;
 	}
 }

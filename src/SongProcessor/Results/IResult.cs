@@ -1,8 +1,7 @@
-﻿namespace SongProcessor.Results
+﻿namespace SongProcessor.Results;
+
+public interface IResult
 {
-	public interface IResult
-	{
-		bool? IsSuccess { get; }
-		string Message { get; }
-	}
+	bool? IsSuccess { get; }
+	string Message { get; }
 }

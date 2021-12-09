@@ -5,228 +5,227 @@ using SongProcessor.Gatherers;
 using SongProcessor.Models;
 using SongProcessor.Utils;
 
-namespace SongProcessor
+namespace SongProcessor;
+
+public sealed class Program
 {
-	public sealed class Program
+	private string? _Current;
+
+	private static async Task AddNewShowsAsync(ISongLoader loader, string directory)
 	{
-		private string? _Current;
-
-		private static async Task AddNewShowsAsync(ISongLoader loader, string directory)
+		var idFile = Path.Combine(directory, "new.txt");
+		if (!File.Exists(idFile))
 		{
-			var idFile = Path.Combine(directory, "new.txt");
-			if (!File.Exists(idFile))
-			{
-				return;
-			}
-
-			var options = new SaveNewOptions
-			(
-				AddShowNameDirectory: true,
-				AllowOverwrite: false,
-				CreateDuplicateFile: false
-			);
-			var gatherer = new ANNGatherer();
-			foreach (var id in File.ReadAllLines(idFile).Select(int.Parse))
-			{
-				var model = await gatherer.GetAsync(id).ConfigureAwait(false);
-				await loader.SaveAsync(directory, model, options).ConfigureAwait(false);
-				Console.WriteLine($"Got information from ANN for {model.Name}.");
-			}
-
-			//Clear the file after getting all the information
-			File.Create(idFile).Dispose();
+			return;
 		}
 
-		private static void Display(IEnumerable<IAnime> anime)
+		var options = new SaveNewOptions
+		(
+			AddShowNameDirectory: true,
+			AllowOverwrite: false,
+			CreateDuplicateFile: false
+		);
+		var gatherer = new ANNGatherer();
+		foreach (var id in File.ReadAllLines(idFile).Select(int.Parse))
 		{
-			const string UNKNOWN = "Unknown ";
-			const string JOINER = " | ";
+			var model = await gatherer.GetAsync(id).ConfigureAwait(false);
+			await loader.SaveAsync(directory, model, options).ConfigureAwait(false);
+			Console.WriteLine($"Got information from ANN for {model.Name}.");
+		}
 
-			static void DisplayStatusItems(Status status)
+		//Clear the file after getting all the information
+		File.Create(idFile).Dispose();
+	}
+
+	private static void Display(IEnumerable<IAnime> anime)
+	{
+		const string UNKNOWN = "Unknown ";
+		const string JOINER = " | ";
+
+		static void DisplayStatusItems(Status status)
+		{
+			const Status ALL = Status.None | Status.Mp3 | Status.Res480 | Status.Res720;
+
+			static void DisplayStatusItem(Status status, Status item, string rep)
 			{
-				const Status ALL = Status.None | Status.Mp3 | Status.Res480 | Status.Res720;
+				Console.Write(" | ");
 
-				static void DisplayStatusItem(Status status, Status item, string rep)
-				{
-					Console.Write(" | ");
-
-					var originalColor = Console.ForegroundColor;
-					Console.ForegroundColor = (status & item) != 0 ? ConsoleColor.Green : ConsoleColor.Red;
-					Console.Write(rep);
-					Console.ForegroundColor = originalColor;
-				}
-
-				DisplayStatusItem(status, ALL, "Submitted");
-				DisplayStatusItem(status, Status.Mp3, "Mp3");
-				DisplayStatusItem(status, Status.Res480, "480p");
-				DisplayStatusItem(status, Status.Res720, "720p");
+				var originalColor = Console.ForegroundColor;
+				Console.ForegroundColor = (status & item) != 0 ? ConsoleColor.Green : ConsoleColor.Red;
+				Console.Write(rep);
+				Console.ForegroundColor = originalColor;
 			}
 
-			static ConsoleColor GetBackground(Status status)
-			{
-				const Status VIDEO = Status.Res480 | Status.Res720;
-				const Status ALL = Status.Mp3 | VIDEO;
+			DisplayStatusItem(status, ALL, "Submitted");
+			DisplayStatusItem(status, Status.Mp3, "Mp3");
+			DisplayStatusItem(status, Status.Res480, "480p");
+			DisplayStatusItem(status, Status.Res720, "720p");
+		}
 
-				if (status == Status.NotSubmitted)
-				{
-					return ConsoleColor.DarkRed;
-				}
-				else if ((status & ALL) == ALL)
-				{
-					return ConsoleColor.DarkGreen;
-				}
-				else if ((status & VIDEO) != 0)
-				{
-					return ConsoleColor.DarkCyan;
-				}
-				else if ((status & ALL) != 0)
-				{
-					return ConsoleColor.DarkYellow;
-				}
+		static ConsoleColor GetBackground(Status status)
+		{
+			const Status VIDEO = Status.Res480 | Status.Res720;
+			const Status ALL = Status.Mp3 | VIDEO;
+
+			if (status == Status.NotSubmitted)
+			{
 				return ConsoleColor.DarkRed;
 			}
-
-			static int GetConsoleLength(string? value)
+			else if ((status & ALL) == ALL)
 			{
-				if (value is null)
-				{
-					return 0;
-				}
+				return ConsoleColor.DarkGreen;
+			}
+			else if ((status & VIDEO) != 0)
+			{
+				return ConsoleColor.DarkCyan;
+			}
+			else if ((status & ALL) != 0)
+			{
+				return ConsoleColor.DarkYellow;
+			}
+			return ConsoleColor.DarkRed;
+		}
 
-				var start = Console.CursorLeft;
-				Console.Write(value);
-				var end = Console.CursorLeft;
-				Console.CursorLeft = start;
-
-				return end - start;
+		static int GetConsoleLength(string? value)
+		{
+			if (value is null)
+			{
+				return 0;
 			}
 
-			static void ConsoleWritePadded(string value, int totalWidth)
+			var start = Console.CursorLeft;
+			Console.Write(value);
+			var end = Console.CursorLeft;
+			Console.CursorLeft = start;
+
+			return end - start;
+		}
+
+		static void ConsoleWritePadded(string value, int totalWidth)
+		{
+			var start = Console.CursorLeft;
+			Console.Write(value.PadRight(totalWidth));
+			var end = Console.CursorLeft;
+
+			var diff = end - start - totalWidth;
+			if (diff > 0)
 			{
-				var start = Console.CursorLeft;
-				Console.Write(value.PadRight(totalWidth));
-				var end = Console.CursorLeft;
-
-				var diff = end - start - totalWidth;
-				if (diff > 0)
-				{
-					Console.CursorLeft -= diff;
-				}
+				Console.CursorLeft -= diff;
 			}
+		}
 
-			var nameLen = int.MinValue;
-			var artLen = int.MinValue;
-			foreach (var song in anime.SelectMany(x => x.Songs))
+		var nameLen = int.MinValue;
+		var artLen = int.MinValue;
+		foreach (var song in anime.SelectMany(x => x.Songs))
+		{
+			nameLen = Math.Max(nameLen, GetConsoleLength(song.Name));
+			artLen = Math.Max(artLen, GetConsoleLength(song.Artist));
+		}
+
+		var originalBackground = Console.BackgroundColor;
+		foreach (var show in anime)
+		{
+			var text = $"[{show.Year}] [{show.Id}] {show.Name}";
+			if (show.VideoInfo?.Info is VideoInfo i)
 			{
-				nameLen = Math.Max(nameLen, GetConsoleLength(song.Name));
-				artLen = Math.Max(artLen, GetConsoleLength(song.Artist));
+				text += $" [{i.Width}x{i.Height}] [SAR: {i.SAR}] [DAR: {i.DAR}]";
 			}
+			Console.WriteLine(text);
 
-			var originalBackground = Console.BackgroundColor;
-			foreach (var show in anime)
+			foreach (var song in show.Songs)
 			{
-				var text = $"[{show.Year}] [{show.Id}] {show.Name}";
-				if (show.VideoInfo?.Info is VideoInfo i)
-				{
-					text += $" [{i.Width}x{i.Height}] [SAR: {i.SAR}] [DAR: {i.DAR}]";
-				}
-				Console.WriteLine(text);
+				var ts = song.HasTimeStamp();
+				Console.BackgroundColor = GetBackground(song.Status);
+				Console.Write('\t');
 
-				foreach (var song in show.Songs)
-				{
-					var ts = song.HasTimeStamp();
-					Console.BackgroundColor = GetBackground(song.Status);
-					Console.Write('\t');
+				ConsoleWritePadded(song.Name ?? UNKNOWN, nameLen);
+				Console.Write(JOINER);
+				ConsoleWritePadded(song.Artist ?? UNKNOWN, artLen);
+				Console.Write(JOINER);
+				Console.Write(ts ? song.Start.ToString("hh\\:mm\\:ss") : UNKNOWN);
+				Console.Write(JOINER);
+				Console.Write(ts ? song.GetLength().ToString("mm\\:ss").PadRight(UNKNOWN.Length) : UNKNOWN);
+				DisplayStatusItems(song.Status);
 
-					ConsoleWritePadded(song.Name ?? UNKNOWN, nameLen);
-					Console.Write(JOINER);
-					ConsoleWritePadded(song.Artist ?? UNKNOWN, artLen);
-					Console.Write(JOINER);
-					Console.Write(ts ? song.Start.ToString("hh\\:mm\\:ss") : UNKNOWN);
-					Console.Write(JOINER);
-					Console.Write(ts ? song.GetLength().ToString("mm\\:ss").PadRight(UNKNOWN.Length) : UNKNOWN);
-					DisplayStatusItems(song.Status);
-
-					Console.BackgroundColor = originalBackground;
-					Console.WriteLine();
-				}
+				Console.BackgroundColor = originalBackground;
+				Console.WriteLine();
 			}
+		}
+		Console.WriteLine();
+	}
+
+	private static Task Main()
+						=> new Program().RunAsync();
+
+	private void OnProcessingReceived(ProcessingData value)
+	{
+		//For each new path, add in an extra line break for readability
+		var firstWrite = Interlocked.Exchange(ref _Current, value.Path) != value.Path;
+		var finalWrite = value.Progress.IsEnd;
+		if (firstWrite || finalWrite)
+		{
 			Console.WriteLine();
 		}
 
-		private static Task Main()
-							=> new Program().RunAsync();
-
-		private void OnProcessingReceived(ProcessingData value)
+		if (finalWrite)
 		{
-			//For each new path, add in an extra line break for readability
-			var firstWrite = Interlocked.Exchange(ref _Current, value.Path) != value.Path;
-			var finalWrite = value.Progress.IsEnd;
-			if (firstWrite || finalWrite)
-			{
-				Console.WriteLine();
-			}
-
-			if (finalWrite)
-			{
-				Console.WriteLine($"Finished processing \"{value.Path}\"\n");
-				return;
-			}
-
-			if (!firstWrite)
-			{
-				Console.CursorLeft = 0;
-			}
-
-			Console.Write($"\"{value.Path}\" is {value.Percentage * 100:00.0}% complete. " +
-				$"ETA on completion: {value.CompletionETA}");
+			Console.WriteLine($"Finished processing \"{value.Path}\"\n");
+			return;
 		}
 
-		private async Task RunAsync()
+		if (!firstWrite)
 		{
-			string dir;
-			Console.WriteLine("Enter a directory to process: ");
-			while (true)
-			{
-				try
-				{
-					var directory = new DirectoryInfo(Console.ReadLine()!);
-					if (directory.Exists)
-					{
-						dir = directory.FullName;
-						break;
-					}
-				}
-				catch
-				{
-					Console.WriteLine("Invalid directory provided; enter a valid one: ");
-				}
-			}
-			if (OperatingSystem.IsWindows())
-			{
-				Console.SetBufferSize(Console.BufferWidth, short.MaxValue - 1);
-			}
-			Console.OutputEncoding = Encoding.UTF8;
-
-			var loader = new SongLoader(new SourceInfoGatherer());
-			await AddNewShowsAsync(loader, dir).ConfigureAwait(false);
-
-			var anime = new SortedSet<Anime>(new AnimeComparer());
-			await foreach (var item in loader.LoadFromDirectoryAsync(dir, 5))
-			{
-				var modifiable = new Anime(item);
-				modifiable.Songs.RemoveAll(x => x.ShouldIgnore);
-				anime.Add(modifiable);
-			}
-
-			Display(anime);
-
-			var processor = new SongProcessor();
-			processor.WarningReceived += Console.WriteLine;
-			await processor.ExportFixesAsync(dir, anime).ConfigureAwait(false);
-
-			var jobs = processor.CreateJobs(anime);
-			await jobs.ProcessAsync(OnProcessingReceived).ThrowIfAnyErrors().ConfigureAwait(false);
+			Console.CursorLeft = 0;
 		}
+
+		Console.Write($"\"{value.Path}\" is {value.Percentage * 100:00.0}% complete. " +
+			$"ETA on completion: {value.CompletionETA}");
+	}
+
+	private async Task RunAsync()
+	{
+		string dir;
+		Console.WriteLine("Enter a directory to process: ");
+		while (true)
+		{
+			try
+			{
+				var directory = new DirectoryInfo(Console.ReadLine()!);
+				if (directory.Exists)
+				{
+					dir = directory.FullName;
+					break;
+				}
+			}
+			catch
+			{
+				Console.WriteLine("Invalid directory provided; enter a valid one: ");
+			}
+		}
+		if (OperatingSystem.IsWindows())
+		{
+			Console.SetBufferSize(Console.BufferWidth, short.MaxValue - 1);
+		}
+		Console.OutputEncoding = Encoding.UTF8;
+
+		var loader = new SongLoader(new SourceInfoGatherer());
+		await AddNewShowsAsync(loader, dir).ConfigureAwait(false);
+
+		var anime = new SortedSet<Anime>(new AnimeComparer());
+		await foreach (var item in loader.LoadFromDirectoryAsync(dir, 5))
+		{
+			var modifiable = new Anime(item);
+			modifiable.Songs.RemoveAll(x => x.ShouldIgnore);
+			anime.Add(modifiable);
+		}
+
+		Display(anime);
+
+		var processor = new SongProcessor();
+		processor.WarningReceived += Console.WriteLine;
+		await processor.ExportFixesAsync(dir, anime).ConfigureAwait(false);
+
+		var jobs = processor.CreateJobs(anime);
+		await jobs.ProcessAsync(OnProcessingReceived).ThrowIfAnyErrors().ConfigureAwait(false);
 	}
 }
