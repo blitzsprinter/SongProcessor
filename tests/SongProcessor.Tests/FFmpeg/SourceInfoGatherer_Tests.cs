@@ -1,6 +1,6 @@
-﻿using SongProcessor.FFmpeg;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SongProcessor.FFmpeg;
 
 namespace SongProcessor.Tests.FFmpeg;
 

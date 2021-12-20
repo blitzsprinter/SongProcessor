@@ -1,5 +1,4 @@
-﻿
-using Avalonia.Data.Converters;
+﻿using Avalonia.Data.Converters;
 
 namespace SongProcessor.UI.Converters;
 

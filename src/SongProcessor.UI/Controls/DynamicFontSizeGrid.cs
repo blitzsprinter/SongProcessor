@@ -1,11 +1,11 @@
-﻿using System.Collections.Concurrent;
-
-using SongProcessor.UI.Converters;
-
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Data;
+
+using SongProcessor.UI.Converters;
+
+using System.Collections.Concurrent;
 
 namespace SongProcessor.UI.Controls;
 

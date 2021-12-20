@@ -32,16 +32,16 @@ public abstract class SongJob : ISongJob
 		using var process = ProcessUtils.FFmpeg.CreateProcess(GenerateArgs());
 		process.OnCancel((_, _) =>
 		{
-				// We can't just send 'q' to FFmpeg and have it quit gracefully because
-				// sometimes the path never gets released and then can't get deleted
-				process.Kill();
+			// We can't just send 'q' to FFmpeg and have it quit gracefully because
+			// sometimes the path never gets released and then can't get deleted
+			process.Kill();
 			process.WaitForExit(500);
 			try
 			{
 				File.Delete(path);
 			}
 			catch { } // Nothing we can do
-			}, token);
+		}, token);
 		// FFmpeg will output the information we want to std:out
 		var progressBuilder = new ProgressBuilder();
 		process.OutputDataReceived += (_, e) =>
@@ -53,8 +53,7 @@ public abstract class SongJob : ISongJob
 
 			if (progressBuilder.IsNextProgressReady(e.Data, out var progress))
 			{
-				var data = new ProcessingData(Song.GetLength(), path, progress);
-				ProcessingDataReceived?.Invoke(data);
+				ProcessingDataReceived?.Invoke(new(Song.GetLength(), path, progress));
 			}
 		};
 		// Since we set the loglevel to error we don't need to filter

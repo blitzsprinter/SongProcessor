@@ -1,9 +1,9 @@
-﻿using System.Collections.Concurrent;
-using System.Text;
-
-using SongProcessor.FFmpeg.Jobs;
+﻿using SongProcessor.FFmpeg.Jobs;
 using SongProcessor.Models;
 using SongProcessor.Results;
+
+using System.Collections.Concurrent;
+using System.Text;
 
 namespace SongProcessor;
 

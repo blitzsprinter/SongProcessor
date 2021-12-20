@@ -1,6 +1,6 @@
-﻿using System.Collections.Immutable;
+﻿using SongProcessor.UI.ViewModels;
 
-using SongProcessor.UI.ViewModels;
+using System.Collections.Immutable;
 
 namespace SongProcessor.UI;
 

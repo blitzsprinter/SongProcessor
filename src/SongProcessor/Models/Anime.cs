@@ -1,6 +1,6 @@
-﻿using System.Diagnostics;
+﻿using SongProcessor.FFmpeg;
 
-using SongProcessor.FFmpeg;
+using System.Diagnostics;
 
 namespace SongProcessor.Models;
 

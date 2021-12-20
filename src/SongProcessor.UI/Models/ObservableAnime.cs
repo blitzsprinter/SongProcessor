@@ -1,10 +1,10 @@
-﻿using System.Collections.ObjectModel;
-using System.Diagnostics;
+﻿using ReactiveUI;
 
 using SongProcessor.FFmpeg;
 using SongProcessor.Models;
 
-using ReactiveUI;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 
 namespace SongProcessor.UI.Models;
 

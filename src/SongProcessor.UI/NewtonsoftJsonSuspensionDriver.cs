@@ -1,10 +1,10 @@
-﻿using System.Reactive;
-using System.Reactive.Linq;
-
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
 using ReactiveUI;
+
+using System.Reactive;
+using System.Reactive.Linq;
 
 namespace SongProcessor.UI;
 

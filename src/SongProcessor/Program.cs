@@ -1,9 +1,9 @@
-﻿using System.Text;
-
-using SongProcessor.FFmpeg;
+﻿using SongProcessor.FFmpeg;
 using SongProcessor.Gatherers;
 using SongProcessor.Models;
 using SongProcessor.Utils;
+
+using System.Text;
 
 namespace SongProcessor;
 
@@ -155,7 +155,7 @@ public sealed class Program
 	}
 
 	private static Task Main()
-						=> new Program().RunAsync();
+		=> new Program().RunAsync();
 
 	private void OnProcessingReceived(ProcessingData value)
 	{

@@ -1,9 +1,9 @@
-﻿using System.IO.Compression;
-using System.Web;
+﻿using HtmlAgilityPack;
 
 using SongProcessor.Models;
 
-using HtmlAgilityPack;
+using System.IO.Compression;
+using System.Web;
 
 namespace SongProcessor.Gatherers;
 
@@ -179,7 +179,7 @@ public sealed class AniDBGatherer : IAnimeGatherer
 			var date = span.Single(x =>
 			{
 				var itemProp = x.GetAttributeValue("itemprop", null);
-				return itemProp == "datePublished" || itemProp == "startDate";
+				return itemProp is "datePublished" or "startDate";
 			});
 			var content = date.GetAttributeValue("content", null);
 			return DateTime.Parse(content).Year;

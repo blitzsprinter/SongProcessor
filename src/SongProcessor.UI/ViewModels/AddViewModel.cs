@@ -1,14 +1,14 @@
-﻿using System.Collections.ObjectModel;
-using System.Reactive;
-using System.Runtime.Serialization;
+﻿using ReactiveUI;
 
 using SongProcessor.Gatherers;
 using SongProcessor.Models;
 using SongProcessor.UI.Models;
 
-using ReactiveUI;
-
 using Splat;
+
+using System.Collections.ObjectModel;
+using System.Reactive;
+using System.Runtime.Serialization;
 
 namespace SongProcessor.UI.ViewModels;
 

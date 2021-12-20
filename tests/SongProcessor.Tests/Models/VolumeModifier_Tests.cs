@@ -1,6 +1,6 @@
-﻿using SongProcessor.Models;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SongProcessor.Models;
 
 namespace SongProcessor.Tests.Models;
 

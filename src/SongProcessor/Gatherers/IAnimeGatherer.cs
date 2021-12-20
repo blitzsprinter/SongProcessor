@@ -1,5 +1,4 @@
-﻿
-using SongProcessor.Models;
+﻿using SongProcessor.Models;
 
 namespace SongProcessor.Gatherers;
 

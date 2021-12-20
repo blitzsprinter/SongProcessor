@@ -1,10 +1,10 @@
-﻿using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-
-using SongProcessor.Converters;
+﻿using SongProcessor.Converters;
 using SongProcessor.Models;
 using SongProcessor.Utils;
+
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace SongProcessor.FFmpeg;
 
@@ -75,7 +75,7 @@ public sealed class SourceInfoGatherer : ISourceInfoGatherer
 					break;
 
 				default: // histogram_#db
-						var db = int.Parse(key.Split(_SplitChars)[1]);
+					var db = int.Parse(key.Split(_SplitChars)[1]);
 					histograms[db] = int.Parse(value);
 					break;
 			}
@@ -133,7 +133,7 @@ public sealed class SourceInfoGatherer : ISourceInfoGatherer
 			}
 			return new(path, result);
 		}
-		catch (Exception e) when (!(e is SourceInfoGatheringException))
+		catch (Exception e) when (e is not SourceInfoGatheringException)
 		{
 			throw Exception(stream, path, e);
 		}

@@ -1,7 +1,7 @@
-﻿using System.Text.Json;
-using System.Text.Json.Serialization;
+﻿using SongProcessor.Models;
 
-using SongProcessor.Models;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace SongProcessor.Converters;
 

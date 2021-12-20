@@ -1,9 +1,9 @@
-﻿using System.Text.Json;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using SongProcessor.Converters;
 using SongProcessor.Models;
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Text.Json;
 
 namespace SongProcessor.Tests.Converters;
 
@@ -55,7 +55,5 @@ public sealed class InterfaceJsonConverter_Tests
 	}
 
 	protected override void ConfigureOptions(JsonSerializerOptions options)
-	{
-		options.Converters.Add(new SongTypeAndPositionJsonConverter());
-	}
+		=> options.Converters.Add(new SongTypeAndPositionJsonConverter());
 }

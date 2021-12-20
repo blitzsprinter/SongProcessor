@@ -1,6 +1,6 @@
-﻿using SongProcessor.Utils;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SongProcessor.Utils;
 
 namespace SongProcessor.Tests.Utils;
 
@@ -11,10 +11,8 @@ public sealed class ProcessUtils_Tests
 
 	[TestMethod]
 	public void FindProgram_Test()
-	{
 		// We should always have a dotnet program installed if this test is being run
-		_ = ProcessUtils.FindProgram("dotnet");
-	}
+		=> _ = ProcessUtils.FindProgram("dotnet");
 
 	[TestMethod]
 	public void FindProgramBin_Test()

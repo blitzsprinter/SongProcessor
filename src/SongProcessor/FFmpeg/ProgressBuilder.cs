@@ -6,6 +6,7 @@ namespace SongProcessor.FFmpeg;
 internal sealed class ProgressBuilder
 {
 	public const string BITRATE = "bitrate";
+	public const string DEFAULT_VALUE = "N/A";
 	public const string DROP_FRAMES = "drop_frames";
 	public const string DUP_FRAMES = "dup_frames";
 	public const string FPS = "fps";
@@ -22,19 +23,19 @@ internal sealed class ProgressBuilder
 
 	public static ImmutableHashSet<string> ValidKeys { get; } = ImmutableHashSet.Create(new[]
 	{
-			BITRATE,
-			DROP_FRAMES,
-			DUP_FRAMES,
-			FPS,
-			FRAME,
-			OUT_TIME,
-			OUT_TIME_MS,
-			OUT_TIME_US,
-			PROGRESS,
-			SPEED,
-			STREAM00Q,
-			TOTAL_SIZE,
-		});
+		BITRATE,
+		DROP_FRAMES,
+		DUP_FRAMES,
+		FPS,
+		FRAME,
+		OUT_TIME,
+		OUT_TIME_MS,
+		OUT_TIME_US,
+		PROGRESS,
+		SPEED,
+		STREAM00Q,
+		TOTAL_SIZE,
+	});
 
 	public bool IsNextProgressReady(string kvp, [NotNullWhen(true)] out Progress? progress)
 	{
@@ -54,9 +55,7 @@ internal sealed class ProgressBuilder
 			return false;
 		}
 
-		var values = _Values;
-		_Values = new();
-
+		var values = Interlocked.Exchange(ref _Values, new(ValidKeys.Count));
 		progress = new
 		(
 			Bitrate: Parse(values, BITRATE, x => double.Parse(x.Replace("kbits/s", ""))),
@@ -76,20 +75,12 @@ internal sealed class ProgressBuilder
 	}
 
 	private static T Parse<T>(
-		Dictionary<string, string> source,
-		string name,
-		Func<string, T> parser,
-		T missingVal = default) where T : struct
+		Dictionary<string, string> dict,
+		string key,
+		Func<string, T> parser) where T : struct
 	{
-		if (source.TryGetValue(name, out var value))
-		{
-			if (value == "N/A")
-			{
-				return default;
-			}
-
-			return parser(value);
-		}
-		return missingVal;
+		return dict.TryGetValue(key, out var value) && value != DEFAULT_VALUE
+			? parser(value)
+			: default;
 	}
 }

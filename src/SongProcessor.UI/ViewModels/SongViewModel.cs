@@ -1,15 +1,4 @@
-﻿using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.Reactive;
-using System.Reactive.Linq;
-using System.Runtime.Serialization;
-
-using SongProcessor.FFmpeg;
-using SongProcessor.Models;
-using SongProcessor.UI.Models;
-using SongProcessor.Utils;
-
-using Avalonia.Collections;
+﻿using Avalonia.Collections;
 using Avalonia.Input.Platform;
 using Avalonia.Threading;
 
@@ -18,7 +7,18 @@ using DynamicData.Binding;
 
 using ReactiveUI;
 
+using SongProcessor.FFmpeg;
+using SongProcessor.Models;
+using SongProcessor.UI.Models;
+using SongProcessor.Utils;
+
 using Splat;
+
+using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Reactive;
+using System.Reactive.Linq;
+using System.Runtime.Serialization;
 
 namespace SongProcessor.UI.ViewModels;
 
@@ -489,8 +489,8 @@ public sealed class SongViewModel : ReactiveObject, IRoutableViewModel, INavigat
 			CurrentJob = 1;
 			QueuedJobs = jobs.Count;
 
-				// As each job progresses display its percentage
-				var results = jobs.ProcessAsync(x =>
+			// As each job progresses display its percentage
+			var results = jobs.ProcessAsync(x =>
 			{
 				if (x.Progress.IsEnd)
 				{
@@ -501,8 +501,8 @@ public sealed class SongViewModel : ReactiveObject, IRoutableViewModel, INavigat
 				TaskbarProgress.UpdateTaskbarProgress(x.Percentage);
 			}, token);
 
-				// If any result is an error stop processing and display it
-				await foreach (var result in results.WithCancellation(token))
+			// If any result is an error stop processing and display it
+			await foreach (var result in results.WithCancellation(token))
 			{
 				if (result.IsSuccess == false)
 				{

@@ -1,8 +1,8 @@
-﻿using SongProcessor.FFmpeg.Jobs;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using SongProcessor.FFmpeg.Jobs;
 using SongProcessor.Models;
 using SongProcessor.Results;
-
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SongProcessor.Tests.FFmpeg.Jobs;
 

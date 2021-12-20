@@ -1,6 +1,6 @@
-﻿using System.Globalization;
+﻿using Avalonia.Data.Converters;
 
-using Avalonia.Data.Converters;
+using System.Globalization;
 
 namespace SongProcessor.UI.Converters;
 

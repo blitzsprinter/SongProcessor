@@ -1,8 +1,8 @@
-﻿using System.Globalization;
+﻿using SongProcessor.Models;
+
+using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
-
-using SongProcessor.Models;
 
 namespace SongProcessor.Gatherers;
 

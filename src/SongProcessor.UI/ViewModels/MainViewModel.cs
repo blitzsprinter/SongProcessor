@@ -1,15 +1,15 @@
-﻿using System.Reactive;
-using System.Reactive.Linq;
-using System.Runtime.Serialization;
+﻿using Avalonia.Input.Platform;
+
+using ReactiveUI;
 
 using SongProcessor.FFmpeg;
 using SongProcessor.Gatherers;
 
-using Avalonia.Input.Platform;
-
-using ReactiveUI;
-
 using Splat;
+
+using System.Reactive;
+using System.Reactive.Linq;
+using System.Runtime.Serialization;
 
 namespace SongProcessor.UI.ViewModels;
 
@@ -91,7 +91,7 @@ public sealed class MainViewModel : ReactiveObject, IScreen
 	{
 		var isDifferent = this
 			.WhenAnyObservable(x => x.Router.CurrentViewModel)
-			.Select(x => !(x is T));
+			.Select(x => x is not T);
 		return CanNavigate().CombineLatest(isDifferent, (x, y) => x && y);
 	}
 

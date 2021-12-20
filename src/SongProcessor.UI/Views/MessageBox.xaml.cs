@@ -1,8 +1,7 @@
-﻿
-using SongProcessor.UI.ViewModels;
-
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+
+using SongProcessor.UI.ViewModels;
 
 namespace SongProcessor.UI.Views;
 

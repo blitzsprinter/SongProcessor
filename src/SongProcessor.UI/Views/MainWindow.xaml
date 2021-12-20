@@ -1,33 +1,33 @@
 ﻿<Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:reactiveUi="http://reactiveui.net"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:controls="clr-namespace:SongProcessor.UI.Controls;assembly=SongProcessor.UI"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="SongProcessor.UI.Views.MainWindow"
-        xmlns:reactiveUi="http://reactiveui.net"
         Title="SongProcessor">
 
-  <Grid RowDefinitions="19*,1*">
-    <!-- The RoutedViewHost XAML control observes the bound RoutingState.
+    <Grid RowDefinitions="19*,1*">
+        <!-- The RoutedViewHost XAML control observes the bound RoutingState.
              It subscribes to changes in the navigation stack and embedds
              the appropriate view for the currently selected view model. -->
-    <reactiveUi:RoutedViewHost Grid.Row="0" Router="{Binding Router}">
-      <reactiveUi:RoutedViewHost.DefaultContent>
-        <TextBlock Text="Default Content" />
-      </reactiveUi:RoutedViewHost.DefaultContent>
-    </reactiveUi:RoutedViewHost>
+        <reactiveUi:RoutedViewHost Grid.Row="0" Router="{Binding Router}">
+            <reactiveUi:RoutedViewHost.DefaultContent>
+                <TextBlock Text="Default Content" />
+            </reactiveUi:RoutedViewHost.DefaultContent>
+        </reactiveUi:RoutedViewHost>
 
-    <UniformGrid Grid.Row="1" Rows="1">
-      <Button Grid.Column="0"
+        <UniformGrid Grid.Row="1" Rows="1">
+            <Button Grid.Column="0"
               Command="{Binding Load}"
               Content="Load" />
-      <Button Grid.Column="1"
+            <Button Grid.Column="1"
               Command="{Binding Add}"
               Content="Add" />
-      <Button Grid.Column="2"
+            <Button Grid.Column="2"
               Command="{Binding GoBack}"
               Content="Back" />
-    </UniformGrid>
-  </Grid>
+        </UniformGrid>
+    </Grid>
 </Window>

@@ -1,16 +1,16 @@
-﻿using System.Reactive;
-using System.Reactive.Linq;
-
-using SongProcessor.Models;
-using SongProcessor.UI.Models;
-using SongProcessor.Utils;
-
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 using ReactiveUI;
 using ReactiveUI.Validation.Abstractions;
 using ReactiveUI.Validation.Contexts;
 using ReactiveUI.Validation.Extensions;
+
+using SongProcessor.Models;
+using SongProcessor.UI.Models;
+using SongProcessor.Utils;
+
+using System.Reactive;
+using System.Reactive.Linq;
 
 namespace SongProcessor.UI.ViewModels;
 

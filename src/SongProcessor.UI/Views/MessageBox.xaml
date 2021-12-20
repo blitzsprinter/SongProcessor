@@ -1,6 +1,6 @@
 ﻿<Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="278" d:DesignHeight="133"
         x:Class="SongProcessor.UI.Views.MessageBox"
@@ -11,17 +11,17 @@
         Height="{Binding Height}"
         CanResize="{Binding CanResize}">
 
-  <Grid RowDefinitions="89*,42">
-    <Grid Grid.Row="0">
-      <TextBlock Text="{Binding Text}" TextWrapping="Wrap" VerticalAlignment="Center"
+    <Grid RowDefinitions="89*,42">
+        <Grid Grid.Row="0">
+            <TextBlock Text="{Binding Text}" TextWrapping="Wrap" VerticalAlignment="Center"
                  Margin="15,0,15,0" />
-    </Grid>
+        </Grid>
 
-    <Grid Grid.Row="1" RowDefinitions="9*,23*,10*" ColumnDefinitions="104*,75,7,75,15">
-      <ComboBox Grid.Row="1" Grid.Column="1" Items="{Binding Options}"
+        <Grid Grid.Row="1" RowDefinitions="9*,23*,10*" ColumnDefinitions="104*,75,7,75,15">
+            <ComboBox Grid.Row="1" Grid.Column="1" Items="{Binding Options}"
                 SelectedItem="{Binding CurrentOption}" IsVisible="{Binding !!Options}" />
-      <Button Grid.Row="1" Grid.Column="3" Content="{Binding ButtonText}"
+            <Button Grid.Row="1" Grid.Column="3" Content="{Binding ButtonText}"
               Command="{Binding CloseCommand}" CommandParameter="{Binding ElementName=MsgBox}" />
+        </Grid>
     </Grid>
-  </Grid>
 </Window>

@@ -1,6 +1,6 @@
-﻿using SongProcessor.Converters;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SongProcessor.Converters;
 
 namespace SongProcessor.Tests.Converters;
 

@@ -1,6 +1,6 @@
-﻿using System.Text.Json.Serialization;
+﻿using SongProcessor.Models;
 
-using SongProcessor.Models;
+using System.Text.Json.Serialization;
 
 namespace SongProcessor.FFmpeg;
 

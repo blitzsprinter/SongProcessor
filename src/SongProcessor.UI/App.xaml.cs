@@ -1,13 +1,13 @@
-﻿using SongProcessor.FFmpeg;
-using SongProcessor.Gatherers;
-using SongProcessor.UI.ViewModels;
-using SongProcessor.UI.Views;
-
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Markup.Xaml;
 using Avalonia.ReactiveUI;
 
 using ReactiveUI;
+
+using SongProcessor.FFmpeg;
+using SongProcessor.Gatherers;
+using SongProcessor.UI.ViewModels;
+using SongProcessor.UI.Views;
 
 using Splat;
 

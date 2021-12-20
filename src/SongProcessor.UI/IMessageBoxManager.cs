@@ -1,5 +1,4 @@
-﻿
-using SongProcessor.UI.ViewModels;
+﻿using SongProcessor.UI.ViewModels;
 
 namespace SongProcessor.UI;
 

@@ -1,5 +1,4 @@
-﻿
-using SongProcessor.Models;
+﻿using SongProcessor.Models;
 
 namespace SongProcessor.UI.Models;
 
@@ -11,10 +10,10 @@ public enum StatusModifier
 	NotMp3 = -Mp3,
 	NotSubmitted = -Submitted,
 	None = 0,
-	Submitted = (1 << 0),
-	Mp3 = (1 << 1),
-	Res480 = (1 << 2),
-	Res720 = (1 << 3),
+	Submitted = 1 << 0,
+	Mp3 = 1 << 1,
+	Res480 = 1 << 2,
+	Res720 = 1 << 3,
 }
 
 public static class StatusModifierUtils

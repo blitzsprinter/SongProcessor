@@ -1,8 +1,8 @@
-﻿using System.Diagnostics;
+﻿using ReactiveUI;
 
 using SongProcessor.Models;
 
-using ReactiveUI;
+using System.Diagnostics;
 
 namespace SongProcessor.UI.Models;
 

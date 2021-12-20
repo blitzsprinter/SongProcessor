@@ -1,6 +1,6 @@
-﻿using System.Globalization;
+﻿using Avalonia.Data.Converters;
 
-using Avalonia.Data.Converters;
+using System.Globalization;
 
 namespace SongProcessor.UI.Converters;
 
@@ -31,5 +31,8 @@ public sealed class FontResizeConverter : IValueConverter
 	}
 
 	public object ConvertBack(object _, Type _2, object _3, CultureInfo _4)
+#pragma warning disable RCS1079 // Throwing of new NotImplementedException.
 		=> throw new NotImplementedException();
+
+#pragma warning restore RCS1079 // Throwing of new NotImplementedException.
 }

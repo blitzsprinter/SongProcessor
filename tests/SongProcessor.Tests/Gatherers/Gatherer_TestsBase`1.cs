@@ -1,7 +1,7 @@
-﻿using SongProcessor.Gatherers;
-using SongProcessor.Models;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SongProcessor.Gatherers;
+using SongProcessor.Models;
 
 namespace SongProcessor.Tests.Gatherers;
 

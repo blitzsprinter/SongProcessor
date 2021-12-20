@@ -1,8 +1,8 @@
-﻿using System.Runtime.Serialization;
+﻿using ReactiveUI;
 
 using SongProcessor.Models;
 
-using ReactiveUI;
+using System.Runtime.Serialization;
 
 namespace SongProcessor.UI.ViewModels;
 
