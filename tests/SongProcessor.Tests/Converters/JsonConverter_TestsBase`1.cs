@@ -1,4 +1,6 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using FluentAssertions;
+
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -10,23 +12,7 @@ public abstract class JsonConverter_TestsBase<TItem, TConverter>
 {
 	public abstract TConverter Converter { get; }
 	public abstract string Json { get; }
-	public virtual Lazy<JsonSerializerOptions> Options { get; }
 	public abstract TItem Value { get; }
-
-	protected JsonConverter_TestsBase()
-	{
-		Options = new(() =>
-		{
-			var options = new JsonSerializerOptions()
-			{
-				IgnoreReadOnlyProperties = true,
-			};
-			options.Converters.Add(new JsonStringEnumConverter());
-			options.Converters.Add(Converter);
-			ConfigureOptions(options);
-			return options;
-		});
-	}
 
 	[TestMethod]
 	public virtual async Task Deserialize_Test()
@@ -42,14 +28,21 @@ public abstract class JsonConverter_TestsBase<TItem, TConverter>
 		{
 			Value = Value
 		}).ConfigureAwait(false);
-		Assert.AreEqual(Json, actual);
+		actual.Should().Be(Json);
 	}
 
 	protected virtual void AssertEqual(TItem actual)
-		=> Assert.AreEqual(Value, actual);
+		=> actual.Should().Be(Value);
 
-	protected virtual void ConfigureOptions(JsonSerializerOptions options)
+	protected virtual JsonSerializerOptions CreateOptions()
 	{
+		var options = new JsonSerializerOptions()
+		{
+			IgnoreReadOnlyProperties = true,
+		};
+		options.Converters.Add(new JsonStringEnumConverter());
+		options.Converters.Add(Converter);
+		return options;
 	}
 
 	protected virtual async Task<T> DeserializeAsync<T>(string input)
@@ -61,7 +54,7 @@ public abstract class JsonConverter_TestsBase<TItem, TConverter>
 		await writer.FlushAsync().ConfigureAwait(false);
 		ms.Seek(0, SeekOrigin.Begin);
 
-		return (await JsonSerializer.DeserializeAsync<T>(ms, Options.Value).ConfigureAwait(false))!;
+		return (await JsonSerializer.DeserializeAsync<T>(ms, CreateOptions()).ConfigureAwait(false))!;
 	}
 
 	protected virtual async Task<string> SerializeAsync<T>(T value)
@@ -69,7 +62,7 @@ public abstract class JsonConverter_TestsBase<TItem, TConverter>
 		using var ms = new MemoryStream();
 		using var reader = new StreamReader(ms);
 
-		await JsonSerializer.SerializeAsync(ms, value, Options.Value).ConfigureAwait(false);
+		await JsonSerializer.SerializeAsync(ms, value, CreateOptions()).ConfigureAwait(false);
 		await ms.FlushAsync().ConfigureAwait(false);
 		ms.Seek(0, SeekOrigin.Begin);
 

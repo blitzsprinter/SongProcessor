@@ -1,5 +1,8 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using FluentAssertions;
 
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using SongProcessor.FFmpeg;
 using SongProcessor.FFmpeg.Jobs;
 using SongProcessor.Models;
 using SongProcessor.Results;
@@ -9,8 +12,6 @@ namespace SongProcessor.Tests.FFmpeg.Jobs;
 [TestClass]
 public sealed class VideoSongJob_Tests : SongJob_TestsBase
 {
-	public const double EXPECTED_DURATION = 1.342d;
-
 	[TestMethod]
 	public async Task Process_Test()
 	{
@@ -22,15 +23,12 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase
 
 		var file = await GetSingleFileProducedAsync(temp.Dir, job).ConfigureAwait(false);
 		var newVideoInfo = await Gatherer.GetVideoInfoAsync(file).ConfigureAwait(false);
-		var duration = double.Parse(newVideoInfo.Info.Tags["DURATION"].Split(':')[^1]);
-		Assert.AreEqual(EXPECTED_DURATION, duration, EXPECTED_DURATION * 0.05);
-		var expected = ValidVideoInfo.Duration!.Value / DIV;
-		Assert.AreEqual(expected, duration, expected * 0.05);
+		AssertValidLength(job, newVideoInfo.Info);
 
-		Assert.IsTrue(job.AlreadyExists);
+		job.AlreadyExists.Should().BeTrue();
 		var result = await job.ProcessAsync().ConfigureAwait(false);
-		Assert.IsFalse(result.IsSuccess);
-		Assert.IsInstanceOfType(result, typeof(FileAlreadyExists));
+		result.IsSuccess.Should().BeFalse();
+		result.Should().BeOfType<FileAlreadyExists>();
 	}
 
 	[TestMethod]
@@ -47,8 +45,8 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase
 		cts.Cancel();
 
 		var result = await task.ConfigureAwait(false);
-		Assert.IsNull(result.IsSuccess);
-		Assert.IsInstanceOfType(result, typeof(Canceled));
+		result.IsSuccess.Should().BeNull();
+		result.Should().BeOfType<Canceled>();
 	}
 
 	[TestMethod]
@@ -63,14 +61,11 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase
 
 		var file = await GetSingleFileProducedAsync(temp.Dir, job).ConfigureAwait(false);
 		var newVolumeInfo = await Gatherer.GetVolumeInfoAsync(file).ConfigureAwait(false);
-		Assert.IsTrue(ValidVideoVolume.MaxVolume > newVolumeInfo.Info.MaxVolume);
-		Assert.IsTrue(ValidVideoVolume.MeanVolume > newVolumeInfo.Info.MeanVolume);
+		newVolumeInfo.Info.MaxVolume.Should().BeLessThan(ValidVideoVolume.MaxVolume);
+		newVolumeInfo.Info.MeanVolume.Should().BeLessThan(ValidVideoVolume.MeanVolume);
 
 		var newVideoInfo = await Gatherer.GetVideoInfoAsync(file).ConfigureAwait(false);
-		var duration = double.Parse(newVideoInfo.Info.Tags["DURATION"].Split(':')[^1]);
-		Assert.AreEqual(EXPECTED_DURATION, duration, EXPECTED_DURATION * 0.05);
-		var expected = ValidVideoInfo.Duration!.Value / DIV;
-		Assert.AreEqual(expected, duration, expected * 0.05);
+		AssertValidLength(job, newVideoInfo.Info);
 	}
 
 	[TestMethod]
@@ -89,9 +84,14 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase
 			return new VideoSongJob(anime, song, ValidVideoInfo.Height + 2);
 		});
 
-		await Assert.ThrowsExceptionAsync<InvalidOperationException>(async () =>
-		{
-			await job.ProcessAsync().ConfigureAwait(false);
-		}).ConfigureAwait(false);
+		Func<Task> process = () => job.ProcessAsync();
+		await process.Should().ThrowAsync<InvalidOperationException>().ConfigureAwait(false);
+	}
+
+	private static void AssertValidLength(SongJob job, VideoInfo info)
+	{
+		var duration = double.Parse(info.Tags["DURATION"].Split(':')[^1]);
+		var expected = job.Song.GetLength().TotalSeconds;
+		AssertValidLength(duration, expected);
 	}
 }

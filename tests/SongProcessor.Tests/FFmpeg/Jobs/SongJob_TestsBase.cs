@@ -1,4 +1,6 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using FluentAssertions;
+
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using SongProcessor.Models;
 
@@ -11,17 +13,20 @@ public abstract class SongJob_TestsBase : FFmpeg_TestsBase
 	// The input is around 5.37s long, so the output is around 1.34s
 	public const int DIV = 4;
 
+	protected static void AssertValidLength(double value, double expected)
+		=> value.Should().BeApproximately(expected, expected * 0.03);
+
 	protected static string GetSingleFile(string directory)
 	{
 		var files = Directory.GetFiles(directory);
-		Assert.AreEqual(1, files.Length);
+		files.Length.Should().Be(1);
 		return files.Single();
 	}
 
 	protected static async Task<string> GetSingleFileProducedAsync(string directory, ISongJob job)
 	{
 		var result = await job.ProcessAsync().ConfigureAwait(false);
-		Assert.IsTrue(result.IsSuccess);
+		result.IsSuccess.Should().Be(true);
 		return GetSingleFile(directory);
 	}
 
@@ -39,18 +44,6 @@ public abstract class SongJob_TestsBase : FFmpeg_TestsBase
 			DAR = new(16, 9),
 			SAR = AspectRatio.Square,
 		}));
-	}
-
-	protected (Anime, Song) GenerateAnimeAndSong(string directory)
-	{
-		var anime = GenerateAnime(directory);
-		var song = new Song()
-		{
-			Start = TimeSpan.FromSeconds(0),
-			End = TimeSpan.FromSeconds(anime.VideoInfo!.Value.Info.Duration!.Value / DIV),
-			Name = Guid.NewGuid().ToString(),
-		};
-		return (anime, song);
 	}
 
 	protected T GenerateJob<T>(string directory, Func<Anime, Song, T> factory)

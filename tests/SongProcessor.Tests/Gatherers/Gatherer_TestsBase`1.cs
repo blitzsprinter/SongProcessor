@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using FluentAssertions;
 
 using SongProcessor.Gatherers;
 using SongProcessor.Models;
@@ -16,6 +16,7 @@ public abstract class Gatherer_TestsBase<T> : Gatherer_TestsBase where T : IAnim
 
 	public virtual async Task AssertRetrievedMatchesAsync(int id)
 	{
+		var expected = GetExpectedAnimeBase();
 		var actual = await Gatherer.GetAsync(id, new(
 			AddEndings: true,
 			AddInserts: true,
@@ -23,19 +24,7 @@ public abstract class Gatherer_TestsBase<T> : Gatherer_TestsBase where T : IAnim
 			AddSongs: true
 		)).ConfigureAwait(false);
 
-		var expected = GetExpectedAnimeBase();
-		Assert.AreEqual(expected.Id, actual.Id);
-		Assert.AreEqual(expected.Name, actual.Name);
-		Assert.AreEqual(expected.Source, actual.Source);
-		Assert.AreEqual(expected.Year, actual.Year);
-
-		Assert.AreEqual(expected.Songs.Count, actual.Songs.Count);
-		for (var i = 0; i < expected.Songs.Count; ++i)
-		{
-			Assert.AreEqual(expected.Songs[i].Artist, actual.Songs[i].Artist);
-			Assert.AreEqual(expected.Songs[i].Name, actual.Songs[i].Name);
-			Assert.AreEqual(expected.Songs[i].Type, actual.Songs[i].Type);
-		}
+		actual.Should().BeEquivalentTo(expected);
 	}
 
 	public abstract IAnimeBase GetExpectedAnimeBase();

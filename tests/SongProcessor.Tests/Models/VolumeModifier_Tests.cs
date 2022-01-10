@@ -1,4 +1,6 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using FluentAssertions;
+
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using SongProcessor.Models;
 
@@ -12,10 +14,8 @@ public sealed class VolumeModifier_Tests
 	{
 		foreach (var value in new[] { double.MinValue, -1, -0.01 })
 		{
-			Assert.ThrowsException<ArgumentOutOfRangeException>(() =>
-			{
-				_ = VolumeModifer.FromPercentage(value);
-			});
+			value.Invoking(x => _ = VolumeModifer.FromPercentage(x))
+				.Should().Throw<ArgumentOutOfRangeException>();
 		}
 	}
 
@@ -40,13 +40,16 @@ public sealed class VolumeModifier_Tests
 		=> ParseSuccess_Test(VolumeModifer.FromPercentage(1.2), "1.2");
 
 	private static void ParseFailure_Test(string input)
-		=> Assert.ThrowsException<FormatException>(() => VolumeModifer.Parse(input));
+	{
+		Action parse = () => VolumeModifer.Parse(input);
+		parse.Should().Throw<FormatException>();
+	}
 
 	private static void ParseSuccess_Test(VolumeModifer expected, string expectedString)
 	{
 		var @string = expected.ToString();
-		Assert.AreEqual(expectedString, @string);
+		@string.Should().Be(expectedString);
 		var result = VolumeModifer.Parse(@string);
-		Assert.AreEqual(expected, result);
+		result.Should().Be(expected);
 	}
 }

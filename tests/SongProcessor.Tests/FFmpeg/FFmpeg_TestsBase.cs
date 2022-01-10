@@ -6,8 +6,8 @@ namespace SongProcessor.Tests.FFmpeg;
 public abstract class FFmpeg_TestsBase
 {
 	public const string FFMPEG_CATEGORY = "FFmpeg";
+	public virtual string FakeFileName { get; } = "DoesNotExist.txt";
 	public virtual SourceInfoGatherer Gatherer { get; } = new();
-	public virtual string NonExistentFileName { get; } = "DoesNotExist.txt";
 	public virtual VideoInfo ValidVideoInfo { get; } = new VideoInfo(
 		AverageFrameRate: "24000/1001",
 		ClosedCaptions: 0,

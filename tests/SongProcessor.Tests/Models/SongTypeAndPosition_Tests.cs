@@ -1,4 +1,6 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using FluentAssertions;
+
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using SongProcessor.Models;
 
@@ -38,11 +40,7 @@ public sealed class SongTypeAndPosition_Tests
 			}
 		}
 
-		Assert.AreEqual(expected.Count, songs.Count);
-		for (var i = 0; i < expected.Count; ++i)
-		{
-			Assert.AreEqual(expected[i], songs.Values[i]);
-		}
+		songs.Values.Should().BeEquivalentTo(expected);
 	}
 
 	[TestMethod]
@@ -50,10 +48,8 @@ public sealed class SongTypeAndPosition_Tests
 	{
 		foreach (var value in new[] { int.MinValue, -1, 0 })
 		{
-			Assert.ThrowsException<ArgumentOutOfRangeException>(() =>
-			{
-				_ = new SongTypeAndPosition(SongType.Op, value);
-			});
+			value.Invoking(x => new SongTypeAndPosition(SongType.Op, x))
+				.Should().Throw<ArgumentOutOfRangeException>();
 		}
 	}
 
@@ -62,10 +58,8 @@ public sealed class SongTypeAndPosition_Tests
 	{
 		foreach (var value in new[] { int.MinValue, -1, 3, int.MaxValue }.Cast<SongType>())
 		{
-			Assert.ThrowsException<ArgumentOutOfRangeException>(() =>
-			{
-				_ = new SongTypeAndPosition(value, null);
-			});
+			value.Invoking(x => new SongTypeAndPosition(x, null))
+				.Should().Throw<ArgumentOutOfRangeException>();
 		}
 	}
 
@@ -73,23 +67,23 @@ public sealed class SongTypeAndPosition_Tests
 	public void EqualsNullable_Test()
 	{
 		SongTypeAndPosition? nullable = SongType.Op.Create(1);
-		Assert.AreEqual(Default, nullable);
+		nullable.Should().Be(Default);
 
 		nullable = null;
-		Assert.AreNotEqual(Default, nullable);
+		nullable.Should().NotBe(Default);
 	}
 
 	[TestMethod]
 	public void EqualsOperator_Test()
 	{
 		var other = SongType.Ed.Create(1);
-		Assert.IsFalse(Default == other);
-		Assert.IsTrue(Default != other);
+		(Default == other).Should().BeFalse();
+		(Default != other).Should().BeTrue();
 	}
 
 	[TestMethod]
 	public void EqualsWrongType_Test()
-		=> Assert.IsFalse(Default.Equals("string"));
+		=> Default.Equals("string").Should().BeFalse();
 
 	[TestMethod]
 	public void GetHashCode_Test()
@@ -109,7 +103,7 @@ public sealed class SongTypeAndPosition_Tests
 				}
 			}
 		}
-		Assert.AreEqual((X * (types.Length - 1)) + 1, set.Count);
+		set.Count.Should().Be((X * (types.Length - 1)) + 1);
 	}
 
 	[TestMethod]
@@ -135,38 +129,41 @@ public sealed class SongTypeAndPosition_Tests
 	[TestMethod]
 	public void ToStringEnding_Test()
 	{
-		Assert.AreEqual("Ending", SongType.Ed.Create(null).ToString());
-		Assert.AreEqual("Ed", SongType.Ed.Create(null).ToString(shortType: true));
-		Assert.AreEqual("Ending 1", SongType.Ed.Create(1).ToString());
-		Assert.AreEqual("Ed 1", SongType.Ed.Create(1).ToString(shortType: true));
+		SongType.Ed.Create(null).ToString().Should().Be("Ending");
+		SongType.Ed.Create(null).ToString(shortType: true).Should().Be("Ed");
+		SongType.Ed.Create(1).ToString().Should().Be("Ending 1");
+		SongType.Ed.Create(1).ToString(shortType: true).Should().Be("Ed 1");
 	}
 
 	[TestMethod]
 	public void ToStringInsert_Test()
 	{
-		Assert.AreEqual("Insert", SongType.In.Create(null).ToString());
-		Assert.AreEqual("In", SongType.In.Create(null).ToString(shortType: true));
-		Assert.AreEqual("Insert", SongType.In.Create(1).ToString());
-		Assert.AreEqual("In", SongType.In.Create(1).ToString(shortType: true));
+		SongType.In.Create(null).ToString().Should().Be("Insert");
+		SongType.In.Create(null).ToString(shortType: true).Should().Be("In");
+		SongType.In.Create(1).ToString().Should().Be("Insert");
+		SongType.In.Create(1).ToString(shortType: true).Should().Be("In");
 	}
 
 	[TestMethod]
 	public void ToStringOpening_Test()
 	{
-		Assert.AreEqual("Opening", SongType.Op.Create(null).ToString());
-		Assert.AreEqual("Op", SongType.Op.Create(null).ToString(shortType: true));
-		Assert.AreEqual("Opening 1", SongType.Op.Create(1).ToString());
-		Assert.AreEqual("Op 1", SongType.Op.Create(1).ToString(shortType: true));
+		SongType.Op.Create(null).ToString().Should().Be("Opening");
+		SongType.Op.Create(null).ToString(shortType: true).Should().Be("Op");
+		SongType.Op.Create(1).ToString().Should().Be("Opening 1");
+		SongType.Op.Create(1).ToString(shortType: true).Should().Be("Op 1");
 	}
 
 	private static void ParseFailure_Test(string input)
-		=> Assert.ThrowsException<FormatException>(() => SongTypeAndPosition.Parse(input));
+	{
+		Action parse = () => SongTypeAndPosition.Parse(input);
+		parse.Should().Throw<FormatException>();
+	}
 
 	private static void ParseSuccess_Test(SongTypeAndPosition expected, string expectedString)
 	{
 		var @string = expected.ToString();
-		Assert.AreEqual(expectedString, @string);
+		@string.Should().Be(expectedString);
 		var result = SongTypeAndPosition.Parse(@string);
-		Assert.AreEqual(expected, result);
+		result.Should().Be(expected);
 	}
 }

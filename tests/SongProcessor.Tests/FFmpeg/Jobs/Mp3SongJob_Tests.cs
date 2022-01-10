@@ -1,5 +1,8 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using FluentAssertions;
 
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using SongProcessor.FFmpeg;
 using SongProcessor.FFmpeg.Jobs;
 using SongProcessor.Models;
 using SongProcessor.Results;
@@ -20,13 +23,12 @@ public sealed class Mp3SongJob_Tests : SongJob_TestsBase
 
 		var file = await GetSingleFileProducedAsync(temp.Dir, job).ConfigureAwait(false);
 		var newVolumeInfo = await Gatherer.GetVolumeInfoAsync(file).ConfigureAwait(false);
-		var expected = ValidVideoVolume.NSamples / DIV;
-		Assert.AreEqual(expected, newVolumeInfo.Info.NSamples, expected * 0.05);
+		AssertValidLength(job, newVolumeInfo.Info);
 
-		Assert.IsTrue(job.AlreadyExists);
+		job.AlreadyExists.Should().BeTrue();
 		var result = await job.ProcessAsync().ConfigureAwait(false);
-		Assert.IsFalse(result.IsSuccess);
-		Assert.IsInstanceOfType(result, typeof(FileAlreadyExists));
+		result.IsSuccess.Should().BeFalse();
+		result.Should().BeOfType<FileAlreadyExists>();
 	}
 
 	[TestMethod]
@@ -43,8 +45,8 @@ public sealed class Mp3SongJob_Tests : SongJob_TestsBase
 		cts.Cancel();
 
 		var result = await task.ConfigureAwait(false);
-		Assert.IsNull(result.IsSuccess);
-		Assert.IsInstanceOfType(result, typeof(Canceled));
+		result.IsSuccess.Should().BeNull();
+		result.Should().BeOfType<Canceled>();
 	}
 
 	[TestMethod]
@@ -59,10 +61,9 @@ public sealed class Mp3SongJob_Tests : SongJob_TestsBase
 
 		var file = await GetSingleFileProducedAsync(temp.Dir, job).ConfigureAwait(false);
 		var newVolumeInfo = await Gatherer.GetVolumeInfoAsync(file).ConfigureAwait(false);
-		var expected = ValidVideoVolume.NSamples / DIV;
-		Assert.AreEqual(expected, newVolumeInfo.Info.NSamples, expected * 0.05);
-		Assert.IsTrue(ValidVideoVolume.MaxVolume > newVolumeInfo.Info.MaxVolume);
-		Assert.IsTrue(ValidVideoVolume.MeanVolume > newVolumeInfo.Info.MeanVolume);
+		AssertValidLength(job, newVolumeInfo.Info);
+		newVolumeInfo.Info.MaxVolume.Should().BeLessThan(ValidVideoVolume.MaxVolume);
+		newVolumeInfo.Info.MeanVolume.Should().BeLessThan(ValidVideoVolume.MeanVolume);
 	}
 
 	[TestMethod]
@@ -71,6 +72,7 @@ public sealed class Mp3SongJob_Tests : SongJob_TestsBase
 		using var temp = new TempDirectory();
 		var job = GenerateJob(temp.Dir, (anime, song) =>
 		{
+			// Generate a clean version from the entire video
 			song.End = TimeSpan.FromSeconds(anime.VideoInfo!.Value.Info.Duration!.Value);
 			return new Mp3SongJob(anime, song);
 		});
@@ -78,7 +80,8 @@ public sealed class Mp3SongJob_Tests : SongJob_TestsBase
 		// Create a duplicate version to treat as a clean version
 		var cleanPath = await GetSingleFileProducedAsync(temp.Dir, job).ConfigureAwait(false);
 		var cleanVolumeInfo = await Gatherer.GetVolumeInfoAsync(cleanPath).ConfigureAwait(false);
-		Assert.AreEqual(ValidVideoVolume.NSamples, cleanVolumeInfo.Info.NSamples, 2000);
+		AssertValidLength(cleanVolumeInfo.Info.NSamples, ValidVideoVolume.NSamples);
+
 		{
 			var movedPath = Path.Combine(
 				Path.GetDirectoryName(cleanPath)!,
@@ -89,20 +92,26 @@ public sealed class Mp3SongJob_Tests : SongJob_TestsBase
 
 		job = GenerateJob(temp.Dir, (anime, song) =>
 		{
-			// Set the length back to being shorter than the produced clean version
-			song.End = TimeSpan.FromSeconds(anime.VideoInfo!.Value.Info.Duration!.Value / DIV);
+			// Use the newly created clean path
 			song.CleanPath = cleanPath;
 			return new Mp3SongJob(anime, song);
 		});
 
 		var result = await job.ProcessAsync().ConfigureAwait(false);
-		Assert.IsTrue(result.IsSuccess);
+		result.IsSuccess.Should().BeTrue();
 		// Delete the clean version so we can get the output easier
 		File.Delete(cleanPath);
 
 		var file = GetSingleFile(temp.Dir);
 		var newVolumeInfo = await Gatherer.GetVolumeInfoAsync(file).ConfigureAwait(false);
-		var expected = ValidVideoVolume.NSamples / DIV;
-		Assert.AreEqual(expected, newVolumeInfo.Info.NSamples, expected * 0.05);
+		AssertValidLength(job, newVolumeInfo.Info);
+	}
+
+	private void AssertValidLength(SongJob job, VolumeInfo info)
+	{
+		var duration = (double)info.NSamples;
+		var divisor = ValidVideoInfo.Duration / job.Song.GetLength().TotalSeconds;
+		var expected = (ValidVideoVolume.NSamples / divisor)!.Value;
+		AssertValidLength(duration, expected);
 	}
 }

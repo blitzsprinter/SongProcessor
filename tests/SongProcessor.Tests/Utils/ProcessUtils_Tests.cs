@@ -1,4 +1,6 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using FluentAssertions;
+
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using SongProcessor.Utils;
 
@@ -37,10 +39,8 @@ public sealed class ProcessUtils_Tests
 	[TestMethod]
 	public void FindProgramFailure_Test()
 	{
-		Assert.ThrowsException<InvalidOperationException>(() =>
-		{
-			_ = ProcessUtils.FindProgram("asdfasdfasdfasdfasdfasdfasdfasdf");
-		});
+		Action failure = () => _ = ProcessUtils.FindProgram("asdfasdfasdfasdfasdfasdf");
+		failure.Should().Throw<InvalidOperationException>();
 	}
 
 	[TestMethod]
@@ -53,7 +53,7 @@ public sealed class ProcessUtils_Tests
 
 		source.Cancel();
 		source.Cancel();
-		Assert.AreEqual(1, invokeCount);
+		invokeCount.Should().Be(1);
 
 		await process.RunAsync(OutputMode.Sync).ConfigureAwait(false);
 	}
@@ -68,7 +68,7 @@ public sealed class ProcessUtils_Tests
 
 		await process.RunAsync(OutputMode.Sync).ConfigureAwait(false);
 		source.Cancel();
-		Assert.AreEqual(0, invokeCount);
+		invokeCount.Should().Be(0);
 	}
 
 	[TestMethod]
@@ -79,7 +79,7 @@ public sealed class ProcessUtils_Tests
 		process.OnComplete(_ => ++invokeCount);
 
 		await process.RunAsync(OutputMode.Sync).ConfigureAwait(false);
-		Assert.AreEqual(1, invokeCount);
+		invokeCount.Should().Be(1);
 	}
 
 	[TestMethod]
@@ -87,28 +87,20 @@ public sealed class ProcessUtils_Tests
 	{
 		var process = ProcessUtils.FindProgram("dotnet").CreateProcess("--version");
 		process.EnableRaisingEvents = false;
-		Assert.ThrowsException<ArgumentException>(() =>
-		{
-			_ = process.OnCancel((_, _) => { });
-		});
-		Assert.ThrowsException<ArgumentException>(() =>
-		{
-			_ = process.OnComplete(_ => { });
-		});
+		Action onCancel = () => _ = process.OnCancel((_, _) => { });
+		onCancel.Should().Throw<ArgumentException>();
+		Action onCompleted = () => _ = process.OnComplete(_ => { });
+		onCompleted.Should().Throw<ArgumentException>();
 	}
 
 	[TestMethod]
 	public void OnXNullCallback_Test()
 	{
 		var process = ProcessUtils.FindProgram("dotnet").CreateProcess("--version");
-		Assert.ThrowsException<ArgumentNullException>(() =>
-		{
-			_ = process.OnCancel(null!);
-		});
-		Assert.ThrowsException<ArgumentNullException>(() =>
-		{
-			_ = process.OnComplete(null!);
-		});
+		Action onCancel = () => _ = process.OnCancel(null!);
+		onCancel.Should().Throw<ArgumentNullException>();
+		Action onCompleted = () => _ = process.OnComplete(null!);
+		onCompleted.Should().Throw<ArgumentNullException>();
 	}
 
 	[TestMethod]
@@ -126,8 +118,8 @@ public sealed class ProcessUtils_Tests
 		};
 
 		var code = await process.RunAsync(OutputMode.Async).ConfigureAwait(false);
-		Assert.AreEqual(0, code); // Zero = success
-		Assert.AreEqual(1, output.Count);
+		code.Should().Be(0); // Zero = success
+		output.Count.Should().Be(1);
 
 		TestContext.Write(output[0]);
 	}

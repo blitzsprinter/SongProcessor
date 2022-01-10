@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using FluentAssertions;
 
 namespace SongProcessor.Tests;
 
@@ -19,7 +19,7 @@ public sealed class TempDirectory : IDisposable
 		Dir = Path.Combine(Parent, "temp", Guid.ToString());
 
 		Directory.CreateDirectory(Dir);
-		Assert.AreEqual(0, Directory.GetFiles(Dir).Length);
+		Directory.GetFiles(Dir).Length.Should().Be(0);
 	}
 
 	public void Dispose()

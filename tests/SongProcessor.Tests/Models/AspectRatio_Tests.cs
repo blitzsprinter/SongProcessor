@@ -1,4 +1,6 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using FluentAssertions;
+
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using SongProcessor.Models;
 
@@ -28,11 +30,7 @@ public sealed class AspectRatio_Tests
 			ratios.Add(ratio, ratio);
 		}
 
-		Assert.AreEqual(expected.Count, ratios.Count);
-		for (var i = 0; i < expected.Count; ++i)
-		{
-			Assert.AreEqual(expected[i], ratios.Values[i]);
-		}
+		ratios.Values.Should().BeEquivalentTo(expected);
 	}
 
 	[TestMethod]
@@ -47,31 +45,31 @@ public sealed class AspectRatio_Tests
 	public void EqualsDifferentValuesSameRatio_Test()
 	{
 		var doubled = new AspectRatio(Default.Width * 2, Default.Height * 2);
-		Assert.AreNotEqual(Default, doubled);
-		Assert.AreEqual(Default.Ratio, doubled.Ratio);
+		doubled.Should().NotBe(Default);
+		doubled.Ratio.Should().Be(Default.Ratio);
 	}
 
 	[TestMethod]
 	public void EqualsNullable_Test()
 	{
 		AspectRatio? nullable = new AspectRatio(16, 9);
-		Assert.AreEqual(Default, nullable);
+		nullable.Should().Be(Default);
 
 		nullable = null;
-		Assert.AreNotEqual(Default, nullable);
+		nullable.Should().NotBe(Default);
 	}
 
 	[TestMethod]
 	public void EqualsOperator_Test()
 	{
 		var other = new AspectRatio(16, 10);
-		Assert.IsFalse(Default == other);
-		Assert.IsTrue(Default != other);
+		(Default == other).Should().BeFalse();
+		(Default != other).Should().BeTrue();
 	}
 
 	[TestMethod]
 	public void EqualsWrongType_Test()
-		=> Assert.IsFalse(Default.Equals("string"));
+		=> Default.Equals("string").Should().BeFalse();
 
 	[TestMethod]
 	public void GetHashCode_Test()
@@ -90,7 +88,7 @@ public sealed class AspectRatio_Tests
 				}
 			}
 		}
-		Assert.AreEqual((X - 1) * (Y - 1), set.Count);
+		set.Count.Should().Be((X - 1) * (Y - 1));
 	}
 
 	[TestMethod]
@@ -113,9 +111,7 @@ public sealed class AspectRatio_Tests
 	public void ParseSuccess_Test()
 	{
 		var result = AspectRatio.Parse($"{Default.Width}{SEP}{Default.Height}", SEP);
-		Assert.AreEqual(Default.Width, result.Width);
-		Assert.AreEqual(Default.Height, result.Height);
-		Assert.AreEqual(Default.Width / (float)Default.Height, result.Ratio);
+		result.Should().Be(Default);
 	}
 
 	[TestMethod]
@@ -124,16 +120,20 @@ public sealed class AspectRatio_Tests
 
 	[TestMethod]
 	public void ParseToString_Test()
-		=> Assert.AreEqual(Default, AspectRatio.Parse(Default.ToString(), SEP));
+		=> AspectRatio.Parse(Default.ToString(), SEP).Should().Be(Default);
 
 	private static void ConstructorFailure_Test(Func<int, AspectRatio> action)
 	{
 		foreach (var value in new[] { int.MinValue, -1, 0 })
 		{
-			Assert.ThrowsException<ArgumentOutOfRangeException>(() => action(value));
+			value.Invoking(x => action(x))
+				.Should().Throw<ArgumentOutOfRangeException>();
 		}
 	}
 
 	private static void ParseFailure_Test(string input)
-		=> Assert.ThrowsException<FormatException>(() => AspectRatio.Parse(input, SEP));
+	{
+		Action parse = () => AspectRatio.Parse(input, SEP);
+		parse.Should().Throw<FormatException>();
+	}
 }

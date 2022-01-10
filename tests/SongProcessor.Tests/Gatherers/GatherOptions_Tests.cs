@@ -1,4 +1,6 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using FluentAssertions;
+
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using SongProcessor.Gatherers;
 using SongProcessor.Models;
@@ -17,9 +19,9 @@ public sealed class GatherOptions_Tests
 			AddOpenings: false,
 			AddSongs: true
 		);
-		Assert.IsTrue(options.CanBeGathered(SongType.Ed));
-		Assert.IsFalse(options.CanBeGathered(SongType.In));
-		Assert.IsFalse(options.CanBeGathered(SongType.Op));
+		options.CanBeGathered(SongType.Ed).Should().BeTrue();
+		options.CanBeGathered(SongType.In).Should().BeFalse();
+		options.CanBeGathered(SongType.Op).Should().BeFalse();
 	}
 
 	[TestMethod]
@@ -31,9 +33,9 @@ public sealed class GatherOptions_Tests
 			AddOpenings: false,
 			AddSongs: true
 		);
-		Assert.IsFalse(options.CanBeGathered(SongType.Ed));
-		Assert.IsTrue(options.CanBeGathered(SongType.In));
-		Assert.IsFalse(options.CanBeGathered(SongType.Op));
+		options.CanBeGathered(SongType.Ed).Should().BeFalse();
+		options.CanBeGathered(SongType.In).Should().BeTrue();
+		options.CanBeGathered(SongType.Op).Should().BeFalse();
 	}
 
 	[TestMethod]
@@ -45,9 +47,9 @@ public sealed class GatherOptions_Tests
 			AddOpenings: true,
 			AddSongs: true
 		);
-		Assert.IsFalse(options.CanBeGathered(SongType.Ed));
-		Assert.IsFalse(options.CanBeGathered(SongType.In));
-		Assert.IsTrue(options.CanBeGathered(SongType.Op));
+		options.CanBeGathered(SongType.Ed).Should().BeFalse();
+		options.CanBeGathered(SongType.In).Should().BeFalse();
+		options.CanBeGathered(SongType.Op).Should().BeTrue();
 	}
 
 	[TestMethod]
@@ -59,9 +61,9 @@ public sealed class GatherOptions_Tests
 			AddOpenings: true,
 			AddSongs: false
 		);
-		Assert.IsFalse(options.CanBeGathered(SongType.Ed));
-		Assert.IsFalse(options.CanBeGathered(SongType.In));
-		Assert.IsFalse(options.CanBeGathered(SongType.Op));
+		options.CanBeGathered(SongType.Ed).Should().BeFalse();
+		options.CanBeGathered(SongType.In).Should().BeFalse();
+		options.CanBeGathered(SongType.Op).Should().BeFalse();
 	}
 
 	[TestMethod]
@@ -73,9 +75,7 @@ public sealed class GatherOptions_Tests
 			AddOpenings: true,
 			AddSongs: true
 		);
-		Assert.ThrowsException<ArgumentOutOfRangeException>(() =>
-		{
-			_ = options.CanBeGathered((SongType)3);
-		});
+		Action canGather = () => _ = options.CanBeGathered((SongType)3);
+		canGather.Should().Throw<ArgumentOutOfRangeException>();
 	}
 }

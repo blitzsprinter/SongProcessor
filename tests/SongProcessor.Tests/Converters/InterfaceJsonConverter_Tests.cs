@@ -1,4 +1,6 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using FluentAssertions;
+
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using SongProcessor.Converters;
 using SongProcessor.Models;
@@ -37,23 +39,12 @@ public sealed class InterfaceJsonConverter_Tests
 	};
 
 	protected override void AssertEqual(ISong actual)
-	{
-		Assert.AreEqual(Value.AlsoIn.Count, actual.AlsoIn.Count);
-		Assert.AreEqual(Value.Artist, actual.Artist);
-		Assert.AreEqual(Value.CleanPath, actual.CleanPath);
-		Assert.AreEqual(Value.End, actual.End);
-		Assert.AreEqual(Value.Episode, actual.Episode);
-		Assert.AreEqual(Value.Name, actual.Name);
-		Assert.AreEqual(Value.OverrideAspectRatio, actual.OverrideAspectRatio);
-		Assert.AreEqual(Value.OverrideAudioTrack, actual.OverrideAudioTrack);
-		Assert.AreEqual(Value.OverrideVideoTrack, actual.OverrideVideoTrack);
-		Assert.AreEqual(Value.ShouldIgnore, actual.ShouldIgnore);
-		Assert.AreEqual(Value.Start, actual.Start);
-		Assert.AreEqual(Value.Status, actual.Status);
-		Assert.AreEqual(Value.Type, actual.Type);
-		Assert.AreEqual(Value.VolumeModifier, actual.VolumeModifier);
-	}
+		=> actual.Should().BeEquivalentTo(Value);
 
-	protected override void ConfigureOptions(JsonSerializerOptions options)
-		=> options.Converters.Add(new SongTypeAndPositionJsonConverter());
+	protected override JsonSerializerOptions CreateOptions()
+	{
+		var options = base.CreateOptions();
+		options.Converters.Add(new SongTypeAndPositionJsonConverter());
+		return options;
+	}
 }

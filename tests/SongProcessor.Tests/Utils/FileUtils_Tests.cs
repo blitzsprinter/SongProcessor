@@ -1,4 +1,6 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using FluentAssertions;
+
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using SongProcessor.Utils;
 
@@ -14,25 +16,25 @@ public sealed class FileUtils_Tests
 	public void EnsureAbsolutePathNotQualified_Test()
 	{
 		var path = Path.Combine("joe", Name);
-		Assert.AreEqual(Path.Combine(Dir, path), FileUtils.EnsureAbsolutePath(Dir, path));
+		FileUtils.EnsureAbsolutePath(Dir, path).Should().Be(Path.Combine(Dir, path));
 	}
 
 	[TestMethod]
 	public void EnsureAbsolutePathPathNull_Test()
-		=> Assert.IsNull(FileUtils.EnsureAbsolutePath("C:", null));
+		=> FileUtils.EnsureAbsolutePath("C:", null).Should().BeNull();
 
 	[TestMethod]
 	public void EnsureAbsolutePathQualified_Test()
 	{
 		var path = Path.Combine("C:", Name);
-		Assert.AreEqual(path, FileUtils.EnsureAbsolutePath(Dir, path));
+		FileUtils.EnsureAbsolutePath(Dir, path).Should().Be(path);
 	}
 
 	[TestMethod]
 	public void GetRelativeOrAbsolutePathAbsolute_Test()
 	{
 		var path = Path.Combine("C:", Name);
-		Assert.AreEqual(path, FileUtils.GetRelativeOrAbsolutePath(Dir, path));
+		FileUtils.GetRelativeOrAbsolutePath(Dir, path).Should().Be(path);
 	}
 
 	[TestMethod]
@@ -40,18 +42,18 @@ public sealed class FileUtils_Tests
 	{
 		var nestedPath = Path.Combine("nested", Name);
 		var path = Path.Combine(Dir, nestedPath);
-		Assert.AreEqual(nestedPath, FileUtils.GetRelativeOrAbsolutePath(Dir, path));
+		FileUtils.GetRelativeOrAbsolutePath(Dir, path).Should().Be(nestedPath);
 	}
 
 	[TestMethod]
 	public void GetRelativeOrAbsolutePathNull_Test()
-		=> Assert.IsNull(FileUtils.GetRelativeOrAbsolutePath(Dir, null));
+		=> FileUtils.GetRelativeOrAbsolutePath(Dir, null).Should().BeNull();
 
 	[TestMethod]
 	public void GetRelativeOrAbsolutePathRelative_Test()
 	{
 		var path = Path.Combine(Dir, Name);
-		Assert.AreEqual(Path.GetFileName(path), FileUtils.GetRelativeOrAbsolutePath(Dir, path));
+		FileUtils.GetRelativeOrAbsolutePath(Dir, path).Should().Be(Path.GetFileName(path));
 	}
 
 	[TestMethod]
@@ -60,7 +62,7 @@ public sealed class FileUtils_Tests
 		using var temp = new TempDirectory();
 
 		var path = Path.Combine(temp.Dir, Name);
-		Assert.AreEqual(path, FileUtils.NextAvailableFilename(path));
+		FileUtils.NextAvailableFilename(path).Should().Be(path);
 	}
 
 	[TestMethod]
@@ -75,12 +77,12 @@ public sealed class FileUtils_Tests
 	public void SanitizePathInvalidCharacter_Test()
 	{
 		var name = Path.GetInvalidFileNameChars()[0] + Name;
-		Assert.AreEqual(Name, FileUtils.SanitizePath(name));
+		FileUtils.SanitizePath(name).Should().Be(Name);
 	}
 
 	[TestMethod]
 	public void SanitizePathNoInvalidCharacters_Test()
-		=> Assert.AreEqual(Name, FileUtils.SanitizePath(Name));
+		=> FileUtils.SanitizePath(Name).Should().Be(Name);
 
 	private static void NextAvailableFileName_Test(string? extension)
 	{
@@ -91,23 +93,13 @@ public sealed class FileUtils_Tests
 		var file = Path.Combine(temp.Dir, NAME + extension);
 		File.Create(file).Dispose();
 
+		var expected = new HashSet<string> { file };
 		for (var i = 0; i < 5; ++i)
 		{
 			File.Create(FileUtils.NextAvailableFilename(file)).Dispose();
+			expected.Add(Path.Combine(temp.Dir, $"{NAME}_({i + 1}){extension}"));
 		}
 
-		var expected = new HashSet<string>
-			{
-				file,
-				Path.Combine(temp.Dir, $"{NAME}_(1){extension}"),
-				Path.Combine(temp.Dir, $"{NAME}_(2){extension}"),
-				Path.Combine(temp.Dir, $"{NAME}_(3){extension}"),
-				Path.Combine(temp.Dir, $"{NAME}_(4){extension}"),
-				Path.Combine(temp.Dir, $"{NAME}_(5){extension}"),
-			};
-		foreach (var item in Directory.EnumerateFiles(temp.Dir))
-		{
-			Assert.IsTrue(expected.Contains(item));
-		}
+		Directory.EnumerateFiles(temp.Dir).Should().Contain(expected);
 	}
 }
