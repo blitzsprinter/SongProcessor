@@ -87,10 +87,10 @@ public readonly struct SongTypeAndPosition : IEquatable<SongTypeAndPosition>, IC
 
 	public int CompareTo(SongTypeAndPosition other)
 	{
-		var typeComparison = Type.CompareTo(other.Type);
-		if (typeComparison != 0)
+		var type = Type.CompareTo(other.Type);
+		if (type != 0)
 		{
-			return typeComparison;
+			return type;
 		}
 		return Nullable.Compare(Position, other.Position);
 	}

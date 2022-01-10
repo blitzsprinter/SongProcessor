@@ -1,6 +1,6 @@
 ﻿namespace SongProcessor.Models;
 
-public sealed class SongComparer : Comparer<ISong>
+public sealed class SongComparer : Comparer<ISong?>
 {
 	public static SongComparer Instance { get; } = new();
 

@@ -23,7 +23,7 @@ public class AnimeBase : IAnimeBase
 	{
 		Id = other.Id;
 		Name = other.Name;
-		Songs = other.Songs?.Select(x => new Song(x))?.ToList() ?? new();
+		Songs = other.Songs.Select(x => new Song(x)).ToList();
 		Source = other.Source;
 		Year = other.Year;
 	}

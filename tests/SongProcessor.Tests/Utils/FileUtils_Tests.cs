@@ -60,7 +60,6 @@ public sealed class FileUtils_Tests
 	public void NextAvailableFileNameAvailable_Test()
 	{
 		using var temp = new TempDirectory();
-
 		var path = Path.Combine(temp.Dir, Name);
 		FileUtils.NextAvailableFilename(path).Should().Be(path);
 	}
@@ -89,7 +88,6 @@ public sealed class FileUtils_Tests
 		const string NAME = "dn";
 
 		using var temp = new TempDirectory();
-
 		var file = Path.Combine(temp.Dir, NAME + extension);
 		File.Create(file).Dispose();
 

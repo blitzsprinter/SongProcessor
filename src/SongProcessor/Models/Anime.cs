@@ -23,7 +23,7 @@ public class Anime : IAnime
 		{
 			throw new ArgumentNullException(nameof(path));
 		}
-		if (Path.GetDirectoryName(path) is null)
+		if (!Path.IsPathFullyQualified(path))
 		{
 			throw new ArgumentException("Must be an absolute path.", nameof(path));
 		}
@@ -31,7 +31,7 @@ public class Anime : IAnime
 		AbsoluteInfoPath = path;
 		Id = other.Id;
 		Name = other.Name;
-		Songs = other.Songs?.Select(x => new Song(x))?.ToList() ?? new List<Song>();
+		Songs = other.Songs.Select(x => new Song(x)).ToList();
 		Year = other.Year;
 		VideoInfo = videoInfo;
 	}
