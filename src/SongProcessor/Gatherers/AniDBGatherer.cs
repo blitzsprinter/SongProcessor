@@ -21,40 +21,17 @@ public sealed class AniDBGatherer : IAnimeGatherer
 
 	public async Task<AnimeBase> GetAsync(int id, GatherOptions? options = null)
 	{
-		var url = URL + id;
-		var result = await _Client.GetAsync(url).ConfigureAwait(false);
-		if (!result.IsSuccessStatusCode)
-		{
-			throw new HttpRequestException($"{url} threw {result.StatusCode}.");
-		}
+		var response = await _Client.GetAsync(URL + id).ConfigureAwait(false);
+		response.ThrowIfInvalidResponse();
 
 		var doc = new HtmlDocument();
 		// AniDB uses brotli compression
-		using (var stream = await result.Content.ReadAsStreamAsync().ConfigureAwait(false))
+		using (var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
 		using (var br = new BrotliStream(stream, CompressionMode.Decompress))
 		{
 			doc.Load(br);
 		}
-		if (doc.DocumentNode.Descendants("div").Any(x => x.HasClass("error")))
-		{
-			throw new HttpRequestException($"{id} does not exist on {Name}.");
-		}
-
-		try
-		{
-			var anime = new AnimeBase
-			{
-				Id = GetANNId(doc),
-				Name = GetTitle(doc),
-				Year = GetYear(doc),
-			};
-			anime.Songs.AddRange(GetSongs(doc, options));
-			return anime;
-		}
-		catch (Exception e)
-		{
-			throw new FormatException($"Incorrect html for anime from {url}.", e);
-		}
+		return Parse(doc.DocumentNode, id, options);
 	}
 
 	public override string ToString()
@@ -62,6 +39,22 @@ public sealed class AniDBGatherer : IAnimeGatherer
 
 	async Task<IAnimeBase> IAnimeGatherer.GetAsync(int id, GatherOptions? options)
 		=> await GetAsync(id, options).ConfigureAwait(false);
+
+	internal AnimeBase Parse(HtmlNode doc, int id, GatherOptions? options)
+	{
+		if (doc.Descendants("div").Any(x => x.HasClass("error")))
+		{
+			this.ThrowUnableToFind(id);
+		}
+
+		return new()
+		{
+			Id = Get(doc, GetANNId, "ANN ID", id),
+			Name = Get(doc, GetTitle, "title", id),
+			Songs = new(Get(doc, x => GetSongs(x, options), "songs", id)),
+			Year = Get(doc, GetYear, "year", id),
+		};
+	}
 
 	private static HttpClient CreateClient()
 	{
@@ -77,22 +70,15 @@ public sealed class AniDBGatherer : IAnimeGatherer
 		return client;
 	}
 
-	private static int GetANNId(HtmlDocument doc)
+	private static int GetANNId(HtmlNode doc)
 	{
-		try
-		{
-			var a = doc.DocumentNode.Descendants("a");
-			var annBrand = a.Single(x => x.HasClass("i_resource_ann"));
-			var href = annBrand.GetAttributeValue("href", null);
-			return int.Parse(href.Split("id=")[1]);
-		}
-		catch (Exception e)
-		{
-			throw new FormatException("Unable to get ANN id.", e);
-		}
+		var a = doc.Descendants("a");
+		var annBrand = a.Single(x => x.HasClass("i_resource_ann"));
+		var href = annBrand.GetAttributeValue("href", null);
+		return int.Parse(href.Split("id=")[1]);
 	}
 
-	private static IEnumerable<Song> GetSongs(HtmlDocument doc, GatherOptions? options)
+	private static IEnumerable<Song> GetSongs(HtmlNode doc, GatherOptions? options)
 	{
 		const string SONG = "song";
 		const string CREATOR = "creator";
@@ -100,7 +86,7 @@ public sealed class AniDBGatherer : IAnimeGatherer
 
 		var type = default(SongType?);
 		var count = 1;
-		foreach (var tr in doc.DocumentNode.Descendants("tr"))
+		foreach (var tr in doc.Descendants("tr"))
 		{
 			var dict = new Dictionary<string, string?>(2)
 			{
@@ -155,38 +141,36 @@ public sealed class AniDBGatherer : IAnimeGatherer
 		}
 	}
 
-	private static string GetTitle(HtmlDocument doc)
+	private static string GetTitle(HtmlNode doc)
 	{
-		try
-		{
-			var div = doc.DocumentNode.Descendants("div");
-			var data = div.Single(x => x.Id == "tab_1_pane");
-			var span = data.Descendants("span");
-			var name = span.Single(x => x.GetAttributeValue("itemprop", null) == "name");
-			return name.InnerText.Trim();
-		}
-		catch (Exception e)
-		{
-			throw new FormatException("Unable to get title.", e);
-		}
+		var div = doc.Descendants("div");
+		var data = div.Single(x => x.Id == "tab_1_pane");
+		var span = data.Descendants("span");
+		var name = span.Single(x => x.GetAttributeValue("itemprop", null) == "name");
+		return name.InnerText.Trim();
 	}
 
-	private static int GetYear(HtmlDocument doc)
+	private static int GetYear(HtmlNode doc)
+	{
+		var span = doc.Descendants("span");
+		var date = span.Single(x =>
+		{
+			var itemProp = x.GetAttributeValue("itemprop", null);
+			return itemProp is "datePublished" or "startDate";
+		});
+		var content = date.GetAttributeValue("content", null);
+		return DateTime.Parse(content).Year;
+	}
+
+	private T Get<T>(HtmlNode doc, Func<HtmlNode, T> func, string item, int id)
 	{
 		try
 		{
-			var span = doc.DocumentNode.Descendants("span");
-			var date = span.Single(x =>
-			{
-				var itemProp = x.GetAttributeValue("itemprop", null);
-				return itemProp is "datePublished" or "startDate";
-			});
-			var content = date.GetAttributeValue("content", null);
-			return DateTime.Parse(content).Year;
+			return func(doc);
 		}
 		catch (Exception e)
 		{
-			throw new FormatException("Unable to get year.", e);
+			throw new FormatException($"Invalid {item} provided by {Name} for {id}.", e);
 		}
 	}
 }

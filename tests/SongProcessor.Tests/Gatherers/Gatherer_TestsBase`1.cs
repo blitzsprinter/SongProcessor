@@ -7,7 +7,7 @@ namespace SongProcessor.Tests.Gatherers;
 
 public abstract class Gatherer_TestsBase
 {
-	public const string WEB_CALL_CATEGORY = "WEB_CALL";
+	public const string WEB_CALL = "WEB_CALL";
 }
 
 public abstract class Gatherer_TestsBase<T> : Gatherer_TestsBase where T : IAnimeGatherer
@@ -23,7 +23,8 @@ public abstract class Gatherer_TestsBase<T> : Gatherer_TestsBase where T : IAnim
 
 	public virtual async Task AssertRetrievedMatchesAsync(int id)
 	{
-		var actual = await Gatherer.GetAsync(id, GatherOptions).ConfigureAwait(false);
+		var castedGatherer = (IAnimeGatherer)Gatherer;
+		var actual = await castedGatherer.GetAsync(id, GatherOptions).ConfigureAwait(false);
 		actual.Should().BeEquivalentTo(ExpectedAnimeBase);
 	}
 }

@@ -37,16 +37,12 @@ public sealed class ANNGatherer : IAnimeGatherer
 
 	public async Task<AnimeBase> GetAsync(int id, GatherOptions? options = null)
 	{
-		var url = URL + id;
-		var result = await _Client.GetAsync(url).ConfigureAwait(false);
-		if (!result.IsSuccessStatusCode)
-		{
-			throw new HttpRequestException($"{url} threw {result.StatusCode}.");
-		}
+		var response = await _Client.GetAsync(URL + id).ConfigureAwait(false);
+		response.ThrowIfInvalidResponse();
 
-		var stream = await result.Content.ReadAsStreamAsync().ConfigureAwait(false);
+		var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
 		var doc = XElement.Load(stream);
-		return Parse(id, options, doc);
+		return Parse(doc, id, options);
 	}
 
 	public override string ToString()
@@ -55,11 +51,11 @@ public sealed class ANNGatherer : IAnimeGatherer
 	async Task<IAnimeBase> IAnimeGatherer.GetAsync(int id, GatherOptions? options)
 		=> await GetAsync(id, options).ConfigureAwait(false);
 
-	internal AnimeBase Parse(int id, GatherOptions? options, XElement doc)
+	internal AnimeBase Parse(XElement doc, int id, GatherOptions? options)
 	{
 		if (doc.Descendants("warning").Any(x => x.Value.Contains("no result", StringComparison.OrdinalIgnoreCase)))
 		{
-			throw new KeyNotFoundException($"{id} cannot be found in {Name}.");
+			this.ThrowUnableToFind(id);
 		}
 
 		var anime = new AnimeBase
@@ -82,29 +78,29 @@ public sealed class ANNGatherer : IAnimeGatherer
 				switch (type)
 				{
 					case "main title":
-						ProcessTitle(anime, element);
+						GetTitle(anime, element);
 						break;
 
 					case "vintage":
-						ProcessVintage(anime, element);
+						GetYear(anime, element);
 						break;
 
 					case "opening theme":
 					case "ending theme":
 					case "insert song":
-						ProcessSong(anime, options, element, type);
+						GetSong(anime, options, element, type);
 						break;
 				}
 			}
 			catch (Exception e)
 			{
-				throw new FormatException($"Invalid {type} provided by ANN for {id}", e);
+				throw new FormatException($"Invalid {type} provided by {Name} for {id}", e);
 			}
 		}
 		return anime;
 	}
 
-	private static void ProcessSong(AnimeBase anime, GatherOptions? options, XElement e, string t)
+	private static void GetSong(AnimeBase anime, GatherOptions? options, XElement e, string t)
 	{
 		var type = Enum.Parse<SongType>(t.Split(' ')[0], true);
 		if (options?.CanBeGathered(type) == false)
@@ -123,10 +119,10 @@ public sealed class ANNGatherer : IAnimeGatherer
 		});
 	}
 
-	private static void ProcessTitle(AnimeBase anime, XElement e)
+	private static void GetTitle(AnimeBase anime, XElement e)
 		=> anime.Name = e.Value;
 
-	private static void ProcessVintage(AnimeBase anime, XElement e)
+	private static void GetYear(AnimeBase anime, XElement e)
 	{
 		var s = e.Value.Split(' ')[0];
 		if (DateTime.TryParse(s, out var dt)

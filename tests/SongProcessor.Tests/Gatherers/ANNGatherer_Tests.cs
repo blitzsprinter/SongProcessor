@@ -12,25 +12,28 @@ namespace SongProcessor.Tests.Gatherers;
 [TestClass]
 public sealed class ANNGatherer_Tests : Gatherer_TestsBase<ANNGatherer>
 {
-	private const int ID = 13888;
-	private const string XML = @"<?xml version=""1.0"" encoding=""UTF-8""?>
+	private const int ANN_ID = 13888;
+	private const string FAILURE = @"<ann>
+	<warning>no result for anime=abcd</warning>
+</ann>
+";
+	private const string SUCCESS = @"<?xml version=""1.0"" encoding=""UTF-8""?>
 <ann>
    <anime id=""13888"" gid=""2335879489"" type=""TV"" name=""Jormungand"" precision=""TV"" generated-on=""2022-01-10T03:39:38Z"">
       <info gid=""1700307189"" type=""Main title"" lang=""DE"">Jormungand</info>
       <info gid=""97063932"" type=""Vintage"">2012-04-10 to 2012-06-26</info>
+      <info gid=""97063933"" type=""Vintage"">2012</info>
       <info gid=""2253194512"" type=""Opening Theme"">""Borderland"" by Mami Kawada</info>
       <info gid=""3026477928"" type=""Ending Theme"">#1: ""Ambivalentidea"" by Nagi Yanagi</info>
       <info gid=""3453345228"" type=""Ending Theme"">#2: ""Shiroku Yawaraka na Hana"" by Nagi Yanagi (ep 4)</info>
+      <info gid=""3453345229"">empty</info>
    </anime>
 </ann>
 ";
-	private const string XML_FAILURE = @"<ann>
-	<warning>no result for anime=abcd</warning>
-</ann>
-";
+
 	protected override IAnimeBase ExpectedAnimeBase { get; } = new AnimeBase
 	{
-		Id = ID,
+		Id = ANN_ID,
 		Name = "Jormungand",
 		Songs = new()
 		{
@@ -62,19 +65,23 @@ public sealed class ANNGatherer_Tests : Gatherer_TestsBase<ANNGatherer>
 	[TestMethod]
 	public void DefaultParsing_Test()
 	{
-		var actual = Gatherer.Parse(ID, GatherOptions, XElement.Parse(XML));
+		var actual = Gatherer.Parse(XElement.Parse(SUCCESS), ANN_ID, GatherOptions);
 		actual.Should().BeEquivalentTo(ExpectedAnimeBase);
 	}
 
 	[TestMethod]
-	[TestCategory(WEB_CALL_CATEGORY)]
+	[TestCategory(WEB_CALL)]
 	public async Task Gather_Test()
-		=> await AssertRetrievedMatchesAsync(ID).ConfigureAwait(false);
+		=> await AssertRetrievedMatchesAsync(ANN_ID).ConfigureAwait(false);
 
 	[TestMethod]
 	public void NotFoundParsing_Test()
 	{
-		Action parse = () => Gatherer.Parse(ID, GatherOptions, XElement.Parse(XML_FAILURE));
+		Action parse = () => Gatherer.Parse(XElement.Parse(FAILURE), ANN_ID, GatherOptions);
 		parse.Should().Throw<KeyNotFoundException>();
 	}
+
+	[TestMethod]
+	public void ToString_Test()
+		=> Gatherer.ToString().Should().Be("ANN");
 }
