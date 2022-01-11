@@ -141,6 +141,6 @@ public sealed class SourceInfoGatherer : ISourceInfoGatherer
 
 	private sealed record Output<T>(
 		[property: JsonPropertyName("streams")]
-			T[] Streams
+		T[] Streams
 	);
 }

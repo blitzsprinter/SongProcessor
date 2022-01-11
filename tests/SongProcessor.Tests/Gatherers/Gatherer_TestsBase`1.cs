@@ -7,25 +7,23 @@ namespace SongProcessor.Tests.Gatherers;
 
 public abstract class Gatherer_TestsBase
 {
-	public const string GATHERERS_CATEGORY = "HTML";
+	public const string WEB_CALL_CATEGORY = "WEB_CALL";
 }
 
 public abstract class Gatherer_TestsBase<T> : Gatherer_TestsBase where T : IAnimeGatherer
 {
-	public abstract T Gatherer { get; }
+	protected abstract IAnimeBase ExpectedAnimeBase { get; }
+	protected abstract T Gatherer { get; }
+	protected GatherOptions GatherOptions { get; } = new(
+		AddEndings: true,
+		AddInserts: true,
+		AddOpenings: true,
+		AddSongs: true
+	);
 
 	public virtual async Task AssertRetrievedMatchesAsync(int id)
 	{
-		var expected = GetExpectedAnimeBase();
-		var actual = await Gatherer.GetAsync(id, new(
-			AddEndings: true,
-			AddInserts: true,
-			AddOpenings: true,
-			AddSongs: true
-		)).ConfigureAwait(false);
-
-		actual.Should().BeEquivalentTo(expected);
+		var actual = await Gatherer.GetAsync(id, GatherOptions).ConfigureAwait(false);
+		actual.Should().BeEquivalentTo(ExpectedAnimeBase);
 	}
-
-	public abstract IAnimeBase GetExpectedAnimeBase();
 }

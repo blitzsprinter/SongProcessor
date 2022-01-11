@@ -13,7 +13,7 @@ namespace SongProcessor.Tests.FFmpeg.Jobs;
 public sealed class VideoSongJob_Tests : SongJob_TestsBase
 {
 	[TestMethod]
-	public async Task Process_Test()
+	public async Task ProcessVideo_Test()
 	{
 		using var temp = new TempDirectory();
 		var job = GenerateJob(temp.Dir, (anime, song) =>
@@ -32,7 +32,7 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase
 	}
 
 	[TestMethod]
-	public async Task ProcessCanceled_Test()
+	public async Task ProcessVideoCanceled_Test()
 	{
 		using var temp = new TempDirectory();
 		var job = GenerateJob(temp.Dir, (anime, song) =>
@@ -50,7 +50,7 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase
 	}
 
 	[TestMethod]
-	public async Task ProcessModifyVolume_Test()
+	public async Task ProcessVideoModifyVolume_Test()
 	{
 		using var temp = new TempDirectory();
 		var job = GenerateJob(temp.Dir, (anime, song) =>
@@ -69,7 +69,7 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase
 	}
 
 	[TestMethod]
-	public async Task ProcessNullDAR_Test()
+	public async Task ProcessVideoNullDAR_Test()
 	{
 		using var temp = new TempDirectory();
 		var job = GenerateJob(temp.Dir, (anime, song) =>

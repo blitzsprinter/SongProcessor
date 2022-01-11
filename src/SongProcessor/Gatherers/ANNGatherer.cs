@@ -24,8 +24,8 @@ public sealed class ANNGatherer : IAnimeGatherer
 		= new(SongPattern, RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 	private static readonly string[] VintageFormats = new[]
 	{
-			"yyyy"
-		};
+		"yyyy"
+	};
 
 	private readonly HttpClient _Client;
 	public string Name { get; } = "ANN";
@@ -46,9 +46,20 @@ public sealed class ANNGatherer : IAnimeGatherer
 
 		var stream = await result.Content.ReadAsStreamAsync().ConfigureAwait(false);
 		var doc = XElement.Load(stream);
-		if (doc.Descendants("warning").Any(x => x.Value.Contains("no result for anime")))
+		return Parse(id, options, doc);
+	}
+
+	public override string ToString()
+		=> Name;
+
+	async Task<IAnimeBase> IAnimeGatherer.GetAsync(int id, GatherOptions? options)
+		=> await GetAsync(id, options).ConfigureAwait(false);
+
+	internal AnimeBase Parse(int id, GatherOptions? options, XElement doc)
+	{
+		if (doc.Descendants("warning").Any(x => x.Value.Contains("no result", StringComparison.OrdinalIgnoreCase)))
 		{
-			throw new HttpRequestException($"{id} does not exist on {Name}.");
+			throw new KeyNotFoundException($"{id} cannot be found in {Name}.");
 		}
 
 		var anime = new AnimeBase
@@ -93,12 +104,6 @@ public sealed class ANNGatherer : IAnimeGatherer
 		return anime;
 	}
 
-	public override string ToString()
-		=> Name;
-
-	async Task<IAnimeBase> IAnimeGatherer.GetAsync(int id, GatherOptions? options)
-		=> await GetAsync(id, options).ConfigureAwait(false);
-
 	private static void ProcessSong(AnimeBase anime, GatherOptions? options, XElement e, string t)
 	{
 		var type = Enum.Parse<SongType>(t.Split(' ')[0], true);
@@ -123,11 +128,9 @@ public sealed class ANNGatherer : IAnimeGatherer
 
 	private static void ProcessVintage(AnimeBase anime, XElement e)
 	{
-		static bool TryParseExact(string s, out DateTime dt)
-			=> DateTime.TryParseExact(s, VintageFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out dt);
-
 		var s = e.Value.Split(' ')[0];
-		if (DateTime.TryParse(s, out var dt) || TryParseExact(s, out dt))
+		if (DateTime.TryParse(s, out var dt)
+			|| DateTime.TryParseExact(s, VintageFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out dt))
 		{
 			anime.Year = Math.Min(anime.Year, dt.Year);
 		}

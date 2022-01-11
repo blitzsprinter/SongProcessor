@@ -34,8 +34,12 @@ public abstract class SongJob : ISongJob
 		{
 			// We can't just send 'q' to FFmpeg and have it quit gracefully because
 			// sometimes the path never gets released and then can't get deleted
-			process.Kill();
-			process.WaitForExit(500);
+			process.Kill(entireProcessTree: true);
+			if (!process.WaitForExit(250))
+			{
+				return;
+			}
+
 			try
 			{
 				File.Delete(path);
