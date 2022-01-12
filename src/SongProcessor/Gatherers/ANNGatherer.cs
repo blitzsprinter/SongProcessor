@@ -37,23 +37,26 @@ public sealed class ANNGatherer : IAnimeGatherer
 		_Client = client ?? GathererUtils.DefaultGathererClient;
 	}
 
-	public async Task<AnimeBase> GetAsync(int id, GatherOptions? options = null)
+	public async Task<AnimeBase> GetAsync(int id, GatherOptions options)
 	{
-		var response = await _Client.GetAsync(URL + id).ConfigureAwait(false);
-		response.ThrowIfInvalid();
+		using var response = await _Client.GetAsync(URL + id).ConfigureAwait(false);
+		response.EnsureSuccessStatusCode();
 
-		using var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-		var element = XElement.Load(stream);
-		return Parse(element, id, options);
+		XElement doc;
+		using (var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
+		{
+			doc = XElement.Load(stream);
+		}
+		return Parse(doc, id, options);
 	}
 
 	public override string ToString()
 		=> Name;
 
-	async Task<IAnimeBase> IAnimeGatherer.GetAsync(int id, GatherOptions? options)
+	async Task<IAnimeBase> IAnimeGatherer.GetAsync(int id, GatherOptions options)
 		=> await GetAsync(id, options).ConfigureAwait(false);
 
-	internal AnimeBase Parse(XElement element, int id, GatherOptions? options)
+	internal AnimeBase Parse(XElement element, int id, GatherOptions options)
 	{
 		if (element.Descendants("warning").Any(x => x.Value.Contains("no result")))
 		{
@@ -79,7 +82,7 @@ public sealed class ANNGatherer : IAnimeGatherer
 				switch (type)
 				{
 					case "main title":
-						anime.Name = info.Value;
+						anime.Name = info.Value.Trim();
 						break;
 
 					case "vintage":
@@ -90,7 +93,7 @@ public sealed class ANNGatherer : IAnimeGatherer
 					case "ending theme":
 					case "insert song":
 						var songType = Enum.Parse<SongType>(type.Split(' ')[0], true);
-						if (options?.CanBeGathered(songType) == true)
+						if (options.CanBeGathered(songType))
 						{
 							anime.Songs.Add(GetSong(info, songType));
 						}

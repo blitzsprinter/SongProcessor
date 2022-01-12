@@ -7,6 +7,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SongProcessor.Gatherers;
 using SongProcessor.Models;
 
+using System.Net;
+
 namespace SongProcessor.Tests.Gatherers;
 
 [TestClass]
@@ -14,7 +16,7 @@ public sealed class AniDBGatherer_Tests : Gatherer_TestsBase<AniDBGatherer>
 {
 	private const int ANIDB_ID = 8842;
 	private const int ANN_ID = 13888;
-	private const string FAILURE = @"
+	private const string HTML_NOT_FOUND = @"
 <!DOCTYPE html>
 <html lang=""en"" prefix=""og: http://ogp.me/ns#"">
    <body id=""anidb"" class=""anime"">
@@ -37,7 +39,7 @@ public sealed class AniDBGatherer_Tests : Gatherer_TestsBase<AniDBGatherer>
    </body>
 </html>
 ";
-	private const string SUCCESS = @"<!DOCTYPE html>
+	private const string HTML_SUCCESS = @"<!DOCTYPE html>
 <html lang=""en"" prefix=""og: http://ogp.me/ns#"">
    <body id=""anidb"" class=""anime"">
       <div id=""layout-content"">
@@ -191,27 +193,39 @@ public sealed class AniDBGatherer_Tests : Gatherer_TestsBase<AniDBGatherer>
 		Source = null,
 		Year = 2012
 	};
-	protected override AniDBGatherer Gatherer { get; } = new();
+	protected override AniDBGatherer Gatherer { get; set; } = new();
 
 	[TestMethod]
 	public void DefaultParsing_Test()
 	{
 		var doc = new HtmlDocument();
-		doc.LoadHtml(SUCCESS);
+		doc.LoadHtml(HTML_SUCCESS);
 		var actual = Gatherer.Parse(doc.DocumentNode, ANIDB_ID, GatherOptions);
 		actual.Should().BeEquivalentTo(ExpectedAnimeBase);
 	}
 
 	[TestMethod]
-	[TestCategory(WEB_CALL)]
+	[TestCategory(WEB_REQUEST)]
 	public async Task Gather_Test()
 		=> await AssertRetrievedMatchesAsync(ANIDB_ID).ConfigureAwait(false);
+
+	[TestMethod]
+	public async Task InvalidStatusCode_Test()
+	{
+		Gatherer = new AniDBGatherer(new HttpClient(new HttpTestHandler
+		{
+			StatusCode = HttpStatusCode.Forbidden,
+		}));
+
+		Func<Task> request = () => Gatherer.GetAsync(73, GatherOptions);
+		await request.Should().ThrowAsync<HttpRequestException>().ConfigureAwait(false);
+	}
 
 	[TestMethod]
 	public void NotFoundParsing_Test()
 	{
 		var doc = new HtmlDocument();
-		doc.LoadHtml(FAILURE);
+		doc.LoadHtml(HTML_NOT_FOUND);
 		Action parse = () => Gatherer.Parse(doc.DocumentNode, 8842, GatherOptions);
 		parse.Should().Throw<KeyNotFoundException>();
 	}

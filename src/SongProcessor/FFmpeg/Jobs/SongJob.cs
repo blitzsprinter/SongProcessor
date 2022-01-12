@@ -8,6 +8,14 @@ public abstract class SongJob : ISongJob
 {
 	public const int FFMPEG_ABORTED = -1;
 	public const int FFMPEG_SUCCESS = 0;
+	protected internal const string ARGS =
+		" -v level+error" + // Only output errors to stderr
+		" -nostats" + // Do not output the default stats
+		" -progress pipe:1" + // Output the stats to stdout in the easier to parse format
+		" -sn" + // No subtitles
+		" -map_metadata -1" + // No metadata
+		" -map_chapters -1" + // No chapters
+		" -b:a 320k"; // Set the audio bitrate to 320k
 
 	public bool AlreadyExists => File.Exists(GetSanitizedPath());
 	public IAnime Anime { get; }
@@ -82,7 +90,7 @@ public abstract class SongJob : ISongJob
 		};
 	}
 
-	protected abstract string GenerateArgs();
+	protected internal abstract string GenerateArgs();
 
 	protected virtual string GetSanitizedPath()
 	{

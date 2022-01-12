@@ -28,7 +28,7 @@ public sealed class Program
 		var gatherer = new ANNGatherer();
 		foreach (var id in File.ReadAllLines(idFile).Select(int.Parse))
 		{
-			var model = await gatherer.GetAsync(id).ConfigureAwait(false);
+			var model = await gatherer.GetAsync(id, GatherOptions.All).ConfigureAwait(false);
 			await loader.SaveAsync(directory, model, options).ConfigureAwait(false);
 			Console.WriteLine($"Got information from ANN for {model.Name}.");
 		}

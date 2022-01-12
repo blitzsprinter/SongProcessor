@@ -16,6 +16,20 @@ public class VideoSongJob : SongJob
 	private const string LIB = "libvpx-vp9";
 #endif
 
+	protected internal const string VIDEO_ARGS =
+		ARGS +
+		" -c:a libopus" + // Set the audio codec to libopus
+		" -c:v " + LIB + // Set the video codec to whatever we're using
+		" -b:v 0" + // Constant bitrate = 0 so only the variable one is used
+		" -crf 20" + // Variable bitrate, 20 should look lossless
+		" -pix_fmt yuv420p" + // Set the pixel format to yuv420p
+		" -g 119" + // Frames between each keyframe
+		" -shortest" + // Stop once any the shorted input has stopped
+		" -deadline good" +
+		" -cpu-used 1" + // With -deadline good, 0 = slow/quality, 5 = fast/sloppy
+		" -row-mt 1" + // Something to do with multithreading and vp9, runs faster
+		" -ac 2";
+
 	public int Resolution { get; }
 
 	public VideoSongJob(IAnime anime, ISong song, int resolution) : base(anime, song)
@@ -23,30 +37,8 @@ public class VideoSongJob : SongJob
 		Resolution = resolution;
 	}
 
-	protected override string GenerateArgs()
+	protected internal override string GenerateArgs()
 	{
-		const string ARGS =
-			" -v level+error" + // Only output errors to stderr
-			" -nostats" + // Do not output the default stats
-			" -progress pipe:1" + // Output the stats to stdout in the easier to parse format
-			" -sn" + // No subtitles
-			" -map_metadata -1" + // No metadata
-			" -map_chapters -1" + // No chapters
-			" -shortest" +
-			" -c:a libopus" + // Set the audio codec to libopus
-			" -b:a 320k" + // Set the audio bitrate to 320k
-			$" -c:v {LIB}" + // Set the video codec to whatever we're using
-			" -b:v 0" + // Constant bitrate = 0 so only the variable one is used
-			" -crf 20" + // Variable bitrate, 20 should look lossless
-			" -pix_fmt yuv420p" + // Set the pixel format to yuv420p
-			" -deadline good" +
-			" -cpu-used 1" + // With -deadline good, 0 = slow/quality, 5 = fast/sloppy
-			" -tile-columns 2" +
-			" -tile-rows 2" +
-			" -row-mt 1" +
-			" -threads 8" +
-			" -ac 2";
-
 		var args =
 			$" -ss {Song.Start}" + // Starting time
 			$" -to {Song.End}" + // Ending time
@@ -55,20 +47,20 @@ public class VideoSongJob : SongJob
 		if (Song.CleanPath is null)
 		{
 			args +=
-				$" -map 0:v:{Song.OverrideVideoTrack}" + // Use the first input's video
-				$" -map 0:a:{Song.OverrideAudioTrack}"; // Use the first input's audio
+				$" -map 0:v:{Song.OverrideVideoTrack}" + // Video's video
+				$" -map 0:a:{Song.OverrideAudioTrack}"; // Video's audio
 		}
 		else
 		{
 			args +=
 				$" -i \"{Anime.GetCleanSongPath(Song)}\"" + // Audio source
-				$" -map 0:v:{Song.OverrideVideoTrack}" + // Use the first input's video
-				$" -map 1:a:{Song.OverrideAudioTrack}"; // Use the second input's audio
+				$" -map 0:v:{Song.OverrideVideoTrack}" + // Video's video
+				$" -map 1:a:{Song.OverrideAudioTrack}"; // Audio's video
 		}
 
-		args += ARGS; // Add in the constant args, like quality + cpu usage
+		args += VIDEO_ARGS; // Add in the constant args, like quality + cpu usage
 
-		// Resize video if needed
+		// Video modification
 		if (Anime.VideoInfo?.Info is VideoInfo info
 			&& (info.Height != Resolution
 				|| info.SAR != AspectRatio.Square
@@ -81,11 +73,6 @@ public class VideoSongJob : SongJob
 			{
 				throw new InvalidOperationException($"DAR cannot be null: {Anime.GetAbsoluteSourcePath()}.");
 			}
-			var videoFilterParts = new Dictionary<string, string>
-			{
-				["setsar"] = AspectRatio.Square.ToString('/'),
-				["setdar"] = dar.Value.ToString('/'),
-			};
 
 			var width = (int)(Resolution * dar.Value.Ratio);
 			// Make sure width is always even, otherwise sometimes things can break
@@ -94,12 +81,17 @@ public class VideoSongJob : SongJob
 				++width;
 			}
 
-			videoFilterParts["scale"] = $"{width}:{Resolution}";
-
-			var parts = videoFilterParts.Select(x => $"{x.Key}={x.Value}");
-			args += $" -filter:v \"{string.Join(',', parts)}\"";
+			var videoFilterParts = new Dictionary<string, string>
+			{
+				["setsar"] = AspectRatio.Square.ToString('/'),
+				["setdar"] = dar.Value.ToString('/'),
+				["scale"] = $"{width}:{Resolution}"
+			};
+			var kvp = videoFilterParts.Select(x => $"{x.Key}={x.Value}");
+			args += $" -filter:v \"{string.Join(',', kvp)}\"";
 		}
 
+		// Audio modification
 		if (Song.VolumeModifier is not null)
 		{
 			args += $" -filter:a \"volume={Song.VolumeModifier}\"";

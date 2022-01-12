@@ -132,8 +132,8 @@ public sealed class AddViewModel : ReactiveObject, IRoutableViewModel
 				AddEndings: AddEndings,
 				AddInserts: AddInserts,
 				AddOpenings: AddOpenings,
-				AddSongs: AddSongs)
-			).ConfigureAwait(true);
+				AddSongs: AddSongs
+			)).ConfigureAwait(true);
 			var file = await _Loader.SaveAsync(Directory!, model, _SaveOptions).ConfigureAwait(true);
 			Anime.Add(new ObservableAnime(new Anime(file!, model, null)));
 			Exception = null;

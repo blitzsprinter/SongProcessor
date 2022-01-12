@@ -14,15 +14,6 @@ public static class GathererUtils
 		Exception e)
 		=> throw new FormatException($"Invalid {property} provided by {gatherer.Name} for {id}.", e);
 
-	public static void ThrowIfInvalid(this HttpResponseMessage response)
-	{
-		if (!response.IsSuccessStatusCode)
-		{
-			var msg = $"{response.RequestMessage?.RequestUri} returned {response.StatusCode}.";
-			throw new HttpRequestException(msg, null, response.StatusCode);
-		}
-	}
-
 	public static KeyNotFoundException UnableToFind(this IAnimeGatherer gatherer, int id)
 		=> throw new KeyNotFoundException($"{id} cannot be found in {gatherer.Name}.");
 

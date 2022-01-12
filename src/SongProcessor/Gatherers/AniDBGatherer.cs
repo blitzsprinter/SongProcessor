@@ -24,24 +24,26 @@ public sealed class AniDBGatherer : IAnimeGatherer
 		_Client = client ?? GathererUtils.DefaultGathererClient;
 	}
 
-	public async Task<AnimeBase> GetAsync(int id, GatherOptions? options = null)
+	public async Task<AnimeBase> GetAsync(int id, GatherOptions options)
 	{
-		var response = await _Client.GetAsync(URL + id).ConfigureAwait(false);
-		response.ThrowIfInvalid();
+		using var response = await _Client.GetAsync(URL + id).ConfigureAwait(false);
+		response.EnsureSuccessStatusCode();
 
-		using var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
 		var doc = new HtmlDocument();
-		doc.Load(stream);
+		using (var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
+		{
+			doc.Load(stream);
+		}
 		return Parse(doc.DocumentNode, id, options);
 	}
 
 	public override string ToString()
 		=> Name;
 
-	async Task<IAnimeBase> IAnimeGatherer.GetAsync(int id, GatherOptions? options)
+	async Task<IAnimeBase> IAnimeGatherer.GetAsync(int id, GatherOptions options)
 		=> await GetAsync(id, options).ConfigureAwait(false);
 
-	internal AnimeBase Parse(HtmlNode node, int id, GatherOptions? options)
+	internal AnimeBase Parse(HtmlNode node, int id, GatherOptions options)
 	{
 		if (node.Descendants("div").Any(x => x.HasClass("error")))
 		{
@@ -54,7 +56,7 @@ public sealed class AniDBGatherer : IAnimeGatherer
 			Name = Get(GetTitle, node, id, "title"),
 			Songs = new(Get(GetSongs, node, id, "songs").Where(x =>
 			{
-				return options?.CanBeGathered(x.Type.Type) == true;
+				return options.CanBeGathered(x.Type.Type);
 			})),
 			Year = Get(GetYear, node, id, "year"),
 		};

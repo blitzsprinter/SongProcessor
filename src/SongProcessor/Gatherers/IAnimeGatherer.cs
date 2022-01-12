@@ -6,5 +6,5 @@ public interface IAnimeGatherer
 {
 	string Name { get; }
 
-	Task<IAnimeBase> GetAsync(int id, GatherOptions? options = null);
+	Task<IAnimeBase> GetAsync(int id, GatherOptions options);
 }

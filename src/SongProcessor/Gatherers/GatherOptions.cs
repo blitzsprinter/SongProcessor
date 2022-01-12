@@ -9,6 +9,8 @@ public sealed record GatherOptions(
 	bool AddSongs
 )
 {
+	public static GatherOptions All { get; } = new(true, true, true, true);
+
 	public bool CanBeGathered(SongType type)
 	{
 		return AddSongs && type switch
