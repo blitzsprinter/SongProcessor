@@ -5,6 +5,8 @@
 
 using SongProcessor.Models;
 
+using System.Collections.Immutable;
+
 namespace SongProcessor.FFmpeg.Jobs;
 
 public class VideoSongJob : SongJob
@@ -16,51 +18,62 @@ public class VideoSongJob : SongJob
 	private const string LIB = "libvpx-vp9";
 #endif
 
-	protected internal const string VIDEO_ARGS =
-		ARGS +
-		" -c:a libopus" + // Set the audio codec to libopus
-		" -c:v " + LIB + // Set the video codec to whatever we're using
-		" -b:v 0" + // Constant bitrate = 0 so only the variable one is used
-		" -crf 20" + // Variable bitrate, 20 should look lossless
-		" -pix_fmt yuv420p" + // Set the pixel format to yuv420p
-		" -g 119" + // Frames between each keyframe
-		" -shortest" + // Stop once any the shorted input has stopped
-		" -deadline good" +
-		" -cpu-used 1" + // With -deadline good, 0 = slow/quality, 5 = fast/sloppy
-		" -row-mt 1" + // Something to do with multithreading and vp9, runs faster
-		" -ac 2";
-
 	public int Resolution { get; }
+
+	protected internal static IReadOnlyDictionary<string, string> VideoArgs { get; } = new Dictionary<string, string>(Args)
+	{
+		["c:a"] = "libopus", // Set the audio codec to libopus
+		["c:v"] = LIB, // Set the video codec to whatever we're using
+		["b:v"] = "0", // Constant bitrate = 0 so only the variable one is used
+		["crf"] = "20", // Variable bitrate, 20 should look lossless
+		["pix_fmt"] = "yuv420p", // Set the pixel format to yuv420p
+		["g"] = "119", // Frames between each keyframe
+		["shortest"] = "", // Stop once any the shorted input has stopped
+		["deadline"] = "good",
+		["cpu-used"] = "1", // With -deadline good, 0 = slow/quality, 5 = fast/sloppy
+		["row-mt"] = "1", // Something to do with multithreading and vp9, runs faster
+		["ac"] = "2",
+	}.ToImmutableDictionary();
 
 	public VideoSongJob(IAnime anime, ISong song, int resolution) : base(anime, song)
 	{
 		Resolution = resolution;
 	}
 
-	protected internal override string GenerateArgs()
-	{
-		var args =
-			$" -ss {Song.Start}" + // Starting time
-			$" -to {Song.End}" + // Ending time
-			$" -i \"{Anime.GetAbsoluteSourcePath()}\""; // Video source
+	protected override string GenerateArgs()
+		=> GenerateArgsInternal().ToString();
 
+	protected internal virtual JobArgs GenerateArgsInternal()
+	{
+		var input = new List<JobInput>
+		{
+			new(Anime.GetAbsoluteSourcePath(), new Dictionary<string, string>
+			{
+				["ss"] = Song.Start.ToString(), // Starting time
+				["to"] = Song.End.ToString(), // Ending time
+			}),
+		};
+
+		string[] mapping;
 		if (Song.CleanPath is null)
 		{
-			args +=
-				$" -map 0:v:{Song.OverrideVideoTrack}" + // Video's video
-				$" -map 0:a:{Song.OverrideAudioTrack}"; // Video's audio
+			mapping = new[]
+			{
+				$"0:v:{Song.OverrideVideoTrack}",
+				$"0:a:{Song.OverrideAudioTrack}",
+			};
 		}
 		else
 		{
-			args +=
-				$" -i \"{Anime.GetCleanSongPath(Song)}\"" + // Audio source
-				$" -map 0:v:{Song.OverrideVideoTrack}" + // Video's video
-				$" -map 1:a:{Song.OverrideAudioTrack}"; // Audio's video
+			input.Add(new(Anime.GetCleanSongPath(Song)!, null));
+			mapping = new[]
+			{
+				$"0:v:{Song.OverrideVideoTrack}",
+				$"1:a:{Song.OverrideAudioTrack}",
+			};
 		}
 
-		args += VIDEO_ARGS; // Add in the constant args, like quality + cpu usage
-
-		// Video modification
+		var videoFilters = default(IReadOnlyDictionary<string, string>?);
 		if (Anime.VideoInfo?.Info is VideoInfo info
 			&& (info.Height != Resolution
 				|| info.SAR != AspectRatio.Square
@@ -81,23 +94,31 @@ public class VideoSongJob : SongJob
 				++width;
 			}
 
-			var videoFilterParts = new Dictionary<string, string>
+			videoFilters = new Dictionary<string, string>
 			{
 				["setsar"] = AspectRatio.Square.ToString('/'),
 				["setdar"] = dar.Value.ToString('/'),
 				["scale"] = $"{width}:{Resolution}"
 			};
-			var kvp = videoFilterParts.Select(x => $"{x.Key}={x.Value}");
-			args += $" -filter:v \"{string.Join(',', kvp)}\"";
 		}
 
-		// Audio modification
+		var audioFilters = default(IReadOnlyDictionary<string, string>?);
 		if (Song.VolumeModifier is not null)
 		{
-			args += $" -filter:a \"volume={Song.VolumeModifier}\"";
+			audioFilters = new Dictionary<string, string>
+			{
+				["volume"] = Song.VolumeModifier.ToString()!,
+			};
 		}
 
-		return args + $" \"{GetSanitizedPath()}\"";
+		return new JobArgs(
+			Inputs: input,
+			Mapping: mapping,
+			QualityArgs: VideoArgs,
+			AudioFilters: audioFilters,
+			VideoFilters: videoFilters,
+			OutputFile: GetSanitizedPath()
+		);
 	}
 
 	protected override string GetUnsanitizedPath()
