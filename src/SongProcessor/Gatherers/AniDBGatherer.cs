@@ -14,12 +14,14 @@ public sealed class AniDBGatherer : IAnimeGatherer
 	private const string SONG = "song";
 	private const string URL = "https://anidb.net/anime/";
 
+	private static readonly HashSet<string> SongProperties = new() { SONG, CREATOR };
+
 	private readonly HttpClient _Client;
 	public string Name { get; } = "AniDB";
 
 	public AniDBGatherer(HttpClient? client = null)
 	{
-		_Client = client ?? CreateClient();
+		_Client = client ?? GathererUtils.DefaultGathererClient;
 	}
 
 	public async Task<AnimeBase> GetAsync(int id, GatherOptions? options = null)
@@ -47,30 +49,19 @@ public sealed class AniDBGatherer : IAnimeGatherer
 	{
 		if (node.Descendants("div").Any(x => x.HasClass("error")))
 		{
-			this.ThrowUnableToFind(id);
+			throw this.UnableToFind(id);
 		}
 
 		return new()
 		{
-			Id = Get(node, GetANNId, "ANN ID", id),
-			Name = Get(node, GetTitle, "title", id),
-			Songs = new(Get(node, x => GetSongs(x, options), "songs", id)),
-			Year = Get(node, GetYear, "year", id),
+			Id = Get(GetANNId, node, id, "ANN ID"),
+			Name = Get(GetTitle, node, id, "title"),
+			Songs = new(Get(GetSongs, node, id, "songs").Where(x =>
+			{
+				return options?.CanBeGathered(x.Type.Type) == true;
+			})),
+			Year = Get(GetYear, node, id, "year"),
 		};
-	}
-
-	private static HttpClient CreateClient()
-	{
-		var client = new HttpClient();
-		client.DefaultRequestHeaders.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8");
-		client.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, default, br");
-		client.DefaultRequestHeaders.Add("Accept-Language", "en-US,en;q=0.9"); //Make sure we get English results
-		client.DefaultRequestHeaders.Add("Cache-Control", "no-cache");
-		client.DefaultRequestHeaders.Add("Connection", "keep-alive");
-		client.DefaultRequestHeaders.Add("pragma", "no-cache");
-		client.DefaultRequestHeaders.Add("Upgrade-Insecure-Requests", "1");
-		client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.163 Safari/537.36");
-		return client;
 	}
 
 	private static int GetANNId(HtmlNode node)
@@ -81,55 +72,41 @@ public sealed class AniDBGatherer : IAnimeGatherer
 		return int.Parse(id.Split("id=")[1]);
 	}
 
-	private static IEnumerable<Song> GetSongs(HtmlNode node, GatherOptions? options)
+	private static IEnumerable<Song> GetSongs(HtmlNode node)
 	{
+		var dict = new Dictionary<string, string>(2);
 		var songType = default(SongType?);
 		var songCount = 0;
 		foreach (var tr in node.Descendants("tr"))
 		{
-			var dict = new Dictionary<string, string?>(2)
-			{
-				[SONG] = null,
-				[CREATOR] = null,
-			};
-
 			foreach (var td in tr.Descendants("td"))
 			{
 				foreach (var @class in td.GetClasses())
 				{
-					if (dict.TryGetValue(@class, out var current))
+					var text = td.InnerText;
+					if (SongProperties.Contains(@class))
 					{
-						if (current is not null)
-						{
-							throw new InvalidOperationException($"Duplicate {@class}.");
-						}
-						dict[@class] = HttpUtility.HtmlDecode(td.InnerText.Trim());
+						dict.Add(@class, HttpUtility.HtmlDecode(text.Trim()));
 					}
-					else if (@class == RELTYPE)
+					else if (@class == RELTYPE
+						&& Enum.TryParse<SongType>(text.Split()[0], true, out var temp))
 					{
-						var s = td.InnerText.Split()[0];
-						if (Enum.TryParse<SongType>(s, true, out var temp))
-						{
-							songType = temp;
-							songCount = 0;
-						}
+						songType = temp;
+						songCount = 0;
 					}
 				}
 			}
 
-			if (!songType.HasValue
-				|| options?.CanBeGathered(songType.Value) == false
-				|| dict.Values.Any(x => x is null))
+			if (songType.HasValue && dict.Count == 2)
 			{
-				continue;
+				yield return new Song
+				{
+					Type = new(songType.Value, ++songCount),
+					Name = dict[SONG]!,
+					Artist = dict[CREATOR]!,
+				};
 			}
-
-			yield return new Song
-			{
-				Type = new(songType.Value, ++songCount),
-				Name = dict[SONG]!,
-				Artist = dict[CREATOR]!,
-			};
+			dict.Clear();
 		}
 	}
 
@@ -153,7 +130,7 @@ public sealed class AniDBGatherer : IAnimeGatherer
 		return DateTime.Parse(year).Year;
 	}
 
-	private T Get<T>(HtmlNode node, Func<HtmlNode, T> func, string item, int id)
+	private T Get<T>(Func<HtmlNode, T> func, HtmlNode node, int id, string property)
 	{
 		try
 		{
@@ -161,7 +138,7 @@ public sealed class AniDBGatherer : IAnimeGatherer
 		}
 		catch (Exception e)
 		{
-			throw new FormatException($"Invalid {item} provided by {Name} for {id}.", e);
+			throw this.InvalidPropertyProvided(id, property, e);
 		}
 	}
 }

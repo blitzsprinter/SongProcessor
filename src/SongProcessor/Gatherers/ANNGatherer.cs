@@ -11,17 +11,18 @@ public sealed class ANNGatherer : IAnimeGatherer
 	private const string ARTIST = "artist";
 	private const string NAME = "name";
 	private const string POSITION = "position";
-	private const string SongPattern =
+	private const string SONG_PATTERN =
 		$@"(?<{POSITION}>\d*?)" + //Some openings/endings will have a position
 		"(: )?" + //The position will be followed up with a colon and space
 		$@"""(?<{NAME}>.+?)""" + //The name will be in quotes
 		".+?by " + //The name may have a translation in parans, and will be followed with by
 		$"(?<{ARTIST}>.+?)" + //The artist is just a simple match of any characters
 		@"( \(eps?|$)"; //The artist ends at (eps/ep ###-###) or the end of the line
-	private const string URL = "https://cdn.animenewsnetwork.com/encyclopedia/api.xml?anime=";
+	private const string URL =
+		"https://cdn.animenewsnetwork.com/encyclopedia/api.xml?anime=";
 
-	private static readonly Regex SongRegex
-		= new(SongPattern, RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+	private static readonly Regex SongRegex =
+		new(SONG_PATTERN, RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 	private static readonly string[] VintageFormats = new[]
 	{
 		"yyyy"
@@ -32,7 +33,7 @@ public sealed class ANNGatherer : IAnimeGatherer
 
 	public ANNGatherer(HttpClient? client = null)
 	{
-		_Client = client ?? new HttpClient();
+		_Client = client ?? GathererUtils.DefaultGathererClient;
 	}
 
 	public async Task<AnimeBase> GetAsync(int id, GatherOptions? options = null)
@@ -53,9 +54,9 @@ public sealed class ANNGatherer : IAnimeGatherer
 
 	internal AnimeBase Parse(XElement element, int id, GatherOptions? options)
 	{
-		if (element.Descendants("warning").Any(x => x.Value.Contains("no result", StringComparison.OrdinalIgnoreCase)))
+		if (element.Descendants("warning").Any(x => x.Value.Contains("no result")))
 		{
-			this.ThrowUnableToFind(id);
+			throw this.UnableToFind(id);
 		}
 
 		var anime = new AnimeBase
@@ -97,7 +98,7 @@ public sealed class ANNGatherer : IAnimeGatherer
 			}
 			catch (Exception e)
 			{
-				throw new FormatException($"Invalid {type} provided by {Name} for {id}", e);
+				throw this.InvalidPropertyProvided(id, type, e);
 			}
 		}
 		return anime;
@@ -119,8 +120,8 @@ public sealed class ANNGatherer : IAnimeGatherer
 	private static int GetYear(XElement element)
 	{
 		var s = element.Value.Split(' ')[0];
-		if (DateTime.TryParse(s, out var dt)
-			|| DateTime.TryParseExact(s, VintageFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out dt))
+		if (DateTime.TryParse(s, out var dt) || DateTime.TryParseExact(s, VintageFormats,
+			CultureInfo.InvariantCulture, DateTimeStyles.None, out dt))
 		{
 			return dt.Year;
 		}
