@@ -39,22 +39,13 @@ public record JobArgs(
 		var sb = new StringBuilder();
 
 		AppendInputs(sb, Inputs);
+		AppendMapping(sb, Mapping);
 		AppendArgs(sb, QualityArgs);
 		AppendFilter(sb, VideoFilters, 'v');
 		AppendFilter(sb, AudioFilters, 'a');
 		AppendFile(sb, OutputFile);
 
 		return sb.ToString();
-	}
-
-	private static void AppendInputs(StringBuilder sb, IReadOnlyList<JobInput> inputs)
-	{
-		foreach (var input in inputs)
-		{
-			AppendArgs(sb, input.Args);
-			sb.Append(" -i");
-			AppendFile(sb, input.File);
-		}
 	}
 
 	private static void AppendArgs(
@@ -88,5 +79,24 @@ public record JobArgs(
 		sb.Append(" \"");
 		sb.AppendJoin(',', filters.Select(x => $"{x.Key}={x.Value}"));
 		sb.Append('\"');
+	}
+
+	private static void AppendInputs(StringBuilder sb, IReadOnlyList<JobInput> inputs)
+	{
+		foreach (var input in inputs)
+		{
+			AppendArgs(sb, input.Args);
+			sb.Append(" -i");
+			AppendFile(sb, input.File);
+		}
+	}
+
+	private static void AppendMapping(StringBuilder sb, IReadOnlyList<string> mapping)
+	{
+		foreach (var item in mapping)
+		{
+			sb.Append(" -map ");
+			sb.Append(item);
+		}
 	}
 }

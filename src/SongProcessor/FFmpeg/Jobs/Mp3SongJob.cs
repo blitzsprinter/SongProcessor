@@ -66,7 +66,7 @@ public class Mp3SongJob : SongJob
 	}
 
 	protected override string GenerateArgs()
-			=> GenerateArgsInternal().ToString();
+		=> GenerateArgsInternal().ToString();
 
 	protected override string GetUnsanitizedPath()
 		=> Song.GetMp3Path(Anime.GetDirectory(), Anime.Id);
