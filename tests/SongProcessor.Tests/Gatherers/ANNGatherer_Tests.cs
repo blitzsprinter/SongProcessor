@@ -70,7 +70,7 @@ public sealed class ANNGatherer_Tests : Gatherer_TestsBase<ANNGatherer>
 	}
 
 	[TestMethod]
-	[TestCategory(WEB_REQUEST)]
+	[TestCategory(WEB_REQUEST_CATEGORY)]
 	public async Task Gather_Test()
 		=> await AssertRetrievedMatchesAsync(ANN_ID).ConfigureAwait(false);
 

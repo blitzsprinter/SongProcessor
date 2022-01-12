@@ -7,10 +7,10 @@ using SongProcessor.FFmpeg;
 namespace SongProcessor.Tests.FFmpeg;
 
 [TestClass]
-[TestCategory(FFMPEG_CATEGORY)]
 public sealed class SourceInfoGatherer_Tests : FFmpeg_TestsBase
 {
 	[TestMethod]
+	[TestCategory(FFPROBE_CATEGORY)]
 	public async Task GetAudioInfo_Test()
 	{
 		var actual = await Gatherer.GetAudioInfoAsync(ValidVideoPath).ConfigureAwait(false);
@@ -28,6 +28,7 @@ public sealed class SourceInfoGatherer_Tests : FFmpeg_TestsBase
 	}
 
 	[TestMethod]
+	[TestCategory(FFPROBE_CATEGORY)]
 	public async Task GetVideoInfo_Test()
 	{
 		var actual = await Gatherer.GetVideoInfoAsync(ValidVideoPath).ConfigureAwait(false);
@@ -43,6 +44,7 @@ public sealed class SourceInfoGatherer_Tests : FFmpeg_TestsBase
 	}
 
 	[TestMethod]
+	[TestCategory(FFMPEG_CATEGORY)]
 	public async Task GetVolumeInfo_Test()
 	{
 		var actual = await Gatherer.GetVolumeInfoAsync(ValidVideoPath).ConfigureAwait(false);

@@ -20,7 +20,7 @@ public class VideoSongJob : SongJob
 
 	public int Resolution { get; }
 
-	protected internal static IReadOnlyDictionary<string, string> VideoArgs { get; } = new Dictionary<string, string>(Args)
+	protected static IReadOnlyDictionary<string, string> VideoArgs { get; } = new Dictionary<string, string>(Args)
 	{
 		["c:a"] = "libopus", // Set the audio codec to libopus
 		["c:v"] = LIB, // Set the video codec to whatever we're using
@@ -73,7 +73,7 @@ public class VideoSongJob : SongJob
 			};
 		}
 
-		var videoFilters = default(IReadOnlyDictionary<string, string>?);
+		var videoFilters = default(Dictionary<string, string>?);
 		if (Anime.VideoInfo?.Info is VideoInfo info
 			&& (info.Height != Resolution
 				|| info.SAR != AspectRatio.Square
@@ -94,7 +94,7 @@ public class VideoSongJob : SongJob
 				++width;
 			}
 
-			videoFilters = new Dictionary<string, string>
+			videoFilters = new()
 			{
 				["setsar"] = AspectRatio.Square.ToString('/'),
 				["setdar"] = dar.Value.ToString('/'),
@@ -102,10 +102,10 @@ public class VideoSongJob : SongJob
 			};
 		}
 
-		var audioFilters = default(IReadOnlyDictionary<string, string>?);
+		var audioFilters = default(Dictionary<string, string>?);
 		if (Song.VolumeModifier is not null)
 		{
-			audioFilters = new Dictionary<string, string>
+			audioFilters = new()
 			{
 				["volume"] = Song.VolumeModifier.ToString()!,
 			};

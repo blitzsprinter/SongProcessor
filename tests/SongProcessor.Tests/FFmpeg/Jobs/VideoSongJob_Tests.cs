@@ -10,16 +10,138 @@ using SongProcessor.Results;
 namespace SongProcessor.Tests.FFmpeg.Jobs;
 
 [TestClass]
-public sealed class VideoSongJob_Tests : SongJob_TestsBase
+public sealed class VideoSongJob_Tests : SongJob_TestsBase<VideoSongJob>
 {
 	[TestMethod]
+	public void ArgsVideo_Test()
+	{
+		using var temp = new TempDirectory();
+		var job = GenerateJob(temp.Dir);
+		var args = job.GenerateArgsInternal();
+
+		args.Inputs.Should().ContainSingle();
+		args.Inputs[0].File.Should().Be(job.Anime.GetAbsoluteSourcePath());
+		args.Inputs[0].Args.Should().HaveCount(2);
+		args.GetValues("ss").Should().ContainSingle()
+			.And.Contain(job.Song.Start.ToString());
+		args.GetValues("to").Should().ContainSingle()
+			.And.Contain(job.Song.End.ToString());
+		args.Mapping.Should().HaveCount(2)
+			.And.Contain(new[] { "0:v:0", "0:a:0" });
+		args.AudioFilters.Should().BeNull();
+		args.VideoFilters.Should().BeNull();
+	}
+
+	[TestMethod]
+	public void ArgsVideoCleanPath_Test()
+	{
+		using var temp = new TempDirectory();
+		var job = GenerateJob(temp.Dir, (_, song) =>
+		{
+			song.CleanPath = @"C:\joemama.wav";
+			song.OverrideAudioTrack = 73;
+			song.OverrideVideoTrack = 75;
+		});
+		var args = job.GenerateArgsInternal();
+
+		args.Inputs.Should().HaveCount(2);
+		args.Inputs[0].File.Should().Be(job.Anime.GetAbsoluteSourcePath());
+		args.Inputs[0].Args.Should().HaveCount(2);
+		args.Inputs[1].File.Should().Be(job.Song.CleanPath);
+		args.Inputs[1].Args.Should().BeNull();
+		args.GetValues("ss").Should().ContainSingle()
+			.And.Contain(job.Song.Start.ToString());
+		args.GetValues("to").Should().ContainSingle()
+			.And.Contain(job.Song.End.ToString());
+		args.Mapping.Should().HaveCount(2)
+			.And.Contain(new[]
+			{
+				$"0:v:{job.Song.OverrideVideoTrack}",
+				$"1:a:{job.Song.OverrideAudioTrack}",
+			});
+		args.AudioFilters.Should().BeNull();
+		args.VideoFilters.Should().BeNull();
+	}
+
+	[TestMethod]
+	public void ArgsVideoNullDAR_Test()
+	{
+		using var temp = new TempDirectory();
+		var job = GenerateJob(temp.Dir, configureAnime: anime =>
+		{
+			return new Anime(anime.AbsoluteInfoPath, anime, new(
+				anime.VideoInfo!.Value.Path,
+				anime.VideoInfo.Value.Info with
+				{
+					DAR = null
+				}
+			));
+		});
+		job = new(job.Anime, job.Song, job.Resolution + 2);
+
+		Action args = () => job.GenerateArgsInternal();
+		args.Should().Throw<InvalidOperationException>();
+	}
+
+	[TestMethod]
+	public void ArgsVideoOverrideTracks_Test()
+	{
+		using var temp = new TempDirectory();
+		var job = GenerateJob(temp.Dir, (_, song) =>
+		{
+			song.OverrideAudioTrack = 73;
+			song.OverrideVideoTrack = 75;
+		});
+		var args = job.GenerateArgsInternal();
+
+		args.Inputs.Should().ContainSingle();
+		args.Inputs[0].File.Should().Be(job.Anime.GetAbsoluteSourcePath());
+		args.Inputs[0].Args.Should().HaveCount(2);
+		args.GetValues("ss").Should().ContainSingle()
+			.And.Contain(job.Song.Start.ToString());
+		args.GetValues("to").Should().ContainSingle()
+			.And.Contain(job.Song.End.ToString());
+		args.Mapping.Should().HaveCount(2)
+			.And.Contain(new[]
+			{
+				$"0:v:{job.Song.OverrideVideoTrack}",
+				$"0:a:{job.Song.OverrideAudioTrack}",
+			});
+		args.AudioFilters.Should().BeNull();
+		args.VideoFilters.Should().BeNull();
+	}
+
+	[TestMethod]
+	public void ArgsVideoVolumeModifier_Test()
+	{
+		using var temp = new TempDirectory();
+		var job = GenerateJob(temp.Dir, (_, song) =>
+		{
+			song.VolumeModifier = VolumeModifer.FromDecibels(-2);
+		});
+		var args = job.GenerateArgsInternal();
+
+		args.Inputs.Should().ContainSingle();
+		args.Inputs[0].File.Should().Be(job.Anime.GetAbsoluteSourcePath());
+		args.Inputs[0].Args.Should().HaveCount(2);
+		args.GetValues("ss").Should().ContainSingle()
+			.And.Contain(job.Song.Start.ToString());
+		args.GetValues("to").Should().ContainSingle()
+			.And.Contain(job.Song.End.ToString());
+		args.Mapping.Should().HaveCount(2)
+			.And.Contain(new[] { "0:v:0", "0:a:0" });
+		args.AudioFilters.Should().ContainSingle();
+		args.GetValues("volume").Should().ContainSingle()
+			.And.Contain(job.Song.VolumeModifier.ToString());
+		args.VideoFilters.Should().BeNull();
+	}
+
+	[TestMethod]
+	[TestCategory(FFMPEG_CATEGORY)]
 	public async Task ProcessVideo_Test()
 	{
 		using var temp = new TempDirectory();
-		var job = GenerateJob(temp.Dir, (anime, song) =>
-		{
-			return new VideoSongJob(anime, song, ValidVideoInfo.Height);
-		});
+		var job = GenerateJob(temp.Dir);
 
 		var file = await GetSingleFileProducedAsync(temp.Dir, job).ConfigureAwait(false);
 		var newVideoInfo = await Gatherer.GetVideoInfoAsync(file).ConfigureAwait(false);
@@ -32,13 +154,11 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase
 	}
 
 	[TestMethod]
+	[TestCategory(FFMPEG_CATEGORY)]
 	public async Task ProcessVideoCanceled_Test()
 	{
 		using var temp = new TempDirectory();
-		var job = GenerateJob(temp.Dir, (anime, song) =>
-		{
-			return new VideoSongJob(anime, song, ValidVideoInfo.Height);
-		});
+		var job = GenerateJob(temp.Dir);
 		var cts = new CancellationTokenSource();
 
 		var task = job.ProcessAsync(cts.Token);
@@ -50,13 +170,13 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase
 	}
 
 	[TestMethod]
-	public async Task ProcessVideoModifyVolume_Test()
+	[TestCategory(FFMPEG_CATEGORY)]
+	public async Task ProcessVideoComplicated_Test()
 	{
 		using var temp = new TempDirectory();
-		var job = GenerateJob(temp.Dir, (anime, song) =>
+		var job = GenerateJob(temp.Dir, (_, song) =>
 		{
 			song.VolumeModifier = VolumeModifer.FromDecibels(-5);
-			return new VideoSongJob(anime, song, ValidVideoInfo.Height);
 		});
 
 		var file = await GetSingleFileProducedAsync(temp.Dir, job).ConfigureAwait(false);
@@ -68,25 +188,8 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase
 		AssertValidLength(job, newVideoInfo.Info);
 	}
 
-	[TestMethod]
-	public async Task ProcessVideoNullDAR_Test()
-	{
-		using var temp = new TempDirectory();
-		var job = GenerateJob(temp.Dir, (anime, song) =>
-		{
-			anime = new Anime(anime.AbsoluteInfoPath, anime, new(
-				anime.VideoInfo!.Value.Path,
-				anime.VideoInfo.Value.Info with
-				{
-					DAR = null
-				}
-			));
-			return new VideoSongJob(anime, song, ValidVideoInfo.Height + 2);
-		});
-
-		Func<Task> process = () => job.ProcessAsync();
-		await process.Should().ThrowAsync<InvalidOperationException>().ConfigureAwait(false);
-	}
+	protected override VideoSongJob GenerateJob(Anime anime, Song song)
+		=> new(anime, song, ValidVideoInfo.Height);
 
 	private static void AssertValidLength(SongJob job, VideoInfo info)
 	{

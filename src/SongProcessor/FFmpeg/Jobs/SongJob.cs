@@ -15,7 +15,7 @@ public abstract class SongJob : ISongJob
 	public IAnime Anime { get; }
 	public ISong Song { get; }
 
-	protected internal static IReadOnlyDictionary<string, string> Args { get; } = new Dictionary<string, string>()
+	protected static IReadOnlyDictionary<string, string> Args { get; } = new Dictionary<string, string>()
 	{
 		["v"] = "level+error", // Only output errors to stderr
 		["nostats"] = "", // Do not output the default stats

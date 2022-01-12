@@ -5,3 +5,6 @@ csharp_style_expression_bodied_lambdas = when_on_single_line:none
 
 # RCS1021: Convert lambda expression body to expression-body.
 dotnet_diagnostic.RCS1021.severity = none
+
+# RCS1158: Static member in generic type should use a type parameter.
+dotnet_diagnostic.RCS1158.severity = none

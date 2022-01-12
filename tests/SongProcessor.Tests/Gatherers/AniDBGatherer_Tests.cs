@@ -205,7 +205,7 @@ public sealed class AniDBGatherer_Tests : Gatherer_TestsBase<AniDBGatherer>
 	}
 
 	[TestMethod]
-	[TestCategory(WEB_REQUEST)]
+	[TestCategory(WEB_REQUEST_CATEGORY)]
 	public async Task Gather_Test()
 		=> await AssertRetrievedMatchesAsync(ANIDB_ID).ConfigureAwait(false);
 

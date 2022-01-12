@@ -6,6 +6,7 @@ namespace SongProcessor.Tests.FFmpeg;
 public abstract class FFmpeg_TestsBase
 {
 	public const string FFMPEG_CATEGORY = "FFmpeg";
+	public const string FFPROBE_CATEGORY = "FFprobe";
 	public virtual string FakeFileName { get; } = "DoesNotExist.txt";
 	public virtual SourceInfoGatherer Gatherer { get; } = new();
 	public virtual VideoInfo ValidVideoInfo { get; } = new VideoInfo(

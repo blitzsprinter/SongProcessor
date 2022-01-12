@@ -7,13 +7,10 @@ using System.Net;
 
 namespace SongProcessor.Tests.Gatherers;
 
-public abstract class Gatherer_TestsBase
+public abstract class Gatherer_TestsBase<T> where T : IAnimeGatherer
 {
-	public const string WEB_REQUEST = "Web_Request";
-}
+	public const string WEB_REQUEST_CATEGORY = "Web_Request";
 
-public abstract class Gatherer_TestsBase<T> : Gatherer_TestsBase where T : IAnimeGatherer
-{
 	protected abstract IAnimeBase ExpectedAnimeBase { get; }
 	protected abstract T Gatherer { get; set; }
 	protected GatherOptions GatherOptions { get; set; } = GatherOptions.All;

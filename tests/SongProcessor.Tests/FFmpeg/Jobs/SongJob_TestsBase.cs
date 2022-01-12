@@ -1,13 +1,10 @@
 ﻿using FluentAssertions;
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 using SongProcessor.Models;
 
 namespace SongProcessor.Tests.FFmpeg.Jobs;
 
-[TestCategory(FFMPEG_CATEGORY)]
-public abstract class SongJob_TestsBase : FFmpeg_TestsBase
+public abstract class SongJob_TestsBase<T> : FFmpeg_TestsBase where T : ISongJob
 {
 	// The divisor to use for default length of the output
 	// The input is around 5.37s long, so the output is around 1.34s
@@ -30,9 +27,11 @@ public abstract class SongJob_TestsBase : FFmpeg_TestsBase
 		return GetSingleFile(directory);
 	}
 
-	protected Anime GenerateAnime(string directory)
+	protected T GenerateJob(string directory,
+		Action<Anime, Song>? configureSong = null,
+		Func<Anime, Anime>? configureAnime = null)
 	{
-		return new Anime(Path.Combine(directory, "info.amq"), new AnimeBase
+		var anime = new Anime(Path.Combine(directory, "info.amq"), new AnimeBase
 		{
 			Id = 73,
 			Name = "Extremely Long Light Novel Title",
@@ -44,17 +43,19 @@ public abstract class SongJob_TestsBase : FFmpeg_TestsBase
 			DAR = new(16, 9),
 			SAR = AspectRatio.Square,
 		}));
-	}
-
-	protected T GenerateJob<T>(string directory, Func<Anime, Song, T> factory)
-	{
-		var anime = GenerateAnime(directory);
 		var song = new Song()
 		{
 			Start = TimeSpan.FromSeconds(0),
 			End = TimeSpan.FromSeconds(anime.VideoInfo!.Value.Info.Duration!.Value / DIV),
 			Name = Guid.NewGuid().ToString(),
 		};
-		return factory(anime, song);
+		configureSong?.Invoke(anime, song);
+		if (configureAnime is not null)
+		{
+			anime = configureAnime.Invoke(anime);
+		}
+		return GenerateJob(anime, song);
 	}
+
+	protected abstract T GenerateJob(Anime anime, Song song);
 }

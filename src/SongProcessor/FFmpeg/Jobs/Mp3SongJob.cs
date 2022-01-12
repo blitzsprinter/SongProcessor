@@ -6,7 +6,7 @@ namespace SongProcessor.FFmpeg.Jobs;
 
 public class Mp3SongJob : SongJob
 {
-	protected internal static IReadOnlyDictionary<string, string> AudioArgs { get; } = new Dictionary<string, string>(Args)
+	protected static IReadOnlyDictionary<string, string> AudioArgs { get; } = new Dictionary<string, string>(Args)
 	{
 		["vn"] = "", // No video
 		["f"] = "mp3"
@@ -46,10 +46,10 @@ public class Mp3SongJob : SongJob
 			$"0:a:{Song.OverrideAudioTrack}",
 		};
 
-		var audioFilters = default(IReadOnlyDictionary<string, string>?);
+		var audioFilters = default(Dictionary<string, string>?);
 		if (Song.VolumeModifier is not null)
 		{
-			audioFilters = new Dictionary<string, string>
+			audioFilters = new()
 			{
 				["volume"] = Song.VolumeModifier.ToString()!,
 			};
