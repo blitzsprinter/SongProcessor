@@ -2,7 +2,7 @@
 
 public static class GathererUtils
 {
-	public static void ThrowIfInvalidResponse(this HttpResponseMessage response)
+	public static void ThrowIfInvalid(this HttpResponseMessage response)
 	{
 		if (!response.IsSuccessStatusCode)
 		{

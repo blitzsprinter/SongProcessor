@@ -38,11 +38,11 @@ public sealed class ANNGatherer : IAnimeGatherer
 	public async Task<AnimeBase> GetAsync(int id, GatherOptions? options = null)
 	{
 		var response = await _Client.GetAsync(URL + id).ConfigureAwait(false);
-		response.ThrowIfInvalidResponse();
+		response.ThrowIfInvalid();
 
 		var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-		var doc = XElement.Load(stream);
-		return Parse(doc, id, options);
+		var element = XElement.Load(stream);
+		return Parse(element, id, options);
 	}
 
 	public override string ToString()
@@ -51,9 +51,9 @@ public sealed class ANNGatherer : IAnimeGatherer
 	async Task<IAnimeBase> IAnimeGatherer.GetAsync(int id, GatherOptions? options)
 		=> await GetAsync(id, options).ConfigureAwait(false);
 
-	internal AnimeBase Parse(XElement doc, int id, GatherOptions? options)
+	internal AnimeBase Parse(XElement element, int id, GatherOptions? options)
 	{
-		if (doc.Descendants("warning").Any(x => x.Value.Contains("no result", StringComparison.OrdinalIgnoreCase)))
+		if (element.Descendants("warning").Any(x => x.Value.Contains("no result", StringComparison.OrdinalIgnoreCase)))
 		{
 			this.ThrowUnableToFind(id);
 		}
@@ -64,31 +64,34 @@ public sealed class ANNGatherer : IAnimeGatherer
 			Year = int.MaxValue,
 		};
 
-		foreach (var element in doc.Descendants("info"))
+		foreach (var info in element.Descendants("info"))
 		{
-			var attr = element.Attribute("type");
-			if (attr is null)
+			var type = info.Attribute("type")?.Value?.ToLower();
+			if (type is null)
 			{
 				continue;
 			}
 
-			var type = attr.Value.ToLower();
 			try
 			{
 				switch (type)
 				{
 					case "main title":
-						GetTitle(anime, element);
+						anime.Name = info.Value;
 						break;
 
 					case "vintage":
-						GetYear(anime, element);
+						anime.Year = Math.Min(GetYear(info), anime.Year);
 						break;
 
 					case "opening theme":
 					case "ending theme":
 					case "insert song":
-						GetSong(anime, options, element, type);
+						var songType = Enum.Parse<SongType>(type.Split(' ')[0], true);
+						if (options?.CanBeGathered(songType) == true)
+						{
+							anime.Songs.Add(GetSong(info, songType));
+						}
 						break;
 				}
 			}
@@ -100,35 +103,27 @@ public sealed class ANNGatherer : IAnimeGatherer
 		return anime;
 	}
 
-	private static void GetSong(AnimeBase anime, GatherOptions? options, XElement e, string t)
+	private static Song GetSong(XElement element, SongType type)
 	{
-		var type = Enum.Parse<SongType>(t.Split(' ')[0], true);
-		if (options?.CanBeGathered(type) == false)
-		{
-			return;
-		}
-
-		var match = SongRegex.Match(e.Value);
-		var position = match.Groups.TryGetValue(POSITION, out var a)
-			&& int.TryParse(a.Value, out var temp) ? temp : default(int?);
-		anime.Songs.Add(new Song
+		var groups = SongRegex.Match(element.Value).Groups;
+		var position = groups.TryGetValue(POSITION, out var pos)
+			&& int.TryParse(pos.Value, out var temp) ? temp : default(int?);
+		return new Song
 		{
 			Type = new(type, position),
-			Name = match.Groups[NAME].Value,
-			Artist = match.Groups[ARTIST].Value,
-		});
+			Name = groups[NAME].Value,
+			Artist = groups[ARTIST].Value,
+		};
 	}
 
-	private static void GetTitle(AnimeBase anime, XElement e)
-		=> anime.Name = e.Value;
-
-	private static void GetYear(AnimeBase anime, XElement e)
+	private static int GetYear(XElement element)
 	{
-		var s = e.Value.Split(' ')[0];
+		var s = element.Value.Split(' ')[0];
 		if (DateTime.TryParse(s, out var dt)
 			|| DateTime.TryParseExact(s, VintageFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out dt))
 		{
-			anime.Year = Math.Min(anime.Year, dt.Year);
+			return dt.Year;
 		}
+		return int.MaxValue;
 	}
 }
