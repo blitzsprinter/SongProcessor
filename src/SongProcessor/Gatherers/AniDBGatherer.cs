@@ -29,13 +29,9 @@ public sealed class AniDBGatherer : IAnimeGatherer
 		var response = await _Client.GetAsync(URL + id).ConfigureAwait(false);
 		response.ThrowIfInvalid();
 
+		using var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
 		var doc = new HtmlDocument();
-		// AniDB uses brotli compression
-		using (var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
-		using (var br = new BrotliStream(stream, CompressionMode.Decompress))
-		{
-			doc.Load(br);
-		}
+		doc.Load(stream);
 		return Parse(doc.DocumentNode, id, options);
 	}
 

@@ -1,4 +1,6 @@
-﻿namespace SongProcessor.Gatherers;
+﻿using System.Net;
+
+namespace SongProcessor.Gatherers;
 
 public static class GathererUtils
 {
@@ -26,7 +28,10 @@ public static class GathererUtils
 
 	private static HttpClient CreateClient()
 	{
-		var client = new HttpClient();
+		var client = new HttpClient(new HttpClientHandler()
+		{
+			AutomaticDecompression = DecompressionMethods.All,
+		});
 		client.DefaultRequestHeaders.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8");
 		client.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, default, br");
 		client.DefaultRequestHeaders.Add("Accept-Language", "en-US,en;q=0.9"); //Make sure we get English results

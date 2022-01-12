@@ -1,6 +1,7 @@
 ﻿using SongProcessor.Models;
 
 using System.Globalization;
+using System.IO.Compression;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
@@ -41,7 +42,7 @@ public sealed class ANNGatherer : IAnimeGatherer
 		var response = await _Client.GetAsync(URL + id).ConfigureAwait(false);
 		response.ThrowIfInvalid();
 
-		var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+		using var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
 		var element = XElement.Load(stream);
 		return Parse(element, id, options);
 	}
