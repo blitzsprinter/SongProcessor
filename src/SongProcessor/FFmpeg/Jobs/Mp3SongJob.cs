@@ -6,7 +6,7 @@ namespace SongProcessor.FFmpeg.Jobs;
 
 public class Mp3SongJob : SongJob
 {
-	protected static IReadOnlyDictionary<string, string> AudioArgs { get; } = new Dictionary<string, string>(Args)
+	protected internal static IReadOnlyDictionary<string, string> AudioArgs { get; } = new Dictionary<string, string>(Args)
 	{
 		["vn"] = "", // No video
 		["f"] = "mp3"
@@ -34,7 +34,7 @@ public class Mp3SongJob : SongJob
 		{
 			input = new JobInput[]
 			{
-				new(Anime.GetCleanSongPath(Song)!, new Dictionary<string, string>
+				new(Song.GetCleanPath(Anime)!, new Dictionary<string, string>
 				{
 					["to"] = Song.GetLength().ToString(), // Should start at needed segment
 				}),
@@ -69,5 +69,5 @@ public class Mp3SongJob : SongJob
 		=> GenerateArgsInternal().ToString();
 
 	protected override string GetUnsanitizedPath()
-		=> Song.GetMp3Path(Anime.GetDirectory(), Anime.Id);
+		=> Song.GetMp3Path(Anime);
 }

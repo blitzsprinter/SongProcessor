@@ -119,7 +119,7 @@ public sealed class ProcessUtils_Tests
 
 		var code = await process.RunAsync(OutputMode.Async).ConfigureAwait(false);
 		code.Should().Be(0); // Zero = success
-		output.Count.Should().Be(1);
+		output.Should().ContainSingle();
 
 		TestContext.Write(output[0]);
 	}

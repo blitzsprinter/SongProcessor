@@ -16,14 +16,14 @@ public abstract class SongJob_TestsBase<T> : FFmpeg_TestsBase where T : ISongJob
 	protected static string GetSingleFile(string directory)
 	{
 		var files = Directory.GetFiles(directory);
-		files.Length.Should().Be(1);
+		files.Should().ContainSingle();
 		return files.Single();
 	}
 
 	protected static async Task<string> GetSingleFileProducedAsync(string directory, ISongJob job)
 	{
 		var result = await job.ProcessAsync().ConfigureAwait(false);
-		result.IsSuccess.Should().Be(true);
+		result.IsSuccess.Should().BeTrue();
 		return GetSingleFile(directory);
 	}
 

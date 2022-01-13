@@ -11,29 +11,6 @@ public record JobArgs(
 	string OutputFile
 )
 {
-	public IEnumerable<string> GetValues(string key)
-	{
-		foreach (var input in Inputs)
-		{
-			if (input.Args?.TryGetValue(key, out var iTemp) == true)
-			{
-				yield return iTemp;
-			}
-		}
-		if (QualityArgs.TryGetValue(key, out var qTemp))
-		{
-			yield return qTemp;
-		}
-		if (AudioFilters?.TryGetValue(key, out var aTemp) == true)
-		{
-			yield return aTemp;
-		}
-		if (VideoFilters?.TryGetValue(key, out var vTemp) == true)
-		{
-			yield return vTemp;
-		}
-	}
-
 	public override string ToString()
 	{
 		var sb = new StringBuilder();
@@ -58,7 +35,7 @@ public record JobArgs(
 		}
 
 		sb.Append(' ');
-		sb.AppendJoin(' ', args.Select(x => $"-{x.Key} {x.Value}"));
+		sb.AppendJoin(' ', args.Select(x => JoinKvp($"-{x.Key}", x.Value, " ")));
 	}
 
 	private static void AppendFile(StringBuilder sb, string outputFile)
@@ -77,7 +54,7 @@ public record JobArgs(
 		sb.Append(" -filter:");
 		sb.Append(channel);
 		sb.Append(" \"");
-		sb.AppendJoin(',', filters.Select(x => $"{x.Key}={x.Value}"));
+		sb.AppendJoin(',', filters.Select(x => JoinKvp(x.Key, x.Value, "=")));
 		sb.Append('\"');
 	}
 
@@ -99,4 +76,7 @@ public record JobArgs(
 			sb.Append(item);
 		}
 	}
+
+	private static string JoinKvp(string key, string value, string joiner)
+		=> string.IsNullOrWhiteSpace(value) ? key : key + joiner + value;
 }

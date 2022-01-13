@@ -10,7 +10,7 @@ public static class ModelUtils
 	public static string GetAbsoluteSourcePath(this IAnime anime)
 		=> FileUtils.EnsureAbsolutePath(anime.GetDirectory(), anime.Source)!;
 
-	public static string? GetCleanSongPath(this IAnime anime, ISong song)
+	public static string? GetCleanPath(this ISong song, IAnime anime)
 		=> FileUtils.EnsureAbsolutePath(anime.GetDirectory(), song.CleanPath);
 
 	public static string GetDirectory(this IAnime anime)
@@ -22,14 +22,14 @@ public static class ModelUtils
 	public static TimeSpan GetLength(this ISong song)
 		=> song.End - song.Start;
 
-	public static string GetMp3Path(this ISong song, string directory, int animeId)
-		=> FileUtils.EnsureAbsolutePath(directory, $"[{animeId}] {song.Name}.mp3")!;
+	public static string GetMp3Path(this ISong song, IAnime anime)
+		=> FileUtils.EnsureAbsolutePath(anime.GetDirectory(), $"[{anime.Id}] {song.Name}.mp3")!;
 
 	public static string? GetRelativeOrAbsoluteSourcePath(this IAnime anime)
 		=> FileUtils.GetRelativeOrAbsolutePath(anime.GetDirectory(), anime.VideoInfo?.Path);
 
-	public static string GetVideoPath(this ISong song, string directory, int animeId, int resolution)
-		=> FileUtils.EnsureAbsolutePath(directory, $"[{animeId}] {song.Name} [{resolution}p].webm")!;
+	public static string GetVideoPath(this ISong song, IAnime anime, int resolution)
+		=> FileUtils.EnsureAbsolutePath(anime.GetDirectory(), $"[{anime.Id}] {song.Name} [{resolution}p].webm")!;
 
 	public static bool HasTimeStamp(this ISong song)
 		=> song.Start > TimeSpan.FromSeconds(0);

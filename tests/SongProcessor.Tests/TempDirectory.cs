@@ -19,7 +19,7 @@ public sealed class TempDirectory : IDisposable
 		Dir = Path.Combine(Parent, "temp", Guid.ToString());
 
 		Directory.CreateDirectory(Dir);
-		Directory.GetFiles(Dir).Length.Should().Be(0);
+		Directory.GetFiles(Dir).Should().BeEmpty();
 	}
 
 	public void Dispose()

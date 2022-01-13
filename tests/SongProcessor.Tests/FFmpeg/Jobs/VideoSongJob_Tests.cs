@@ -17,19 +17,10 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase<VideoSongJob>
 	{
 		using var temp = new TempDirectory();
 		var job = GenerateJob(temp.Dir);
-		var args = job.GenerateArgsInternal();
+		var actual = job.GenerateArgsInternal();
 
-		args.Inputs.Should().ContainSingle();
-		args.Inputs[0].File.Should().Be(job.Anime.GetAbsoluteSourcePath());
-		args.Inputs[0].Args.Should().HaveCount(2);
-		args.GetValues("ss").Should().ContainSingle()
-			.And.Contain(job.Song.Start.ToString());
-		args.GetValues("to").Should().ContainSingle()
-			.And.Contain(job.Song.End.ToString());
-		args.Mapping.Should().HaveCount(2)
-			.And.Contain(new[] { "0:v:0", "0:a:0" });
-		args.AudioFilters.Should().BeNull();
-		args.VideoFilters.Should().BeNull();
+		var @default = GenerateDefaultJobArgs(job);
+		actual.Should().BeEquivalentTo(@default);
 	}
 
 	[TestMethod]
@@ -39,28 +30,70 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase<VideoSongJob>
 		var job = GenerateJob(temp.Dir, (_, song) =>
 		{
 			song.CleanPath = @"C:\joemama.wav";
-			song.OverrideAudioTrack = 73;
-			song.OverrideVideoTrack = 75;
 		});
-		var args = job.GenerateArgsInternal();
+		var actual = job.GenerateArgsInternal();
 
-		args.Inputs.Should().HaveCount(2);
-		args.Inputs[0].File.Should().Be(job.Anime.GetAbsoluteSourcePath());
-		args.Inputs[0].Args.Should().HaveCount(2);
-		args.Inputs[1].File.Should().Be(job.Song.CleanPath);
-		args.Inputs[1].Args.Should().BeNull();
-		args.GetValues("ss").Should().ContainSingle()
-			.And.Contain(job.Song.Start.ToString());
-		args.GetValues("to").Should().ContainSingle()
-			.And.Contain(job.Song.End.ToString());
-		args.Mapping.Should().HaveCount(2)
-			.And.Contain(new[]
+		var @default = GenerateDefaultJobArgs(job);
+		actual.Should().NotBeEquivalentTo(@default);
+		actual.Should().BeEquivalentTo(@default with
+		{
+			Inputs = new JobInput[]
 			{
-				$"0:v:{job.Song.OverrideVideoTrack}",
-				$"1:a:{job.Song.OverrideAudioTrack}",
-			});
-		args.AudioFilters.Should().BeNull();
-		args.VideoFilters.Should().BeNull();
+				@default.Inputs[0],
+				new(job.Song.GetCleanPath(job.Anime)!, null!),
+			},
+			Mapping = new[] { "0:v:0", "1:a:0" },
+		});
+	}
+
+	[TestMethod]
+	public void ArgsVideoHeightUnequalToResolution_Test()
+	{
+		using var temp = new TempDirectory();
+		var job = GenerateJob(temp.Dir);
+		job = new(job.Anime, job.Song, job.Resolution + 2);
+		var actual = job.GenerateArgsInternal();
+
+		var @default = GenerateDefaultJobArgs(job);
+		actual.Should().NotBeEquivalentTo(@default);
+		actual.Should().BeEquivalentTo(@default with
+		{
+			VideoFilters = new Dictionary<string, string>
+			{
+				["setsar"] = AspectRatio.Square.ToString(),
+				["setdar"] = job.Anime.VideoInfo?.Info.DAR?.ToString()!,
+				["scale"] = "484:272",
+			},
+		});
+	}
+
+	[TestMethod]
+	public void ArgsVideoNonSquareSAR_Test()
+	{
+		using var temp = new TempDirectory();
+		var job = GenerateJob(temp.Dir, configureAnime: anime =>
+		{
+			return new Anime(anime.AbsoluteInfoPath, anime, new(
+				anime.VideoInfo!.Value.Path,
+				anime.VideoInfo.Value.Info with
+				{
+					SAR = new(4, 3),
+				}
+			));
+		});
+		var actual = job.GenerateArgsInternal();
+
+		var @default = GenerateDefaultJobArgs(job);
+		actual.Should().NotBeEquivalentTo(@default);
+		actual.Should().BeEquivalentTo(@default with
+		{
+			VideoFilters = new Dictionary<string, string>
+			{
+				["setsar"] = AspectRatio.Square.ToString(),
+				["setdar"] = job.Anime.VideoInfo?.Info.DAR?.ToString()!,
+				["scale"] = "480:270",
+			},
+		});
 	}
 
 	[TestMethod]
@@ -84,6 +117,29 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase<VideoSongJob>
 	}
 
 	[TestMethod]
+	public void ArgsVideoOverrideAspectRatio_Test()
+	{
+		using var temp = new TempDirectory();
+		var job = GenerateJob(temp.Dir, (_, song) =>
+		{
+			song.OverrideAspectRatio = new AspectRatio(4, 3);
+		});
+		var actual = job.GenerateArgsInternal();
+
+		var @default = GenerateDefaultJobArgs(job);
+		actual.Should().NotBeEquivalentTo(@default);
+		actual.Should().BeEquivalentTo(@default with
+		{
+			VideoFilters = new Dictionary<string, string>
+			{
+				["setsar"] = AspectRatio.Square.ToString(),
+				["setdar"] = job.Song.OverrideAspectRatio?.ToString()!,
+				["scale"] = "360:270",
+			},
+		});
+	}
+
+	[TestMethod]
 	public void ArgsVideoOverrideTracks_Test()
 	{
 		using var temp = new TempDirectory();
@@ -92,23 +148,18 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase<VideoSongJob>
 			song.OverrideAudioTrack = 73;
 			song.OverrideVideoTrack = 75;
 		});
-		var args = job.GenerateArgsInternal();
+		var actual = job.GenerateArgsInternal();
 
-		args.Inputs.Should().ContainSingle();
-		args.Inputs[0].File.Should().Be(job.Anime.GetAbsoluteSourcePath());
-		args.Inputs[0].Args.Should().HaveCount(2);
-		args.GetValues("ss").Should().ContainSingle()
-			.And.Contain(job.Song.Start.ToString());
-		args.GetValues("to").Should().ContainSingle()
-			.And.Contain(job.Song.End.ToString());
-		args.Mapping.Should().HaveCount(2)
-			.And.Contain(new[]
+		var @default = GenerateDefaultJobArgs(job);
+		actual.Should().NotBeEquivalentTo(@default);
+		actual.Should().BeEquivalentTo(@default with
+		{
+			Mapping = new[]
 			{
-				$"0:v:{job.Song.OverrideVideoTrack}",
 				$"0:a:{job.Song.OverrideAudioTrack}",
-			});
-		args.AudioFilters.Should().BeNull();
-		args.VideoFilters.Should().BeNull();
+				$"0:v:{job.Song.OverrideVideoTrack}",
+			},
+		});
 	}
 
 	[TestMethod]
@@ -119,21 +170,17 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase<VideoSongJob>
 		{
 			song.VolumeModifier = VolumeModifer.FromDecibels(-2);
 		});
-		var args = job.GenerateArgsInternal();
+		var actual = job.GenerateArgsInternal();
 
-		args.Inputs.Should().ContainSingle();
-		args.Inputs[0].File.Should().Be(job.Anime.GetAbsoluteSourcePath());
-		args.Inputs[0].Args.Should().HaveCount(2);
-		args.GetValues("ss").Should().ContainSingle()
-			.And.Contain(job.Song.Start.ToString());
-		args.GetValues("to").Should().ContainSingle()
-			.And.Contain(job.Song.End.ToString());
-		args.Mapping.Should().HaveCount(2)
-			.And.Contain(new[] { "0:v:0", "0:a:0" });
-		args.AudioFilters.Should().ContainSingle();
-		args.GetValues("volume").Should().ContainSingle()
-			.And.Contain(job.Song.VolumeModifier.ToString());
-		args.VideoFilters.Should().BeNull();
+		var @default = GenerateDefaultJobArgs(job);
+		actual.Should().NotBeEquivalentTo(@default);
+		actual.Should().BeEquivalentTo(@default with
+		{
+			AudioFilters = new Dictionary<string, string>
+			{
+				["volume"] = job.Song.VolumeModifier.ToString()!,
+			},
+		});
 	}
 
 	[TestMethod]
@@ -174,12 +221,38 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase<VideoSongJob>
 	public async Task ProcessVideoComplicated_Test()
 	{
 		using var temp = new TempDirectory();
-		var job = GenerateJob(temp.Dir, (_, song) =>
+		var job = GenerateJob(temp.Dir, (anime, song) =>
 		{
+			// Generate a clean version from the entire video
+			song.End = TimeSpan.FromSeconds(anime.VideoInfo!.Value.Info.Duration!.Value);
+		});
+
+		// Create a duplicate version to treat as a clean version
+		var cleanPath = await GetSingleFileProducedAsync(temp.Dir, job).ConfigureAwait(false);
+		var cleanVideoInfo = await Gatherer.GetVideoInfoAsync(cleanPath).ConfigureAwait(false);
+		AssertValidLength(job, cleanVideoInfo.Info);
+
+		{
+			var movedPath = Path.Combine(
+				Path.GetDirectoryName(cleanPath)!,
+				$"clean{Path.GetExtension(cleanPath)}");
+			File.Move(cleanPath, movedPath);
+			cleanPath = movedPath;
+		}
+
+		job = GenerateJob(temp.Dir, (_, song) =>
+		{
+			// Use the newly created clean path
+			song.CleanPath = cleanPath;
 			song.VolumeModifier = VolumeModifer.FromDecibels(-5);
 		});
 
-		var file = await GetSingleFileProducedAsync(temp.Dir, job).ConfigureAwait(false);
+		var result = await job.ProcessAsync().ConfigureAwait(false);
+		result.IsSuccess.Should().BeTrue();
+		// Delete the clean version so we can get the output easier
+		File.Delete(cleanPath);
+
+		var file = GetSingleFile(temp.Dir);
 		var newVolumeInfo = await Gatherer.GetVolumeInfoAsync(file).ConfigureAwait(false);
 		newVolumeInfo.Info.MaxVolume.Should().BeLessThan(ValidVideoVolume.MaxVolume);
 		newVolumeInfo.Info.MeanVolume.Should().BeLessThan(ValidVideoVolume.MeanVolume);
@@ -196,5 +269,24 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase<VideoSongJob>
 		var duration = double.Parse(info.Tags["DURATION"].Split(':')[^1]);
 		var expected = job.Song.GetLength().TotalSeconds;
 		AssertValidLength(duration, expected);
+	}
+
+	private static JobArgs GenerateDefaultJobArgs(VideoSongJob job)
+	{
+		return new JobArgs(
+			Inputs: new JobInput[]
+			{
+				new(job.Anime.GetAbsoluteSourcePath(), new Dictionary<string, string>
+				{
+					["ss"] = job.Song.Start.ToString(),
+					["to"] = job.Song.End.ToString(),
+				}),
+			},
+			Mapping: new[] { "0:v:0", "0:a:0" },
+			QualityArgs: VideoSongJob.VideoArgs,
+			AudioFilters: null,
+			VideoFilters: null,
+			OutputFile: job.Song.GetVideoPath(job.Anime, job.Resolution)
+		);
 	}
 }

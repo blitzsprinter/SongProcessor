@@ -17,19 +17,10 @@ public sealed class Mp3SongJob_Tests : SongJob_TestsBase<Mp3SongJob>
 	{
 		using var temp = new TempDirectory();
 		var job = GenerateJob(temp.Dir);
-		var args = job.GenerateArgsInternal();
+		var actual = job.GenerateArgsInternal();
 
-		args.Inputs.Should().ContainSingle();
-		args.Inputs[0].File.Should().Be(job.Anime.GetAbsoluteSourcePath());
-		args.Inputs[0].Args.Should().HaveCount(2);
-		args.GetValues("ss").Should().ContainSingle()
-			.And.Contain(job.Song.Start.ToString());
-		args.GetValues("to").Should().ContainSingle()
-			.And.Contain(job.Song.End.ToString());
-		args.Mapping.Should().ContainSingle()
-			.And.Contain("0:a:0");
-		args.AudioFilters.Should().BeNull();
-		args.VideoFilters.Should().BeNull();
+		var @default = GenerateDefaultJobArgs(job);
+		actual.Should().BeEquivalentTo(@default);
 	}
 
 	[TestMethod]
@@ -39,20 +30,21 @@ public sealed class Mp3SongJob_Tests : SongJob_TestsBase<Mp3SongJob>
 		var job = GenerateJob(temp.Dir, (_, song) =>
 		{
 			song.CleanPath = @"C:\joemama.wav";
-			song.OverrideAudioTrack = 73;
 		});
-		var args = job.GenerateArgsInternal();
+		var actual = job.GenerateArgsInternal();
 
-		args.Inputs.Should().ContainSingle();
-		args.Inputs[0].File.Should().Be(job.Song.CleanPath);
-		args.Inputs[0].Args.Should().ContainSingle();
-		args.GetValues("ss").Should().BeEmpty();
-		args.GetValues("to").Should().ContainSingle()
-			.And.Contain(job.Song.GetLength().ToString());
-		args.Mapping.Should().ContainSingle()
-			.And.Contain($"0:a:{job.Song.OverrideAudioTrack}");
-		args.AudioFilters.Should().BeNull();
-		args.VideoFilters.Should().BeNull();
+		var @default = GenerateDefaultJobArgs(job);
+		actual.Should().NotBeEquivalentTo(@default);
+		actual.Should().BeEquivalentTo(@default with
+		{
+			Inputs = new JobInput[]
+			{
+				new(job.Song.GetCleanPath(job.Anime)!, new Dictionary<string, string>
+				{
+					["to"] = job.Song.GetLength().ToString(),
+				}),
+			},
+		});
 	}
 
 	[TestMethod]
@@ -63,19 +55,17 @@ public sealed class Mp3SongJob_Tests : SongJob_TestsBase<Mp3SongJob>
 		{
 			song.OverrideAudioTrack = 73;
 		});
-		var args = job.GenerateArgsInternal();
+		var actual = job.GenerateArgsInternal();
 
-		args.Inputs.Should().ContainSingle();
-		args.Inputs[0].File.Should().Be(job.Anime.GetAbsoluteSourcePath());
-		args.Inputs[0].Args.Should().HaveCount(2);
-		args.GetValues("ss").Should().ContainSingle()
-			.And.Contain(job.Song.Start.ToString());
-		args.GetValues("to").Should().ContainSingle()
-			.And.Contain(job.Song.End.ToString());
-		args.Mapping.Should().ContainSingle()
-			.And.Contain($"0:a:{job.Song.OverrideAudioTrack}");
-		args.AudioFilters.Should().BeNull();
-		args.VideoFilters.Should().BeNull();
+		var @default = GenerateDefaultJobArgs(job);
+		actual.Should().NotBeEquivalentTo(@default);
+		actual.Should().BeEquivalentTo(@default with
+		{
+			Mapping = new[]
+			{
+				$"0:a:{job.Song.OverrideAudioTrack}",
+			},
+		});
 	}
 
 	[TestMethod]
@@ -86,21 +76,17 @@ public sealed class Mp3SongJob_Tests : SongJob_TestsBase<Mp3SongJob>
 		{
 			song.VolumeModifier = VolumeModifer.FromDecibels(-2);
 		});
-		var args = job.GenerateArgsInternal();
+		var actual = job.GenerateArgsInternal();
 
-		args.Inputs.Should().ContainSingle();
-		args.Inputs[0].File.Should().Be(job.Anime.GetAbsoluteSourcePath());
-		args.Inputs[0].Args.Should().HaveCount(2);
-		args.GetValues("ss").Should().ContainSingle()
-			.And.Contain(job.Song.Start.ToString());
-		args.GetValues("to").Should().ContainSingle()
-			.And.Contain(job.Song.End.ToString());
-		args.Mapping.Should().ContainSingle()
-			.And.Contain("0:a:0");
-		args.AudioFilters.Should().ContainSingle();
-		args.GetValues("volume").Should().ContainSingle()
-			.And.Contain(job.Song.VolumeModifier.ToString());
-		args.VideoFilters.Should().BeNull();
+		var @default = GenerateDefaultJobArgs(job);
+		actual.Should().NotBeEquivalentTo(@default);
+		actual.Should().BeEquivalentTo(@default with
+		{
+			AudioFilters = new Dictionary<string, string>
+			{
+				["volume"] = job.Song.VolumeModifier.ToString()!,
+			},
+		});
 	}
 
 	[TestMethod]
@@ -182,11 +168,30 @@ public sealed class Mp3SongJob_Tests : SongJob_TestsBase<Mp3SongJob>
 	protected override Mp3SongJob GenerateJob(Anime anime, Song song)
 		=> new(anime, song);
 
+	private static JobArgs GenerateDefaultJobArgs(Mp3SongJob job)
+	{
+		return new JobArgs(
+			Inputs: new JobInput[]
+			{
+				new(job.Anime.GetAbsoluteSourcePath(), new Dictionary<string, string>
+				{
+					["ss"] = job.Song.Start.ToString(),
+					["to"] = job.Song.End.ToString(),
+				}),
+			},
+			Mapping: new[] { "0:a:0" },
+			QualityArgs: Mp3SongJob.AudioArgs,
+			AudioFilters: null,
+			VideoFilters: null,
+			OutputFile: job.Song.GetMp3Path(job.Anime)
+		);
+	}
+
 	private void AssertValidLength(SongJob job, VolumeInfo info)
 	{
 		var duration = (double)info.NSamples;
-		var divisor = ValidVideoInfo.Duration / job.Song.GetLength().TotalSeconds;
-		var expected = (ValidVideoVolume.NSamples / divisor)!.Value;
+		var divisor = ValidVideoInfo.Duration!.Value / job.Song.GetLength().TotalSeconds;
+		var expected = ValidVideoVolume.NSamples / divisor;
 		AssertValidLength(duration, expected);
 	}
 }

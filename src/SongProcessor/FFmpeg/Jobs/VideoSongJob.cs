@@ -20,7 +20,7 @@ public class VideoSongJob : SongJob
 
 	public int Resolution { get; }
 
-	protected static IReadOnlyDictionary<string, string> VideoArgs { get; } = new Dictionary<string, string>(Args)
+	protected internal static IReadOnlyDictionary<string, string> VideoArgs { get; } = new Dictionary<string, string>(Args)
 	{
 		["c:a"] = "libopus", // Set the audio codec to libopus
 		["c:v"] = LIB, // Set the video codec to whatever we're using
@@ -65,7 +65,7 @@ public class VideoSongJob : SongJob
 		}
 		else
 		{
-			input.Add(new(Anime.GetCleanSongPath(Song)!, null));
+			input.Add(new(Song.GetCleanPath(Anime)!, null));
 			mapping = new[]
 			{
 				$"0:v:{Song.OverrideVideoTrack}",
@@ -81,7 +81,7 @@ public class VideoSongJob : SongJob
 			)
 		)
 		{
-			var dar = Song.OverrideAspectRatio is AspectRatio ratio ? ratio : info.DAR;
+			var dar = Song.OverrideAspectRatio ?? info.DAR;
 			if (dar is null)
 			{
 				throw new InvalidOperationException($"DAR cannot be null: {Anime.GetAbsoluteSourcePath()}.");
@@ -96,8 +96,8 @@ public class VideoSongJob : SongJob
 
 			videoFilters = new()
 			{
-				["setsar"] = AspectRatio.Square.ToString('/'),
-				["setdar"] = dar.Value.ToString('/'),
+				["setsar"] = AspectRatio.Square.ToString(),
+				["setdar"] = dar.Value.ToString(),
 				["scale"] = $"{width}:{Resolution}"
 			};
 		}
@@ -122,5 +122,5 @@ public class VideoSongJob : SongJob
 	}
 
 	protected override string GetUnsanitizedPath()
-		=> Song.GetVideoPath(Anime.GetDirectory(), Anime.Id, Resolution);
+		=> Song.GetVideoPath(Anime, Resolution);
 }
