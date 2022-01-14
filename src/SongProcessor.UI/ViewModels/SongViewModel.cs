@@ -238,7 +238,7 @@ public sealed class SongViewModel : ReactiveObject, IRoutableViewModel, INavigat
 	private async Task PrivateChangeSource(ObservableAnime anime)
 	{
 		var dir = anime.GetDirectory();
-		var defFile = Path.GetFileName(anime.GetAbsoluteSourceFile());
+		var defFile = Path.GetFileName(anime.GetSourceFile());
 		var result = await _MessageBoxManager.GetFilesAsync(dir, "Source", false, defFile).ConfigureAwait(true);
 		if (result.SingleOrDefault() is not string file)
 		{

@@ -7,9 +7,6 @@ public static class ModelUtils
 	public static SongTypeAndPosition Create(this SongType type, int? position)
 		=> new(type, position);
 
-	public static string GetAbsoluteSourceFile(this IAnime anime)
-		=> FileUtils.EnsureAbsoluteFile(anime.GetDirectory(), anime.Source)!;
-
 	public static string? GetCleanFile(this ISong song, IAnime anime)
 		=> FileUtils.EnsureAbsoluteFile(anime.GetDirectory(), song.CleanPath);
 
@@ -27,6 +24,9 @@ public static class ModelUtils
 
 	public static string? GetRelativeOrAbsoluteSourceFile(this IAnime anime)
 		=> FileUtils.GetRelativeOrAbsoluteFile(anime.GetDirectory(), anime.VideoInfo?.File);
+
+	public static string GetSourceFile(this IAnime anime)
+		=> FileUtils.EnsureAbsoluteFile(anime.GetDirectory(), anime.Source)!;
 
 	public static string GetVideoFile(this ISong song, IAnime anime, int resolution)
 		=> FileUtils.EnsureAbsoluteFile(anime.GetDirectory(), $"[{anime.Id}] {song.Name} [{resolution}p].webm")!;

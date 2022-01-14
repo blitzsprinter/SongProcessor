@@ -53,10 +53,8 @@ public sealed class AniDBGatherer : IAnimeGatherer
 		{
 			Id = Get(GetANNId, node, id, "ANN ID"),
 			Name = Get(GetTitle, node, id, "title"),
-			Songs = new(Get(GetSongs, node, id, "songs").Where(x =>
-			{
-				return options.CanBeGathered(x.Type.Type);
-			})),
+			Songs = new(Get(GetSongs, node, id, "songs").Where(
+				x => options.CanBeGathered(x.Type.Type))),
 			Year = Get(GetYear, node, id, "year"),
 		};
 	}

@@ -27,10 +27,7 @@ public sealed class Mp3SongJob_Tests : SongJob_TestsBase<Mp3SongJob>
 	public void ArgsMp3CleanPath_Test()
 	{
 		using var temp = new TempDirectory();
-		var job = GenerateJob(temp.Dir, (_, song) =>
-		{
-			song.CleanPath = @"C:\joemama.wav";
-		});
+		var job = GenerateJob(temp.Dir, (_, song) => song.CleanPath = @"C:\joemama.wav");
 		var actual = job.GenerateArgsInternal();
 
 		var @default = GenerateDefaultJobArgs(job);
@@ -51,10 +48,7 @@ public sealed class Mp3SongJob_Tests : SongJob_TestsBase<Mp3SongJob>
 	public void ArgsMp3OverrideAudioTrack_Test()
 	{
 		using var temp = new TempDirectory();
-		var job = GenerateJob(temp.Dir, (_, song) =>
-		{
-			song.OverrideAudioTrack = 73;
-		});
+		var job = GenerateJob(temp.Dir, (_, song) => song.OverrideAudioTrack = 73);
 		var actual = job.GenerateArgsInternal();
 
 		var @default = GenerateDefaultJobArgs(job);
@@ -72,10 +66,8 @@ public sealed class Mp3SongJob_Tests : SongJob_TestsBase<Mp3SongJob>
 	public void ArgsMp3VolumeModifier_Test()
 	{
 		using var temp = new TempDirectory();
-		var job = GenerateJob(temp.Dir, (_, song) =>
-		{
-			song.VolumeModifier = VolumeModifer.FromDecibels(-2);
-		});
+		var job = GenerateJob(temp.Dir,
+			(_, song) => song.VolumeModifier = VolumeModifer.FromDecibels(-2));
 		var actual = job.GenerateArgsInternal();
 
 		var @default = GenerateDefaultJobArgs(job);
@@ -173,7 +165,7 @@ public sealed class Mp3SongJob_Tests : SongJob_TestsBase<Mp3SongJob>
 		return new JobArgs(
 			Inputs: new JobInput[]
 			{
-				new(job.Anime.GetAbsoluteSourceFile(), new Dictionary<string, string>
+				new(job.Anime.GetSourceFile(), new Dictionary<string, string>
 				{
 					["ss"] = job.Song.Start.ToString(),
 					["to"] = job.Song.End.ToString(),

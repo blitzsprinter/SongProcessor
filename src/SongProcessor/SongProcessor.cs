@@ -22,7 +22,7 @@ public sealed class SongProcessor : ISongProcessor
 				WarningReceived?.Invoke(new SourceIsNull(anime));
 				continue;
 			}
-			else if (!File.Exists(anime.GetAbsoluteSourceFile()))
+			else if (!File.Exists(anime.GetSourceFile()))
 			{
 				throw new FileNotFoundException($"{anime.Name} source does not exist.", anime.Source);
 			}

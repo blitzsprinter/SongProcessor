@@ -2,5 +2,5 @@
 
 public interface IMaybeFunc<out TRet> : IMaybeFunc
 {
-	public TRet Use(object obj);
+	TRet Use(object obj);
 }

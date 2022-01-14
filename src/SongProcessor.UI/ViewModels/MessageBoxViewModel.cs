@@ -79,9 +79,6 @@ public sealed class MessageBoxViewModel<T> : ReactiveObject
 				All = all,
 			})
 			.Select(x => x.All is null || !Equals(x.Current, default));
-		CloseCommand = ReactiveCommand.Create<Window>(window =>
-		{
-			window.Close(CurrentOption);
-		}, canClose);
+		CloseCommand = ReactiveCommand.Create<Window>(x => x.Close(CurrentOption), canClose);
 	}
 }

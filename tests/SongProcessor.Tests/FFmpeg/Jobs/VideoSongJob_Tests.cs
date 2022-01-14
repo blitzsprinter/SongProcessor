@@ -282,7 +282,7 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase<VideoSongJob>
 		return new JobArgs(
 			Inputs: new JobInput[]
 			{
-				new(job.Anime.GetAbsoluteSourceFile(), new Dictionary<string, string>
+				new(job.Anime.GetSourceFile(), new Dictionary<string, string>
 				{
 					["ss"] = job.Song.Start.ToString(),
 					["to"] = job.Song.End.ToString(),

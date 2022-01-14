@@ -2,9 +2,9 @@
 
 public interface IAnimeBase
 {
-	public int Id { get; }
-	public string Name { get; }
-	public IReadOnlyList<ISong> Songs { get; }
-	public string? Source { get; }
-	public int Year { get; }
+	int Id { get; }
+	string Name { get; }
+	IReadOnlyList<ISong> Songs { get; }
+	string? Source { get; }
+	int Year { get; }
 }

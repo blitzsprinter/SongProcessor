@@ -15,10 +15,11 @@ public sealed class SongTypeAndPosition_Tests
 	public void CompareTo_Test()
 	{
 		var range = Enumerable.Range(1, 999).Cast<int?>().Prepend(null);
-		var expected = new[] { 0, 1 }.Cast<SongType>().SelectMany(type =>
-		{
-			return range.Select(x => new SongTypeAndPosition(type, x));
-		}).Append(SongType.In.Create(null)).ToList();
+		var expected = new[] { 0, 1 }
+			.Cast<SongType>()
+			.SelectMany(type => range.Select(x => new SongTypeAndPosition(type, x)))
+			.Append(SongType.In.Create(null))
+			.ToList();
 
 		var songs = new SortedList<SongTypeAndPosition, SongTypeAndPosition>();
 		var rng = new Random(0);

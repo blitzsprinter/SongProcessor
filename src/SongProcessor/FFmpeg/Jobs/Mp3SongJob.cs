@@ -23,7 +23,7 @@ public class Mp3SongJob : SongJob
 		{
 			input = new JobInput[]
 			{
-				new(Anime.GetAbsoluteSourceFile(), new Dictionary<string, string>
+				new(Anime.GetSourceFile(), new Dictionary<string, string>
 				{
 					["ss"] = Song.Start.ToString(), // Starting time
 					["to"] = Song.End.ToString(), // Ending time

@@ -47,7 +47,7 @@ public class VideoSongJob : SongJob
 	{
 		var input = new List<JobInput>
 		{
-			new(Anime.GetAbsoluteSourceFile(), new Dictionary<string, string>
+			new(Anime.GetSourceFile(), new Dictionary<string, string>
 			{
 				["ss"] = Song.Start.ToString(), // Starting time
 				["to"] = Song.End.ToString(), // Ending time
@@ -84,7 +84,7 @@ public class VideoSongJob : SongJob
 			var dar = Song.OverrideAspectRatio ?? info.DAR;
 			if (dar is null)
 			{
-				throw new InvalidOperationException($"DAR cannot be null: {Anime.GetAbsoluteSourceFile()}.");
+				throw new InvalidOperationException($"DAR cannot be null: {Anime.GetSourceFile()}.");
 			}
 
 			var width = (int)(Resolution * dar.Value.Ratio);

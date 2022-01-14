@@ -42,7 +42,7 @@ public sealed class SongLoader_Tests : FFmpeg_TestsBase
 	{
 		using var temp = new TempDirectory();
 		var path = Path.Combine(temp.Dir, "info.amq");
-		File.WriteAllText(path, "asdf");
+		await File.WriteAllTextAsync(path, "asdf").ConfigureAwait(false);
 
 		Func<Task> load = () => _Loader.LoadAsync(path);
 		await load.Should().ThrowAsync<JsonException>().ConfigureAwait(false);

@@ -2,5 +2,5 @@
 
 public interface IMaybeFunc<in TParam, out TRet> : IMaybeFunc
 {
-	public TRet Use(object obj, TParam param);
+	TRet Use(object obj, TParam param);
 }

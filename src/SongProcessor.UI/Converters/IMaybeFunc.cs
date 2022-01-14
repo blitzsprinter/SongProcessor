@@ -2,7 +2,7 @@
 
 public interface IMaybeFunc
 {
-	public Type RequiredType { get; }
+	Type RequiredType { get; }
 
-	public bool CanUse(object obj);
+	bool CanUse(object obj);
 }
