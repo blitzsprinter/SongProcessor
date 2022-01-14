@@ -100,4 +100,72 @@ public sealed class SongLoader_Tests : FFmpeg_TestsBase
 		Func<Task> save = () => _Loader.SaveAsync(anime);
 		await save.Should().ThrowAsync<InvalidOperationException>().ConfigureAwait(false);
 	}
+
+	[TestMethod]
+	public async Task SaveNew_Test()
+	{
+		using var temp = new TempDirectory();
+		var anime = CreateAnime(temp.Dir);
+
+		var actual = await _Loader.SaveNewAsync(temp.Dir, anime, new(
+			AddShowNameDirectory: false,
+			AllowOverwrite: false,
+			CreateDuplicateFile: false
+		)).ConfigureAwait(false);
+		actual.Should().Be(Path.Combine(
+			temp.Dir,
+			"info.amq"
+		));
+	}
+
+	[TestMethod]
+	public async Task SaveNewAddShowNameDirectory_Test()
+	{
+		using var temp = new TempDirectory();
+		var anime = CreateAnime(temp.Dir);
+
+		var actual = await _Loader.SaveNewAsync(temp.Dir, anime, new(
+			AddShowNameDirectory: true,
+			AllowOverwrite: false,
+			CreateDuplicateFile: false
+		)).ConfigureAwait(false);
+		actual.Should().Be(Path.Combine(
+			temp.Dir,
+			$"[{anime.Year}] {anime.Name}",
+			"info.amq"
+		));
+	}
+
+	[TestMethod]
+	public async Task SaveNewCreateDuplicate_Test()
+	{
+		using var temp = new TempDirectory();
+		var anime = CreateAnime(temp.Dir);
+		File.Create(anime.AbsoluteInfoPath).Close();
+
+		var actual = await _Loader.SaveNewAsync(temp.Dir, anime, new(
+			AddShowNameDirectory: false,
+			AllowOverwrite: false,
+			CreateDuplicateFile: true
+		)).ConfigureAwait(false);
+		actual.Should().Be(Path.Combine(
+			temp.Dir,
+			"info (1).amq"
+		));
+	}
+
+	[TestMethod]
+	public async Task SaveNewDisallowOverwrite_Test()
+	{
+		using var temp = new TempDirectory();
+		var anime = CreateAnime(temp.Dir);
+		File.Create(anime.AbsoluteInfoPath).Close();
+
+		var actual = await _Loader.SaveNewAsync(temp.Dir, anime, new(
+			AddShowNameDirectory: false,
+			AllowOverwrite: false,
+			CreateDuplicateFile: false
+		)).ConfigureAwait(false);
+		actual.Should().BeNull();
+	}
 }

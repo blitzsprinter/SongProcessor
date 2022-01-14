@@ -95,7 +95,7 @@ public sealed class FileUtils_Tests
 		for (var i = 0; i < 5; ++i)
 		{
 			File.Create(FileUtils.NextAvailableFilename(file)).Dispose();
-			expected.Add(Path.Combine(temp.Dir, $"{NAME}_({i + 1}){extension}"));
+			expected.Add(Path.Combine(temp.Dir, $"{NAME} ({i + 1}){extension}"));
 		}
 
 		Directory.EnumerateFiles(temp.Dir).Should().Contain(expected);

@@ -78,19 +78,19 @@ public static class SongUtils
 
 	public static async Task<string?> SaveNewAsync(
 		this ISongLoader loader,
-		string path,
+		string directory,
 		IAnimeBase anime,
 		SaveNewOptions options)
 	{
-		var directory = new DirectoryInfo(path);
+		var dir = new DirectoryInfo(directory);
 		if (options.AddShowNameDirectory)
 		{
 			var showDirectory = FileUtils.SanitizePath($"[{anime.Year}] {anime.Name}");
-			directory = new DirectoryInfo(Path.Combine(directory.FullName, showDirectory));
+			dir = new DirectoryInfo(Path.Combine(dir.FullName, showDirectory));
 		}
-		directory.Create();
+		dir.Create();
 
-		var file = new FileInfo(Path.Combine(directory.FullName, $"info.{loader.Extension}"));
+		var file = new FileInfo(Path.Combine(dir.FullName, $"info.{loader.Extension}"));
 		if (file.Exists && options.CreateDuplicateFile)
 		{
 			file = new FileInfo(FileUtils.NextAvailableFilename(file.FullName));

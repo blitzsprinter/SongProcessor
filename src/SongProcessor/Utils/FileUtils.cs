@@ -4,7 +4,7 @@ namespace SongProcessor.Utils;
 
 public static class FileUtils
 {
-	private const string NUMBER_PATTERN = "_({0})";
+	private const string NUMBER_PATTERN = " ({0})";
 	private static readonly HashSet<char> InvalidChars
 		= new(Path.GetInvalidFileNameChars().Concat(Path.GetInvalidPathChars()));
 
