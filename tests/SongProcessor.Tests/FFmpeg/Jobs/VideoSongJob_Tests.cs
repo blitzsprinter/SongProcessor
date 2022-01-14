@@ -261,8 +261,21 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase<VideoSongJob>
 		AssertValidLength(job, newVideoInfo.Info);
 	}
 
+	protected override Anime CreateAnime(string directory)
+	{
+		var anime = base.CreateAnime(directory);
+		return new Anime(anime.AbsoluteInfoPath, anime, new(
+			anime.VideoInfo!.Value.Path,
+			anime.VideoInfo.Value.Info with
+			{
+				DAR = new(16, 9),
+				SAR = AspectRatio.Square,
+			}
+		));
+	}
+
 	protected override VideoSongJob GenerateJob(Anime anime, Song song)
-		=> new(anime, song, ValidVideoInfo.Height);
+			=> new(anime, song, ValidVideoInfo.Height);
 
 	private static void AssertValidLength(SongJob job, VideoInfo info)
 	{

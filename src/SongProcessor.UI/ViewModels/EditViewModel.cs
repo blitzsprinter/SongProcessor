@@ -270,7 +270,7 @@ public sealed class EditViewModel : ReactiveObject, IRoutableViewModel, IValidat
 		_Song.OverrideVideoTrack = VideoTrack;
 		_Song.VolumeModifier = GetVolumeModifer(VolumeModifier);
 
-		await _Loader.SaveAsync(_Anime.AbsoluteInfoPath, _Anime).ConfigureAwait(false);
+		await _Loader.SaveAsync(_Anime).ConfigureAwait(false);
 	}
 
 	private async Task PrivateSelectCleanPath()

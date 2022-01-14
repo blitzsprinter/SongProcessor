@@ -76,32 +76,30 @@ public static class ProcessUtils
 		process.CallbackGuards(callback);
 
 		var isCanceled = 0;
-		void Cancel(object? sender, EventArgs args)
+		void OnCancel(object? sender, EventArgs args)
 		{
-			if (Interlocked.Exchange(ref isCanceled, 1) != 0)
+			if (Interlocked.Exchange(ref isCanceled, 1) == 0)
 			{
-				return;
+				callback.Invoke(sender, args);
 			}
-
-			callback.Invoke(sender, args);
 		}
 
 		// If the program gets canceled, shut down the process
-		Console.CancelKeyPress += Cancel;
+		Console.CancelKeyPress += OnCancel;
 		// If the program gets shut down, make sure it also shuts down the process
-		AppDomain.CurrentDomain.ProcessExit += Cancel;
+		AppDomain.CurrentDomain.ProcessExit += OnCancel;
 		// If an unhandled exception occurs, also attempt to shut down the process
-		AppDomain.CurrentDomain.UnhandledException += Cancel;
+		AppDomain.CurrentDomain.UnhandledException += OnCancel;
 		// Same if a cancellation token is canceled
-		var registration = token?.Register(() => Cancel(token, EventArgs.Empty));
+		var registration = token?.Register(() => OnCancel(token, EventArgs.Empty));
 
 		// After the process is exited, remove all the cancel handling
 		void OnExited(object? sender, EventArgs e)
 		{
 			process.Exited -= OnExited;
-			Console.CancelKeyPress -= Cancel;
-			AppDomain.CurrentDomain.ProcessExit -= Cancel;
-			AppDomain.CurrentDomain.UnhandledException -= Cancel;
+			Console.CancelKeyPress -= OnCancel;
+			AppDomain.CurrentDomain.ProcessExit -= OnCancel;
+			AppDomain.CurrentDomain.UnhandledException -= OnCancel;
 			registration?.Dispose();
 		}
 		process.Exited += OnExited;
@@ -129,12 +127,7 @@ public static class ProcessUtils
 
 		process.EnableRaisingEvents = true;
 		process.OnComplete(code => tcs.SetResult(code));
-
-		var started = process.Start();
-		if (!started)
-		{
-			throw new InvalidOperationException($"Could not start process: {process}.");
-		}
+		process.Start();
 
 		if ((mode & OutputMode.Async) != 0)
 		{

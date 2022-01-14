@@ -1,4 +1,5 @@
 ﻿using SongProcessor.FFmpeg;
+using SongProcessor.Models;
 using SongProcessor.Tests.Properties;
 
 namespace SongProcessor.Tests.FFmpeg;
@@ -60,4 +61,16 @@ public abstract class FFmpeg_TestsBase
 		MeanVolume: -6.1,
 		NSamples: 250880
 	);
+
+	protected virtual Anime CreateAnime(string directory)
+	{
+		return new Anime(Path.Combine(directory, "info.amq"), new AnimeBase
+		{
+			Id = 73,
+			Name = "Extremely Long Light Novel Title",
+			Songs = new(),
+			Source = ValidVideoPath,
+			Year = 2500
+		}, new(ValidVideoPath, ValidVideoInfo));
+	}
 }

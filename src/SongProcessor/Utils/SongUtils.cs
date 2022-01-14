@@ -6,30 +6,48 @@ using System.Threading.Channels;
 
 namespace SongProcessor.Utils;
 
+public sealed record SaveNewOptions(
+	bool AddShowNameDirectory,
+	bool AllowOverwrite,
+	bool CreateDuplicateFile
+);
+
 public static class SongUtils
 {
+	public const int LOAD_SLOW = 0;
+
+	public static Task ExportFixesAsync(
+		this ISongProcessor processor,
+		IEnumerable<IAnime> anime,
+		string directory,
+		string fileName = "fixes.txt",
+		CancellationToken cancellationToken = default)
+	{
+		var path = Path.Combine(directory, fileName);
+		var text = processor.ExportFixes(anime);
+		return File.WriteAllTextAsync(path, text, cancellationToken);
+	}
+
 	public static IEnumerable<string> GetFiles(this ISongLoader loader, string directory)
 	{
 		var pattern = $"*.{loader.Extension}";
 		return Directory.EnumerateFiles(directory, pattern, SearchOption.AllDirectories);
 	}
 
-	public static IAsyncEnumerable<IAnime> LoadFromDirectoryAsync(
-		this ISongLoader loader,
-		string directory,
-		int? filesPerTask = null)
-		=> loader.LoadFromFilesAsync(loader.GetFiles(directory), filesPerTask);
-
 	public static IAsyncEnumerable<IAnime> LoadFromFilesAsync(
 		this ISongLoader loader,
 		IEnumerable<string> files,
-		int? filesPerTask = null)
+		int filesPerTask = LOAD_SLOW)
 	{
-		if (!filesPerTask.HasValue)
+		if (filesPerTask < 0)
+		{
+			throw new ArgumentOutOfRangeException(nameof(filesPerTask));
+		}
+		if (filesPerTask == LOAD_SLOW)
 		{
 			return loader.SlowLoadFromFilesAsync(files);
 		}
-		return loader.FastLoadFromFilesAsync(files, filesPerTask.Value);
+		return loader.FastLoadFromFilesAsync(files, filesPerTask);
 	}
 
 	public static async IAsyncEnumerable<IResult> ProcessAsync(
@@ -53,19 +71,38 @@ public static class SongUtils
 		}
 	}
 
-	public static async Task ThrowIfAnyErrors(this IAsyncEnumerable<IResult> results)
+	public static Task SaveAsync(
+		this ISongLoader loader,
+		IAnime anime)
+		=> loader.SaveAsync(anime.AbsoluteInfoPath, anime);
+
+	public static async Task<string?> SaveNewAsync(
+		this ISongLoader loader,
+		string path,
+		IAnimeBase anime,
+		SaveNewOptions options)
 	{
-		await foreach (var result in results)
+		var directory = new DirectoryInfo(path);
+		if (options.AddShowNameDirectory)
 		{
-			if (result.IsSuccess is null)
-			{
-				return;
-			}
-			else if (result.IsSuccess == false)
-			{
-				throw new InvalidOperationException(result.ToString());
-			}
+			var showDirectory = FileUtils.SanitizePath($"[{anime.Year}] {anime.Name}");
+			directory = new DirectoryInfo(Path.Combine(directory.FullName, showDirectory));
 		}
+		directory.Create();
+
+		var file = new FileInfo(Path.Combine(directory.FullName, $"info.{loader.Extension}"));
+		if (file.Exists && options.CreateDuplicateFile)
+		{
+			file = new FileInfo(FileUtils.NextAvailableFilename(file.FullName));
+		}
+
+		if (file.Exists && !options.AllowOverwrite)
+		{
+			return null;
+		}
+
+		await loader.SaveAsync(file.FullName, anime).ConfigureAwait(false);
+		return file.FullName;
 	}
 
 	private static IAsyncEnumerable<IAnime> FastLoadFromFilesAsync(

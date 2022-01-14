@@ -31,18 +31,7 @@ public abstract class SongJob_TestsBase<T> : FFmpeg_TestsBase where T : ISongJob
 		Action<Anime, Song>? configureSong = null,
 		Func<Anime, Anime>? configureAnime = null)
 	{
-		var anime = new Anime(Path.Combine(directory, "info.amq"), new AnimeBase
-		{
-			Id = 73,
-			Name = "Extremely Long Light Novel Title",
-			Songs = new(),
-			Source = ValidVideoPath,
-			Year = 2500
-		}, new(ValidVideoPath, ValidVideoInfo with
-		{
-			DAR = new(16, 9),
-			SAR = AspectRatio.Square,
-		}));
+		var anime = CreateAnime(directory);
 		var song = new Song()
 		{
 			Start = TimeSpan.FromSeconds(0),

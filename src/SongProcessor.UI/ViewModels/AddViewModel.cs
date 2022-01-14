@@ -3,6 +3,7 @@
 using SongProcessor.Gatherers;
 using SongProcessor.Models;
 using SongProcessor.UI.Models;
+using SongProcessor.Utils;
 
 using Splat;
 
@@ -15,7 +16,7 @@ namespace SongProcessor.UI.ViewModels;
 [DataContract]
 public sealed class AddViewModel : ReactiveObject, IRoutableViewModel
 {
-	private static readonly SaveNewOptions _SaveOptions = new
+	private static readonly SaveNewOptions _SaveNewOptions = new
 	(
 		AddShowNameDirectory: true,
 		AllowOverwrite: false,
@@ -134,7 +135,7 @@ public sealed class AddViewModel : ReactiveObject, IRoutableViewModel
 				AddOpenings: AddOpenings,
 				AddSongs: AddSongs
 			)).ConfigureAwait(true);
-			var file = await _Loader.SaveAsync(Directory!, model, _SaveOptions).ConfigureAwait(true);
+			var file = await _Loader.SaveNewAsync(Directory!, model, _SaveNewOptions).ConfigureAwait(true);
 			Anime.Add(new ObservableAnime(new Anime(file!, model, null)));
 			Exception = null;
 		}

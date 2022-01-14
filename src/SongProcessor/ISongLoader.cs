@@ -8,5 +8,5 @@ public interface ISongLoader
 
 	Task<IAnime?> LoadAsync(string path);
 
-	Task<string?> SaveAsync(string directory, IAnimeBase anime, SaveNewOptions? options = null);
+	Task SaveAsync(string path, IAnimeBase anime);
 }

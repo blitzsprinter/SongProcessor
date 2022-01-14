@@ -3,14 +3,13 @@ using SongProcessor.Models;
 using SongProcessor.Results;
 
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using System.Text;
 
 namespace SongProcessor;
 
 public sealed class SongProcessor : ISongProcessor
 {
-	public string FixesFile { get; set; } = "fixes.txt";
-
 	public event Action<IResult>? WarningReceived;
 
 	public List<SongJob> CreateJobs(IEnumerable<IAnime> animes)
@@ -28,27 +27,12 @@ public sealed class SongProcessor : ISongProcessor
 				throw new FileNotFoundException($"{anime.Name} source does not exist.", anime.Source);
 			}
 
-			var resolutions = GetValidResolutions(anime);
-			var songs = anime.Songs.Where(x =>
-			{
-				if (x.ShouldIgnore)
-				{
-					WarningReceived?.Invoke(new IsIgnored(x));
-					return false;
-				}
-				if (!x.HasTimeStamp())
-				{
-					WarningReceived?.Invoke(new TimestampIsNull(x));
-					return false;
-				}
-				return true;
-			});
-			jobs.AddRange(GetJobs(anime, songs, resolutions).Where(x => !x.AlreadyExists));
+			jobs.AddRange(CreateJobs(anime).Where(x => !x.AlreadyExists));
 		}
 		return jobs;
 	}
 
-	public async Task ExportFixesAsync(string dir, IEnumerable<IAnime> animes)
+	public string ExportFixes(IEnumerable<IAnime> animes)
 	{
 		static string FormatTimeSpan(TimeSpan ts)
 		{
@@ -81,16 +65,13 @@ public sealed class SongProcessor : ISongProcessor
 		}
 		if (matches.IsEmpty)
 		{
-			return;
+			return "";
 		}
 
-		var file = Path.Combine(dir, FixesFile);
-		using var sw = new StreamWriter(file, append: false);
-
 		var count = 0;
+		var sb = new StringBuilder();
 		foreach (var anime in animes)
 		{
-			var writtenSongs = 0;
 			foreach (var song in anime.Songs)
 			{
 				if (song.ShouldIgnore || song.Status != Status.NotSubmitted)
@@ -98,7 +79,6 @@ public sealed class SongProcessor : ISongProcessor
 					continue;
 				}
 
-				var sb = new StringBuilder();
 				sb.Append("**Anime:** ").AppendLine(anime.Name);
 				sb.Append("**ANNID:** ").AppendLine(anime.Id.ToString());
 				sb.Append("**Song Title:** ").AppendLine(song.Name);
@@ -119,12 +99,7 @@ public sealed class SongProcessor : ISongProcessor
 					sb.Append("**Duplicate found in:** ").AppendLine(joined);
 				}
 
-				await sw.WriteAsync(sb.AppendLine()).ConfigureAwait(false);
-				++writtenSongs;
-			}
-
-			if (writtenSongs > 0)
-			{
+				sb.AppendLine();
 				++count;
 			}
 		}
@@ -132,20 +107,29 @@ public sealed class SongProcessor : ISongProcessor
 		var text = count > 1
 			? "**I solemnly swear that I have checked that these song-anime combos aren't in the game already, and I have read and understand all the pins**"
 			: "**I solemnly swear that I have checked that this song-anime combo isn't in the game already, and I have read and understand all the pins**";
-		await sw.WriteAsync(text).ConfigureAwait(false);
+		sb.Append(text);
+		return sb.ToString();
 	}
 
 	IReadOnlyList<ISongJob> ISongProcessor.CreateJobs(IEnumerable<IAnime> anime)
 		=> CreateJobs(anime);
 
-	private static IEnumerable<SongJob> GetJobs(
-		IAnime anime,
-		IEnumerable<ISong> songs,
-		IEnumerable<Resolution> resolutions)
+	private IEnumerable<SongJob> CreateJobs(IAnime anime)
 	{
-		foreach (var song in songs)
+		foreach (var song in anime.Songs)
 		{
-			foreach (var resolution in resolutions)
+			if (song.ShouldIgnore)
+			{
+				WarningReceived?.Invoke(new IsIgnored(song));
+				continue;
+			}
+			if (!song.HasTimeStamp())
+			{
+				WarningReceived?.Invoke(new TimestampIsNull(song));
+				continue;
+			}
+
+			foreach (var resolution in GetValidResolutions(anime))
 			{
 				if (!song.IsMissing(resolution.Status))
 				{
@@ -167,29 +151,31 @@ public sealed class SongProcessor : ISongProcessor
 	private IReadOnlyList<Resolution> GetValidResolutions(IAnime anime)
 	{
 		var height = anime.VideoInfo?.Info?.Height;
-		var valid = new List<Resolution>(Resolution.Resolutions.Length);
-		foreach (var res in Resolution.Resolutions)
+		if (!height.HasValue)
 		{
-			if (!height.HasValue)
-			{
-				WarningReceived?.Invoke(new VideoIsNull(anime));
-			}
-			else if (res.Size > height.Value)
-			{
-				WarningReceived?.Invoke(new VideoTooSmall(anime, res.Size));
-			}
-			else
-			{
-				valid.Add(res);
-			}
+			WarningReceived?.Invoke(new VideoIsNull(anime));
+			return Array.Empty<Resolution>();
 		}
 
-		// Only mp3 is valid, so we have to just use whatever res the source is
-		if (height.HasValue && valid.Count == 1 && valid[0].IsMp3)
+		// Source is smaller than 480p, return mp3 and souce size (but treat as 480p status)
+		if (height.Value < Resolution.RES_480.Size)
 		{
-			valid.Add(new Resolution(height.Value, Status.Res480));
+			return new[]
+			{
+				Resolution.RES_MP3,
+				new(height.Value, Status.Res480),
+			};
 		}
-		return valid;
+		// Source is smaller than 720p, return mp3 and 480p
+		else if (height.Value < Resolution.RES_720.Size)
+		{
+			return Resolution.UpTo480;
+		}
+		// Source is at least 720p, return mp3, 480p, and 720p
+		else
+		{
+			return Resolution.UpTo720;
+		}
 	}
 
 	private readonly struct Resolution
@@ -197,12 +183,17 @@ public sealed class SongProcessor : ISongProcessor
 		public static readonly Resolution RES_480 = new(480, Status.Res480);
 		public static readonly Resolution RES_720 = new(720, Status.Res720);
 		public static readonly Resolution RES_MP3 = new(MP3, Status.Mp3);
-		public static readonly Resolution[] Resolutions = new[]
+		public static readonly IReadOnlyList<Resolution> UpTo480 = new[]
 		{
-				RES_MP3,
-				RES_480,
-				RES_720
-			};
+			RES_MP3,
+			RES_480,
+		}.ToImmutableArray();
+		public static readonly IReadOnlyList<Resolution> UpTo720 = new[]
+		{
+			RES_MP3,
+			RES_480,
+			RES_720
+		}.ToImmutableArray();
 		private const int MP3 = -1;
 
 		public bool IsMp3 => Size == MP3;

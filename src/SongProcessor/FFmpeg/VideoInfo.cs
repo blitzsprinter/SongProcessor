@@ -85,6 +85,4 @@ public sealed record VideoInfo(
 	bool? QuarterSample = null,
 	[property: JsonPropertyName("sample_aspect_ratio")]
 	AspectRatio? SAR = null
-)
-{
-}
+);

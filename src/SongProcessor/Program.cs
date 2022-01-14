@@ -29,7 +29,7 @@ public sealed class Program
 		foreach (var id in File.ReadAllLines(idFile).Select(int.Parse))
 		{
 			var model = await gatherer.GetAsync(id, GatherOptions.All).ConfigureAwait(false);
-			await loader.SaveAsync(directory, model, options).ConfigureAwait(false);
+			await loader.SaveNewAsync(directory, model, options).ConfigureAwait(false);
 			Console.WriteLine($"Got information from ANN for {model.Name}.");
 		}
 
@@ -184,16 +184,16 @@ public sealed class Program
 
 	private async Task RunAsync()
 	{
-		string dir;
+		string directory;
 		Console.WriteLine("Enter a directory to process: ");
 		while (true)
 		{
 			try
 			{
-				var directory = new DirectoryInfo(Console.ReadLine()!);
-				if (directory.Exists)
+				var temp = new DirectoryInfo(Console.ReadLine()!);
+				if (temp.Exists)
 				{
-					dir = directory.FullName;
+					directory = temp.FullName;
 					break;
 				}
 			}
@@ -209,23 +209,30 @@ public sealed class Program
 		Console.OutputEncoding = Encoding.UTF8;
 
 		var loader = new SongLoader(new SourceInfoGatherer());
-		await AddNewShowsAsync(loader, dir).ConfigureAwait(false);
+		await AddNewShowsAsync(loader, directory).ConfigureAwait(false);
 
-		var anime = new SortedSet<Anime>(new AnimeComparer());
-		await foreach (var item in loader.LoadFromDirectoryAsync(dir, 5))
+		var animes = new SortedSet<Anime>(new AnimeComparer());
+		var files = loader.GetFiles(directory);
+		await foreach (var item in loader.LoadFromFilesAsync(files, 3))
 		{
-			var modifiable = new Anime(item);
-			modifiable.Songs.RemoveAll(x => x.ShouldIgnore);
-			anime.Add(modifiable);
+			var anime = new Anime(item);
+			anime.Songs.RemoveAll(x => x.ShouldIgnore);
+			animes.Add(anime);
 		}
 
-		Display(anime);
+		Display(animes);
 
 		var processor = new SongProcessor();
 		processor.WarningReceived += Console.WriteLine;
-		await processor.ExportFixesAsync(dir, anime).ConfigureAwait(false);
+		await processor.ExportFixesAsync(animes, directory).ConfigureAwait(false);
 
-		var jobs = processor.CreateJobs(anime);
-		await jobs.ProcessAsync(OnProcessingReceived).ThrowIfAnyErrors().ConfigureAwait(false);
+		var jobs = processor.CreateJobs(animes);
+		await foreach (var result in jobs.ProcessAsync(OnProcessingReceived))
+		{
+			if (result.IsSuccess == false)
+			{
+				throw new InvalidOperationException(result.ToString());
+			}
+		}
 	}
 }

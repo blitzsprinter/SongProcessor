@@ -2,7 +2,6 @@
 
 using SongProcessor.Models;
 
-using System.IO.Compression;
 using System.Web;
 
 namespace SongProcessor.Gatherers;

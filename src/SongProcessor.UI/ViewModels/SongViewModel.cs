@@ -262,7 +262,7 @@ public sealed class SongViewModel : ReactiveObject, IRoutableViewModel, INavigat
 			return;
 		}
 
-		await _Loader.SaveAsync(anime.AbsoluteInfoPath, anime).ConfigureAwait(true);
+		await _Loader.SaveAsync(anime).ConfigureAwait(true);
 	}
 
 	private async Task PrivateClearSongs(ObservableAnime anime)
@@ -278,13 +278,13 @@ public sealed class SongViewModel : ReactiveObject, IRoutableViewModel, INavigat
 		}
 
 		anime.Songs.Clear();
-		await _Loader.SaveAsync(anime.AbsoluteInfoPath, anime).ConfigureAwait(true);
+		await _Loader.SaveAsync(anime).ConfigureAwait(true);
 	}
 
 	private async Task PrivateClearSource(ObservableAnime anime)
 	{
 		anime.VideoInfo = null;
-		await _Loader.SaveAsync(anime.AbsoluteInfoPath, anime).ConfigureAwait(true);
+		await _Loader.SaveAsync(anime).ConfigureAwait(true);
 	}
 
 	private Task PrivateCopyANNID(int id)
@@ -299,7 +299,7 @@ public sealed class SongViewModel : ReactiveObject, IRoutableViewModel, INavigat
 		{
 			var anime = song.Parent;
 			anime.Songs.Remove(song);
-			return _Loader.SaveAsync(anime.AbsoluteInfoPath, anime);
+			return _Loader.SaveAsync(anime);
 		});
 	}
 
@@ -333,12 +333,12 @@ public sealed class SongViewModel : ReactiveObject, IRoutableViewModel, INavigat
 		}
 
 		anime.Songs.Remove(song);
-		await _Loader.SaveAsync(anime.AbsoluteInfoPath, anime).ConfigureAwait(true);
+		await _Loader.SaveAsync(anime).ConfigureAwait(true);
 	}
 
 	private async Task PrivateDuplicateAnime(ObservableAnime anime)
 	{
-		var file = await _Loader.SaveAsync(anime.GetDirectory(), anime, _SaveOptions).ConfigureAwait(true);
+		var file = await _Loader.SaveNewAsync(anime.GetDirectory(), anime, _SaveOptions).ConfigureAwait(true);
 		Anime.Add(new ObservableAnime(new Anime(file!, anime, anime.VideoInfo)));
 	}
 
@@ -353,7 +353,7 @@ public sealed class SongViewModel : ReactiveObject, IRoutableViewModel, INavigat
 	}
 
 	private Task PrivateExportFixes()
-		=> _Processor.ExportFixesAsync(Directory!, Anime);
+		=> _Processor.ExportFixesAsync(Anime, Directory!);
 
 	private async Task PrivateGetVolumeInfo(ObservableAnime anime)
 	{
@@ -386,17 +386,19 @@ public sealed class SongViewModel : ReactiveObject, IRoutableViewModel, INavigat
 		try
 		{
 			var files = _Loader.GetFiles(Directory!);
-			await foreach (var anime in _Loader.LoadFromFilesAsync(files, 5))
+			await foreach (var item in _Loader.LoadFromFilesAsync(files, 3))
 			{
-				var observable = new ObservableAnime(anime);
-				ModifyVisibility(observable);
-				Anime.Add(observable);
+				var anime = new ObservableAnime(item);
+				ModifyVisibility(anime);
+				Anime.Add(anime);
 
-				_Subscriptions.Add(observable.Changed.Subscribe(_ => ModifyVisibility(observable)));
-				_Subscriptions.Add(observable.Songs
+				_Subscriptions.Add(anime.Changed
+					.Subscribe(_ => ModifyVisibility(anime))
+				);
+				_Subscriptions.Add(anime.Songs
 					.ToObservableChangeSet()
 					.WhenAnyPropertyChanged()
-					.Subscribe(_ => ModifyVisibility(observable))
+					.Subscribe(_ => ModifyVisibility(anime))
 				);
 			}
 
@@ -454,7 +456,7 @@ public sealed class SongViewModel : ReactiveObject, IRoutableViewModel, INavigat
 			}
 
 			var anime = group.Key;
-			await _Loader.SaveAsync(anime.AbsoluteInfoPath, anime).ConfigureAwait(true);
+			await _Loader.SaveAsync(anime).ConfigureAwait(true);
 		}
 	}
 
@@ -473,7 +475,7 @@ public sealed class SongViewModel : ReactiveObject, IRoutableViewModel, INavigat
 	{
 		var clipboard = ClipboardSong!;
 		anime.Songs.Add(new ObservableSong(anime, clipboard.Value));
-		await _Loader.SaveAsync(anime.AbsoluteInfoPath, anime).ConfigureAwait(true);
+		await _Loader.SaveAsync(anime).ConfigureAwait(true);
 
 		if (clipboard.OnPasteCallback is not null)
 		{
@@ -501,11 +503,12 @@ public sealed class SongViewModel : ReactiveObject, IRoutableViewModel, INavigat
 				TaskbarProgress.UpdateTaskbarProgress(x.Percentage);
 			}, token);
 
-			// If any result is an error stop processing and display it
 			await foreach (var result in results.WithCancellation(token))
 			{
+				// If any result is an error stop processing and display it
 				if (result.IsSuccess == false)
 				{
+					await CancelProcessing.Execute();
 					await _MessageBoxManager.ShowNoResultAsync(new()
 					{
 						CanResize = true,
@@ -513,7 +516,6 @@ public sealed class SongViewModel : ReactiveObject, IRoutableViewModel, INavigat
 						Text = result.ToString(),
 						Title = "Failed To Process Song",
 					}).ConfigureAwait(true);
-					await CancelProcessing.Execute();
 				}
 			}
 		})
@@ -523,7 +525,7 @@ public sealed class SongViewModel : ReactiveObject, IRoutableViewModel, INavigat
 			ProcessingData = null;
 			TaskbarProgress.UpdateTaskbarProgress(null);
 		})
-		// Cancel if cancel button is clicked
+		// Cancel if cancel button is invoked
 		.TakeUntil(CancelProcessing);
 	}
 
