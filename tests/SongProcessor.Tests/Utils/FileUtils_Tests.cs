@@ -16,25 +16,25 @@ public sealed class FileUtils_Tests
 	public void EnsureAbsolutePathNotQualified_Test()
 	{
 		var path = Path.Combine("joe", Name);
-		FileUtils.EnsureAbsolutePath(Dir, path).Should().Be(Path.Combine(Dir, path));
+		FileUtils.EnsureAbsoluteFile(Dir, path).Should().Be(Path.Combine(Dir, path));
 	}
 
 	[TestMethod]
 	public void EnsureAbsolutePathPathNull_Test()
-		=> FileUtils.EnsureAbsolutePath("C:", null).Should().BeNull();
+		=> FileUtils.EnsureAbsoluteFile("C:", null).Should().BeNull();
 
 	[TestMethod]
 	public void EnsureAbsolutePathQualified_Test()
 	{
 		var path = Path.Combine("C:", Name);
-		FileUtils.EnsureAbsolutePath(Dir, path).Should().Be(path);
+		FileUtils.EnsureAbsoluteFile(Dir, path).Should().Be(path);
 	}
 
 	[TestMethod]
 	public void GetRelativeOrAbsolutePathAbsolute_Test()
 	{
 		var path = Path.Combine("C:", Name);
-		FileUtils.GetRelativeOrAbsolutePath(Dir, path).Should().Be(path);
+		FileUtils.GetRelativeOrAbsoluteFile(Dir, path).Should().Be(path);
 	}
 
 	[TestMethod]
@@ -42,18 +42,18 @@ public sealed class FileUtils_Tests
 	{
 		var nestedPath = Path.Combine("nested", Name);
 		var path = Path.Combine(Dir, nestedPath);
-		FileUtils.GetRelativeOrAbsolutePath(Dir, path).Should().Be(nestedPath);
+		FileUtils.GetRelativeOrAbsoluteFile(Dir, path).Should().Be(nestedPath);
 	}
 
 	[TestMethod]
 	public void GetRelativeOrAbsolutePathNull_Test()
-		=> FileUtils.GetRelativeOrAbsolutePath(Dir, null).Should().BeNull();
+		=> FileUtils.GetRelativeOrAbsoluteFile(Dir, null).Should().BeNull();
 
 	[TestMethod]
 	public void GetRelativeOrAbsolutePathRelative_Test()
 	{
 		var path = Path.Combine(Dir, Name);
-		FileUtils.GetRelativeOrAbsolutePath(Dir, path).Should().Be(Path.GetFileName(path));
+		FileUtils.GetRelativeOrAbsoluteFile(Dir, path).Should().Be(Path.GetFileName(path));
 	}
 
 	[TestMethod]
@@ -61,7 +61,7 @@ public sealed class FileUtils_Tests
 	{
 		using var temp = new TempDirectory();
 		var path = Path.Combine(temp.Dir, Name);
-		FileUtils.NextAvailableFilename(path).Should().Be(path);
+		FileUtils.NextAvailableFile(path).Should().Be(path);
 	}
 
 	[TestMethod]
@@ -94,7 +94,7 @@ public sealed class FileUtils_Tests
 		var expected = new HashSet<string> { file };
 		for (var i = 0; i < 5; ++i)
 		{
-			File.Create(FileUtils.NextAvailableFilename(file)).Dispose();
+			File.Create(FileUtils.NextAvailableFile(file)).Dispose();
 			expected.Add(Path.Combine(temp.Dir, $"{NAME} ({i + 1}){extension}"));
 		}
 

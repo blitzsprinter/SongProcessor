@@ -10,7 +10,14 @@ public sealed record SaveNewOptions(
 	bool AddShowNameDirectory,
 	bool AllowOverwrite,
 	bool CreateDuplicateFile
-);
+)
+{
+	public static SaveNewOptions Default { get; } = new(
+		AddShowNameDirectory: true,
+		AllowOverwrite: false,
+		CreateDuplicateFile: true
+	);
+}
 
 public static class SongUtils
 {
@@ -93,7 +100,7 @@ public static class SongUtils
 		var file = new FileInfo(Path.Combine(dir.FullName, $"info.{loader.Extension}"));
 		if (file.Exists && options.CreateDuplicateFile)
 		{
-			file = new FileInfo(FileUtils.NextAvailableFilename(file.FullName));
+			file = new FileInfo(FileUtils.NextAvailableFile(file.FullName));
 		}
 
 		if (file.Exists && !options.AllowOverwrite)

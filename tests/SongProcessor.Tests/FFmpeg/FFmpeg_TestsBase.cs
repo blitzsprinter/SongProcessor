@@ -10,8 +10,13 @@ public abstract class FFmpeg_TestsBase
 	public const string FFPROBE_CATEGORY = "FFprobe";
 	public virtual string FakeFileName { get; } = "DoesNotExist.txt";
 	public virtual SourceInfoGatherer Gatherer { get; } = new();
+	public virtual string ValidVideoFile { get; } = Path.Combine(
+		Directory.GetCurrentDirectory(),
+		nameof(Resources),
+		$"{nameof(Resources.ValidVideo)}.mp4"
+	);
 	public virtual VideoInfo ValidVideoInfo { get; } = new VideoInfo(
-		AverageFrameRate: "24000/1001",
+			AverageFrameRate: "24000/1001",
 		ClosedCaptions: 0,
 		CodecLongName: "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
 		CodecName: "h264",
@@ -50,11 +55,6 @@ public abstract class FFmpeg_TestsBase
 		NbFrames: 125,
 		Profile: "Main"
 	);
-	public virtual string ValidVideoPath { get; } = Path.Combine(
-		Directory.GetCurrentDirectory(),
-		nameof(Resources),
-		$"{nameof(Resources.ValidVideo)}.mp4"
-	);
 	public virtual VolumeInfo ValidVideoVolume { get; } = new(
 		Histograms: new() { [0] = 25099 },
 		MaxVolume: 0,
@@ -69,8 +69,8 @@ public abstract class FFmpeg_TestsBase
 			Id = 73,
 			Name = "Extremely Long Light Novel Title",
 			Songs = new(),
-			Source = ValidVideoPath,
+			Source = ValidVideoFile,
 			Year = 2500
-		}, new(ValidVideoPath, ValidVideoInfo));
+		}, new(ValidVideoFile, ValidVideoInfo));
 	}
 }

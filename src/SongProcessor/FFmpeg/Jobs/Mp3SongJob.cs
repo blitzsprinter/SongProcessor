@@ -23,7 +23,7 @@ public class Mp3SongJob : SongJob
 		{
 			input = new JobInput[]
 			{
-				new(Anime.GetAbsoluteSourcePath(), new Dictionary<string, string>
+				new(Anime.GetAbsoluteSourceFile(), new Dictionary<string, string>
 				{
 					["ss"] = Song.Start.ToString(), // Starting time
 					["to"] = Song.End.ToString(), // Ending time
@@ -34,7 +34,7 @@ public class Mp3SongJob : SongJob
 		{
 			input = new JobInput[]
 			{
-				new(Song.GetCleanPath(Anime)!, new Dictionary<string, string>
+				new(Song.GetCleanFile(Anime)!, new Dictionary<string, string>
 				{
 					["to"] = Song.GetLength().ToString(), // Should start at needed segment
 				}),
@@ -69,5 +69,5 @@ public class Mp3SongJob : SongJob
 		=> GenerateArgsInternal().ToString();
 
 	protected override string GetUnsanitizedPath()
-		=> Song.GetMp3Path(Anime);
+		=> Song.GetMp3File(Anime);
 }

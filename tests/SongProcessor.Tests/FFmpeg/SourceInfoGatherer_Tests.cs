@@ -13,8 +13,8 @@ public sealed class SourceInfoGatherer_Tests : FFmpeg_TestsBase
 	[TestCategory(FFPROBE_CATEGORY)]
 	public async Task GetAudioInfo_Test()
 	{
-		var actual = await Gatherer.GetAudioInfoAsync(ValidVideoPath).ConfigureAwait(false);
-		actual.Path.Should().Be(ValidVideoPath);
+		var actual = await Gatherer.GetAudioInfoAsync(ValidVideoFile).ConfigureAwait(false);
+		actual.File.Should().Be(ValidVideoFile);
 		actual.Info.Should().Be(new AudioInfo());
 		// uncomment below if volumeinfo implemented
 		//actual.Info.Should().BeEquivalentTo(new AudioInfo());
@@ -31,8 +31,8 @@ public sealed class SourceInfoGatherer_Tests : FFmpeg_TestsBase
 	[TestCategory(FFPROBE_CATEGORY)]
 	public async Task GetVideoInfo_Test()
 	{
-		var actual = await Gatherer.GetVideoInfoAsync(ValidVideoPath).ConfigureAwait(false);
-		actual.Path.Should().Be(ValidVideoPath);
+		var actual = await Gatherer.GetVideoInfoAsync(ValidVideoFile).ConfigureAwait(false);
+		actual.File.Should().Be(ValidVideoFile);
 		actual.Info.Should().BeEquivalentTo(ValidVideoInfo);
 	}
 
@@ -47,8 +47,8 @@ public sealed class SourceInfoGatherer_Tests : FFmpeg_TestsBase
 	[TestCategory(FFMPEG_CATEGORY)]
 	public async Task GetVolumeInfo_Test()
 	{
-		var actual = await Gatherer.GetVolumeInfoAsync(ValidVideoPath).ConfigureAwait(false);
-		actual.Path.Should().Be(ValidVideoPath);
+		var actual = await Gatherer.GetVolumeInfoAsync(ValidVideoFile).ConfigureAwait(false);
+		actual.File.Should().Be(ValidVideoFile);
 		actual.Info.Should().BeEquivalentTo(ValidVideoVolume);
 	}
 

@@ -15,11 +15,11 @@ public static class MiscConverters
 
 	public static FuncValueConverter<SourceInfo<VideoInfo>?, IBrush?> SourceColor { get; } = new(x =>
 	{
-		if (x?.Path is not string path)
+		if (x?.File is not string file)
 		{
 			return _Yellow;
 		}
-		if (File.Exists(path))
+		if (File.Exists(file))
 		{
 			return Brushes.Transparent;
 		}

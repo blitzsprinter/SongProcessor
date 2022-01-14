@@ -27,10 +27,7 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase<VideoSongJob>
 	public void ArgsVideoCleanPath_Test()
 	{
 		using var temp = new TempDirectory();
-		var job = GenerateJob(temp.Dir, (_, song) =>
-		{
-			song.CleanPath = @"C:\joemama.wav";
-		});
+		var job = GenerateJob(temp.Dir, (_, song) => song.CleanPath = @"C:\joemama.wav");
 		var actual = job.GenerateArgsInternal();
 
 		var @default = GenerateDefaultJobArgs(job);
@@ -40,7 +37,7 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase<VideoSongJob>
 			Inputs = new JobInput[]
 			{
 				@default.Inputs[0],
-				new(job.Song.GetCleanPath(job.Anime)!, null!),
+				new(job.Song.GetCleanFile(job.Anime)!, null!),
 			},
 			Mapping = new[] { "0:v:0", "1:a:0" },
 		});
@@ -74,8 +71,8 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase<VideoSongJob>
 		var job = GenerateJob(temp.Dir, configureAnime: anime =>
 		{
 			return new Anime(anime.AbsoluteInfoPath, anime, new(
-				anime.VideoInfo!.Value.Path,
-				anime.VideoInfo.Value.Info with
+				anime.VideoInfo?.File!,
+				anime.VideoInfo?.Info! with
 				{
 					SAR = new(4, 3),
 				}
@@ -103,8 +100,8 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase<VideoSongJob>
 		var job = GenerateJob(temp.Dir, configureAnime: anime =>
 		{
 			return new Anime(anime.AbsoluteInfoPath, anime, new(
-				anime.VideoInfo!.Value.Path,
-				anime.VideoInfo.Value.Info with
+				anime.VideoInfo?.File!,
+				anime.VideoInfo?.Info! with
 				{
 					DAR = null
 				}
@@ -120,10 +117,8 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase<VideoSongJob>
 	public void ArgsVideoOverrideAspectRatio_Test()
 	{
 		using var temp = new TempDirectory();
-		var job = GenerateJob(temp.Dir, (_, song) =>
-		{
-			song.OverrideAspectRatio = new AspectRatio(4, 3);
-		});
+		var job = GenerateJob(temp.Dir,
+			(_, song) => song.OverrideAspectRatio = new AspectRatio(4, 3));
 		var actual = job.GenerateArgsInternal();
 
 		var @default = GenerateDefaultJobArgs(job);
@@ -166,10 +161,8 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase<VideoSongJob>
 	public void ArgsVideoVolumeModifier_Test()
 	{
 		using var temp = new TempDirectory();
-		var job = GenerateJob(temp.Dir, (_, song) =>
-		{
-			song.VolumeModifier = VolumeModifer.FromDecibels(-2);
-		});
+		var job = GenerateJob(temp.Dir,
+			(_, song) => song.VolumeModifier = VolumeModifer.FromDecibels(-2));
 		var actual = job.GenerateArgsInternal();
 
 		var @default = GenerateDefaultJobArgs(job);
@@ -265,7 +258,7 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase<VideoSongJob>
 	{
 		var anime = base.CreateAnime(directory);
 		return new Anime(anime.AbsoluteInfoPath, anime, new(
-			anime.VideoInfo!.Value.Path,
+			anime.VideoInfo!.Value.File,
 			anime.VideoInfo.Value.Info with
 			{
 				DAR = new(16, 9),
@@ -289,7 +282,7 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase<VideoSongJob>
 		return new JobArgs(
 			Inputs: new JobInput[]
 			{
-				new(job.Anime.GetAbsoluteSourcePath(), new Dictionary<string, string>
+				new(job.Anime.GetAbsoluteSourceFile(), new Dictionary<string, string>
 				{
 					["ss"] = job.Song.Start.ToString(),
 					["to"] = job.Song.End.ToString(),
@@ -299,7 +292,7 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase<VideoSongJob>
 			QualityArgs: VideoSongJob.VideoArgs,
 			AudioFilters: null,
 			VideoFilters: null,
-			OutputFile: job.Song.GetVideoPath(job.Anime, job.Resolution)
+			OutputFile: job.Song.GetVideoFile(job.Anime, job.Resolution)
 		);
 	}
 }

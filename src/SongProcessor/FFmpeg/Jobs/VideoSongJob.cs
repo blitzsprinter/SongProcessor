@@ -47,7 +47,7 @@ public class VideoSongJob : SongJob
 	{
 		var input = new List<JobInput>
 		{
-			new(Anime.GetAbsoluteSourcePath(), new Dictionary<string, string>
+			new(Anime.GetAbsoluteSourceFile(), new Dictionary<string, string>
 			{
 				["ss"] = Song.Start.ToString(), // Starting time
 				["to"] = Song.End.ToString(), // Ending time
@@ -65,7 +65,7 @@ public class VideoSongJob : SongJob
 		}
 		else
 		{
-			input.Add(new(Song.GetCleanPath(Anime)!, null));
+			input.Add(new(Song.GetCleanFile(Anime)!, null));
 			mapping = new[]
 			{
 				$"0:v:{Song.OverrideVideoTrack}",
@@ -84,7 +84,7 @@ public class VideoSongJob : SongJob
 			var dar = Song.OverrideAspectRatio ?? info.DAR;
 			if (dar is null)
 			{
-				throw new InvalidOperationException($"DAR cannot be null: {Anime.GetAbsoluteSourcePath()}.");
+				throw new InvalidOperationException($"DAR cannot be null: {Anime.GetAbsoluteSourceFile()}.");
 			}
 
 			var width = (int)(Resolution * dar.Value.Ratio);
@@ -122,5 +122,5 @@ public class VideoSongJob : SongJob
 	}
 
 	protected override string GetUnsanitizedPath()
-		=> Song.GetVideoPath(Anime, Resolution);
+		=> Song.GetVideoFile(Anime, Resolution);
 }

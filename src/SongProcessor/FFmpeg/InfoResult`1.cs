@@ -2,12 +2,12 @@
 
 public readonly struct SourceInfo<T>
 {
+	public string File { get; }
 	public T Info { get; }
-	public string Path { get; }
 
-	public SourceInfo(string path, T info)
+	public SourceInfo(string file, T info)
 	{
-		Path = path;
+		File = file;
 		Info = info;
 	}
 }

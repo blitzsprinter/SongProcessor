@@ -27,11 +27,11 @@ public class Error : Result
 
 public class FileAlreadyExists : Result
 {
-	public string Path { get; }
+	public string File { get; }
 
-	public FileAlreadyExists(string path) : base($"{path} already exists.", false)
+	public FileAlreadyExists(string file) : base($"{file} already exists.", false)
 	{
-		Path = path;
+		File = file;
 	}
 }
 

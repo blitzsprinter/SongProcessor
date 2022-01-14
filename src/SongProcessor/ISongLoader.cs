@@ -6,7 +6,7 @@ public interface ISongLoader
 {
 	string Extension { get; set; }
 
-	Task<IAnime?> LoadAsync(string path);
+	Task<IAnime?> LoadAsync(string file);
 
-	Task SaveAsync(string path, IAnimeBase anime);
+	Task SaveAsync(string file, IAnimeBase anime);
 }

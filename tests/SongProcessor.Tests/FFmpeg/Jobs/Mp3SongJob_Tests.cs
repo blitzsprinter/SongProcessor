@@ -39,7 +39,7 @@ public sealed class Mp3SongJob_Tests : SongJob_TestsBase<Mp3SongJob>
 		{
 			Inputs = new JobInput[]
 			{
-				new(job.Song.GetCleanPath(job.Anime)!, new Dictionary<string, string>
+				new(job.Song.GetCleanFile(job.Anime)!, new Dictionary<string, string>
 				{
 					["to"] = job.Song.GetLength().ToString(),
 				}),
@@ -173,7 +173,7 @@ public sealed class Mp3SongJob_Tests : SongJob_TestsBase<Mp3SongJob>
 		return new JobArgs(
 			Inputs: new JobInput[]
 			{
-				new(job.Anime.GetAbsoluteSourcePath(), new Dictionary<string, string>
+				new(job.Anime.GetAbsoluteSourceFile(), new Dictionary<string, string>
 				{
 					["ss"] = job.Song.Start.ToString(),
 					["to"] = job.Song.End.ToString(),
@@ -183,7 +183,7 @@ public sealed class Mp3SongJob_Tests : SongJob_TestsBase<Mp3SongJob>
 			QualityArgs: Mp3SongJob.AudioArgs,
 			AudioFilters: null,
 			VideoFilters: null,
-			OutputFile: job.Song.GetMp3Path(job.Anime)
+			OutputFile: job.Song.GetMp3File(job.Anime)
 		);
 	}
 

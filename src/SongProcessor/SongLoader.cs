@@ -29,10 +29,10 @@ public sealed class SongLoader : ISongLoader
 		_Options.Converters.Add(new InterfaceJsonConverter<Song, ISong>());
 	}
 
-	public async Task<Anime?> LoadAsync(string path)
+	public async Task<Anime?> LoadAsync(string file)
 	{
-		var file = new FileInfo(path);
-		if (!file.Exists || file.Length == 0)
+		var fileInfo = new FileInfo(file);
+		if (!fileInfo.Exists || fileInfo.Length == 0)
 		{
 			return null;
 		}
@@ -40,16 +40,16 @@ public sealed class SongLoader : ISongLoader
 		AnimeBase model;
 		try
 		{
-			using var fs = file.OpenRead();
+			using var fs = fileInfo.OpenRead();
 			model = (await JsonSerializer.DeserializeAsync<AnimeBase>(fs, _Options).ConfigureAwait(false))!;
 		}
 		catch (Exception e)
 		{
-			throw new JsonException($"Unable to parse {file}.", e);
+			throw new JsonException($"Unable to parse {fileInfo}.", e);
 		}
 
 		SourceInfo<VideoInfo>? videoInfo = null;
-		var source = FileUtils.EnsureAbsolutePath(file.DirectoryName!, model.Source);
+		var source = FileUtils.EnsureAbsoluteFile(fileInfo.DirectoryName!, model.Source);
 		if (source is not null)
 		{
 			try
@@ -62,24 +62,24 @@ public sealed class SongLoader : ISongLoader
 			}
 		}
 
-		return new Anime(file.FullName, model, videoInfo);
+		return new Anime(fileInfo.FullName, model, videoInfo);
 	}
 
-	public async Task SaveAsync(string path, IAnimeBase anime)
+	public async Task SaveAsync(string file, IAnimeBase anime)
 	{
-		var file = new FileInfo(path);
+		var fileInfo = new FileInfo(file);
 		var model = new AnimeBase(anime);
 		try
 		{
-			using var fs = file.Open(FileMode.Create);
+			using var fs = fileInfo.Open(FileMode.Create);
 			await JsonSerializer.SerializeAsync(fs, model, _Options).ConfigureAwait(false);
 		}
 		catch (Exception e)
 		{
-			throw new InvalidOperationException($"Unable to save {anime.Name} to {file}.", e);
+			throw new InvalidOperationException($"Unable to save {anime.Name} to {fileInfo}.", e);
 		}
 	}
 
-	async Task<IAnime?> ISongLoader.LoadAsync(string path)
-		=> await LoadAsync(path).ConfigureAwait(false);
+	async Task<IAnime?> ISongLoader.LoadAsync(string file)
+		=> await LoadAsync(file).ConfigureAwait(false);
 }

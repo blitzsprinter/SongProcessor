@@ -36,10 +36,10 @@ public abstract class SongJob : ISongJob
 
 	public async Task<IResult> ProcessAsync(CancellationToken? token = null)
 	{
-		var path = GetSanitizedPath();
-		if (File.Exists(path))
+		var file = GetSanitizedPath();
+		if (File.Exists(file))
 		{
-			return new FileAlreadyExists(path);
+			return new FileAlreadyExists(file);
 		}
 
 		using var process = ProcessUtils.FFmpeg.CreateProcess(GenerateArgs());
@@ -55,7 +55,7 @@ public abstract class SongJob : ISongJob
 
 			try
 			{
-				File.Delete(path);
+				File.Delete(file);
 			}
 			catch { } // Nothing we can do
 		}, token);
@@ -70,7 +70,7 @@ public abstract class SongJob : ISongJob
 
 			if (progressBuilder.IsNextProgressReady(e.Data, out var progress))
 			{
-				ProcessingDataReceived?.Invoke(new(Song.GetLength(), path, progress));
+				ProcessingDataReceived?.Invoke(new(Song.GetLength(), file, progress));
 			}
 		};
 		// Since we set the loglevel to error we don't need to filter

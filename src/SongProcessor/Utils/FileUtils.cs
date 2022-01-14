@@ -8,19 +8,19 @@ public static class FileUtils
 	private static readonly HashSet<char> InvalidChars
 		= new(Path.GetInvalidFileNameChars().Concat(Path.GetInvalidPathChars()));
 
-	public static string? EnsureAbsolutePath(string dir, string? path)
+	public static string? EnsureAbsoluteFile(string dir, string? file)
 	{
-		if (path is null)
+		if (file is null)
 		{
 			return null;
 		}
 
-		return Path.IsPathFullyQualified(path) ? path : Path.Combine(dir, path);
+		return Path.IsPathFullyQualified(file) ? file : Path.Combine(dir, file);
 	}
 
-	public static string? GetRelativeOrAbsolutePath(string dir, string? path)
+	public static string? GetRelativeOrAbsoluteFile(string dir, string? file)
 	{
-		if (path is null)
+		if (file is null)
 		{
 			return null;
 		}
@@ -32,10 +32,10 @@ public static class FileUtils
 
 		// If the directory contains the info directory just return the nested file path
 		// Otherwise return the absolute path
-		return path.StartsWith(dir, comparison) ? path[(dir.Length + 1)..] : path;
+		return file.StartsWith(dir, comparison) ? file[(dir.Length + 1)..] : file;
 	}
 
-	public static string NextAvailableFilename(string path)
+	public static string NextAvailableFile(string file)
 	{
 		static string GetNextFilename(string pattern)
 		{
@@ -73,16 +73,16 @@ public static class FileUtils
 		}
 
 		// Short-cut if already available
-		if (!File.Exists(path))
+		if (!File.Exists(file))
 		{
-			return path;
+			return file;
 		}
 
 		// If path has extension then insert the number pattern just before the extension
 		// and return next filename
-		var pattern = Path.HasExtension(path)
-			? path.Insert(path.LastIndexOf(Path.GetExtension(path)), NUMBER_PATTERN)
-			: path + NUMBER_PATTERN;
+		var pattern = Path.HasExtension(file)
+			? file.Insert(file.LastIndexOf(Path.GetExtension(file)), NUMBER_PATTERN)
+			: file + NUMBER_PATTERN;
 
 		// Otherwise just append the pattern to the path and return next filename
 		return GetNextFilename(pattern);

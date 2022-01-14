@@ -14,15 +14,15 @@ public enum OutputMode : uint
 
 public readonly struct Program
 {
-	public string Path { get; }
+	public string File { get; }
 
-	public Program(string path)
+	public Program(string file)
 	{
-		Path = path;
+		File = file;
 	}
 
 	public Process CreateProcess(string args)
-		=> ProcessUtils.CreateProcess(Path, args);
+		=> ProcessUtils.CreateProcess(File, args);
 }
 
 public static class ProcessUtils
@@ -190,16 +190,16 @@ public static class ProcessUtils
 	private static bool TryGetProgram(
 		string directory,
 		string program,
-		[NotNullWhen(true)] out string? path)
+		[NotNullWhen(true)] out string? file)
 	{
 		if (!Directory.Exists(directory))
 		{
-			path = null;
+			file = null;
 			return false;
 		}
 
 		var files = Directory.EnumerateFiles(directory, program, SearchOption.TopDirectoryOnly);
-		path = files.FirstOrDefault();
-		return path is not null;
+		file = files.FirstOrDefault();
+		return file is not null;
 	}
 }

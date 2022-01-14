@@ -43,16 +43,16 @@ public sealed class EditViewModel : ReactiveObject, IRoutableViewModel, IValidat
 
 	public static IReadOnlyList<AspectRatio> AspectRatios { get; } = new[]
 	{
-			default,
-			new AspectRatio(4, 3),
-			new AspectRatio(16, 9),
-		};
+		default,
+		new AspectRatio(4, 3),
+		new AspectRatio(16, 9),
+	};
 	public static IReadOnlyList<SongType> SongTypes { get; } = new[]
 	{
-			SongType.Opening,
-			SongType.Ending,
-			SongType.Insert,
-		};
+		SongType.Opening,
+		SongType.Ending,
+		SongType.Insert,
+	};
 
 	public string Artist
 	{
@@ -211,10 +211,8 @@ public sealed class EditViewModel : ReactiveObject, IRoutableViewModel, IValidat
 			validTimes,
 			"Invalid times supplied or start is less than end.");
 
-		ValidationContext.ValidationStatusChange.Subscribe(x =>
-		{
-			ButtonText = x.IsValid ? "Save" : x.Text.ToSingleLine(" ");
-		});
+		ValidationContext.ValidationStatusChange.Subscribe(
+			x => ButtonText = x.IsValid ? "Save" : x.Text.ToSingleLine(" "));
 
 		Save = ReactiveCommand.CreateFromTask(PrivateSave, this.IsValid());
 		SelectCleanPath = ReactiveCommand.CreateFromTask(PrivateSelectCleanPath);
@@ -259,7 +257,7 @@ public sealed class EditViewModel : ReactiveObject, IRoutableViewModel, IValidat
 		_Song.Artist = Artist;
 		_Song.OverrideAspectRatio = GetAspectRatio(AspectRatio);
 		_Song.OverrideAudioTrack = AudioTrack;
-		_Song.CleanPath = FileUtils.GetRelativeOrAbsolutePath(_Anime.GetDirectory(), GetNullIfEmpty(CleanPath));
+		_Song.CleanPath = FileUtils.GetRelativeOrAbsoluteFile(_Anime.GetDirectory(), GetNullIfEmpty(CleanPath));
 		_Song.End = TimeSpan.Parse(End);
 		_Song.Episode = GetNullIfZero(Episode);
 		_Song.Name = Name;
@@ -277,11 +275,11 @@ public sealed class EditViewModel : ReactiveObject, IRoutableViewModel, IValidat
 	{
 		var dir = _Anime.GetDirectory();
 		var result = await _MessageBoxManager.GetFilesAsync(dir, "Clean Path", false).ConfigureAwait(true);
-		if (result.SingleOrDefault() is not string path)
+		if (result.SingleOrDefault() is not string file)
 		{
 			return;
 		}
 
-		CleanPath = path;
+		CleanPath = file;
 	}
 }

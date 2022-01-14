@@ -10,6 +10,7 @@ namespace SongProcessor.UI;
 
 public class NewtonsoftJsonSuspensionDriver : ISuspensionDriver
 {
+	private readonly string _File;
 	private readonly JsonSerializerSettings _Options = new()
 	{
 		ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
@@ -17,31 +18,30 @@ public class NewtonsoftJsonSuspensionDriver : ISuspensionDriver
 		Formatting = Formatting.Indented,
 		TypeNameHandling = TypeNameHandling.All,
 	};
-	private readonly string _Path;
 	public bool DeleteOnInvalidState { get; set; }
 
-	public NewtonsoftJsonSuspensionDriver(string path)
+	public NewtonsoftJsonSuspensionDriver(string file)
 	{
-		_Path = path;
+		_File = file;
 	}
 
 	public IObservable<Unit> InvalidateState()
 	{
-		if (DeleteOnInvalidState && File.Exists(_Path))
+		if (DeleteOnInvalidState && File.Exists(_File))
 		{
-			File.Delete(_Path);
+			File.Delete(_File);
 		}
 		return Observable.Return(Unit.Default);
 	}
 
 	public IObservable<object> LoadState()
 	{
-		if (!File.Exists(_Path))
+		if (!File.Exists(_File))
 		{
 			return Observable.Return(default(object))!;
 		}
 
-		var lines = File.ReadAllText(_Path);
+		var lines = File.ReadAllText(_File);
 		var state = JsonConvert.DeserializeObject<object>(lines, _Options);
 		return Observable.Return(state)!;
 	}
@@ -49,7 +49,7 @@ public class NewtonsoftJsonSuspensionDriver : ISuspensionDriver
 	public IObservable<Unit> SaveState(object state)
 	{
 		var lines = JsonConvert.SerializeObject(state, _Options);
-		File.WriteAllText(_Path, lines);
+		File.WriteAllText(_File, lines);
 		return Observable.Return(Unit.Default);
 	}
 

@@ -56,7 +56,7 @@ public sealed class ObservableAnime : ReactiveObject, IAnime
 		get => _Songs;
 		set => this.RaiseAndSetIfChanged(ref _Songs, value);
 	}
-	public string? Source => this.GetRelativeOrAbsoluteSourcePath();
+	public string? Source => this.GetRelativeOrAbsoluteSourceFile();
 	public SourceInfo<VideoInfo>? VideoInfo
 	{
 		get => _VideoInfo;

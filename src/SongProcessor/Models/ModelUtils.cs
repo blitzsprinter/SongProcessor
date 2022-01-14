@@ -7,11 +7,11 @@ public static class ModelUtils
 	public static SongTypeAndPosition Create(this SongType type, int? position)
 		=> new(type, position);
 
-	public static string GetAbsoluteSourcePath(this IAnime anime)
-		=> FileUtils.EnsureAbsolutePath(anime.GetDirectory(), anime.Source)!;
+	public static string GetAbsoluteSourceFile(this IAnime anime)
+		=> FileUtils.EnsureAbsoluteFile(anime.GetDirectory(), anime.Source)!;
 
-	public static string? GetCleanPath(this ISong song, IAnime anime)
-		=> FileUtils.EnsureAbsolutePath(anime.GetDirectory(), song.CleanPath);
+	public static string? GetCleanFile(this ISong song, IAnime anime)
+		=> FileUtils.EnsureAbsoluteFile(anime.GetDirectory(), song.CleanPath);
 
 	public static string GetDirectory(this IAnime anime)
 		=> Path.GetDirectoryName(anime.AbsoluteInfoPath)!;
@@ -22,14 +22,14 @@ public static class ModelUtils
 	public static TimeSpan GetLength(this ISong song)
 		=> song.End - song.Start;
 
-	public static string GetMp3Path(this ISong song, IAnime anime)
-		=> FileUtils.EnsureAbsolutePath(anime.GetDirectory(), $"[{anime.Id}] {song.Name}.mp3")!;
+	public static string GetMp3File(this ISong song, IAnime anime)
+		=> FileUtils.EnsureAbsoluteFile(anime.GetDirectory(), $"[{anime.Id}] {song.Name}.mp3")!;
 
-	public static string? GetRelativeOrAbsoluteSourcePath(this IAnime anime)
-		=> FileUtils.GetRelativeOrAbsolutePath(anime.GetDirectory(), anime.VideoInfo?.Path);
+	public static string? GetRelativeOrAbsoluteSourceFile(this IAnime anime)
+		=> FileUtils.GetRelativeOrAbsoluteFile(anime.GetDirectory(), anime.VideoInfo?.File);
 
-	public static string GetVideoPath(this ISong song, IAnime anime, int resolution)
-		=> FileUtils.EnsureAbsolutePath(anime.GetDirectory(), $"[{anime.Id}] {song.Name} [{resolution}p].webm")!;
+	public static string GetVideoFile(this ISong song, IAnime anime, int resolution)
+		=> FileUtils.EnsureAbsoluteFile(anime.GetDirectory(), $"[{anime.Id}] {song.Name} [{resolution}p].webm")!;
 
 	public static bool HasTimeStamp(this ISong song)
 		=> song.Start > TimeSpan.FromSeconds(0);

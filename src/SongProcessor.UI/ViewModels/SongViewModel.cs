@@ -238,16 +238,16 @@ public sealed class SongViewModel : ReactiveObject, IRoutableViewModel, INavigat
 	private async Task PrivateChangeSource(ObservableAnime anime)
 	{
 		var dir = anime.GetDirectory();
-		var defFile = Path.GetFileName(anime.GetAbsoluteSourcePath());
+		var defFile = Path.GetFileName(anime.GetAbsoluteSourceFile());
 		var result = await _MessageBoxManager.GetFilesAsync(dir, "Source", false, defFile).ConfigureAwait(true);
-		if (result.SingleOrDefault() is not string path)
+		if (result.SingleOrDefault() is not string file)
 		{
 			return;
 		}
 
 		try
 		{
-			anime.VideoInfo = await _Gatherer.GetVideoInfoAsync(path).ConfigureAwait(true);
+			anime.VideoInfo = await _Gatherer.GetVideoInfoAsync(file).ConfigureAwait(true);
 		}
 		catch (Exception)
 		{
@@ -255,7 +255,7 @@ public sealed class SongViewModel : ReactiveObject, IRoutableViewModel, INavigat
 			{
 				return _MessageBoxManager.ShowNoResultAsync(new()
 				{
-					Text = $"\"{path}\" is an invalid file for a video source.",
+					Text = $"\"{file}\" is an invalid file for a video source.",
 					Title = "Invalid File",
 				});
 			}).ConfigureAwait(true);

@@ -20,24 +20,24 @@ public sealed class SourceInfoGatherer : ISourceInfoGatherer
 		_Options.Converters.Add(new ParseJsonConverter<bool>(bool.Parse));
 	}
 
-	public Task<SourceInfo<AudioInfo>> GetAudioInfoAsync(string path, int track = 0)
-		=> GetInfoAsync<AudioInfo>('a', path, track);
+	public Task<SourceInfo<AudioInfo>> GetAudioInfoAsync(string file, int track = 0)
+		=> GetInfoAsync<AudioInfo>('a', file, track);
 
-	public Task<SourceInfo<VideoInfo>> GetVideoInfoAsync(string path, int track = 0)
-		=> GetInfoAsync<VideoInfo>('v', path, track);
+	public Task<SourceInfo<VideoInfo>> GetVideoInfoAsync(string file, int track = 0)
+		=> GetInfoAsync<VideoInfo>('v', file, track);
 
-	public async Task<SourceInfo<VolumeInfo>> GetVolumeInfoAsync(string path, int track = 0)
+	public async Task<SourceInfo<VolumeInfo>> GetVolumeInfoAsync(string file, int track = 0)
 	{
-		if (!File.Exists(path))
+		if (!File.Exists(file))
 		{
-			throw FileNotFound('a', path);
+			throw FileNotFound('a', file);
 		}
 
 		var args =
 			"-vn " +
 			"-sn " +
 			"-dn " +
-			$" -i \"{path}\"" +
+			$" -i \"{file}\"" +
 			$" -map 0:a:{track}" +
 			" -af \"volumedetect\" " +
 			"-f null " +
@@ -82,7 +82,7 @@ public sealed class SourceInfoGatherer : ISourceInfoGatherer
 		};
 		await process.RunAsync(OutputMode.Async).ConfigureAwait(false);
 
-		return new SourceInfo<VolumeInfo>(path, new VolumeInfo(
+		return new SourceInfo<VolumeInfo>(file, new VolumeInfo(
 			histograms,
 			maxVolume,
 			meanVolume,
@@ -90,20 +90,20 @@ public sealed class SourceInfoGatherer : ISourceInfoGatherer
 		));
 	}
 
-	private static SourceInfoGatheringException Exception(char stream, string path, Exception inner)
-		=> new($"Unable to gather '{stream}' stream info for {path}.", inner);
+	private static SourceInfoGatheringException Exception(char stream, string file, Exception inner)
+		=> new($"Unable to gather '{stream}' stream info for {file}.", inner);
 
-	private static SourceInfoGatheringException FileNotFound(char stream, string path)
-		=> Exception(stream, path, new FileNotFoundException("File does not exist", path));
+	private static SourceInfoGatheringException FileNotFound(char stream, string file)
+		=> Exception(stream, file, new FileNotFoundException("File does not exist", file));
 
 	private static async Task<SourceInfo<T>> GetInfoAsync<T>(
 		char stream,
-		string path,
+		string file,
 		int track)
 	{
-		if (!File.Exists(path))
+		if (!File.Exists(file))
 		{
-			throw FileNotFound(stream, path);
+			throw FileNotFound(stream, file);
 		}
 
 		var args =
@@ -111,7 +111,7 @@ public sealed class SourceInfoGatherer : ISourceInfoGatherer
 			" -print_format json" +
 			" -show_streams" +
 			$" -select_streams {stream}:{track}" +
-			$" \"{path}\"";
+			$" \"{file}\"";
 
 		using var process = ProcessUtils.FFprobe.CreateProcess(args);
 		process.StartInfo.StandardOutputEncoding = Encoding.UTF8;
@@ -129,13 +129,13 @@ public sealed class SourceInfoGatherer : ISourceInfoGatherer
 			).ConfigureAwait(false);
 			if (output is null || output.Streams.FirstOrDefault() is not T result)
 			{
-				throw Exception(stream, path, new JsonException("Invalid JSON supplied."));
+				throw Exception(stream, file, new JsonException("Invalid JSON supplied."));
 			}
-			return new(path, result);
+			return new(file, result);
 		}
 		catch (Exception e) when (e is not SourceInfoGatheringException)
 		{
-			throw Exception(stream, path, e);
+			throw Exception(stream, file, e);
 		}
 	}
 
