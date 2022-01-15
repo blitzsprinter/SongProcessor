@@ -43,9 +43,9 @@ public class VideoSongJob : SongJob
 	protected override string GenerateArgs()
 		=> GenerateArgsInternal().ToString();
 
-	protected internal virtual JobArgs GenerateArgsInternal()
+	protected internal virtual FFmpegArgs GenerateArgsInternal()
 	{
-		var input = new List<JobInput>
+		var input = new List<FFmpegInput>
 		{
 			new(Anime.GetSourceFile(), new Dictionary<string, string>
 			{
@@ -111,10 +111,10 @@ public class VideoSongJob : SongJob
 			};
 		}
 
-		return new JobArgs(
+		return new FFmpegArgs(
 			Inputs: input,
 			Mapping: mapping,
-			QualityArgs: VideoArgs,
+			Args: VideoArgs,
 			AudioFilters: audioFilters,
 			VideoFilters: videoFilters,
 			OutputFile: GetSanitizedPath()

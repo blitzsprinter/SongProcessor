@@ -34,7 +34,7 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase<VideoSongJob>
 		actual.Should().NotBeEquivalentTo(@default);
 		actual.Should().BeEquivalentTo(@default with
 		{
-			Inputs = new JobInput[]
+			Inputs = new FFmpegInput[]
 			{
 				@default.Inputs[0],
 				new(job.Song.GetCleanFile(job.Anime)!, null!),
@@ -268,10 +268,10 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase<VideoSongJob>
 		AssertValidLength(duration, expected);
 	}
 
-	private static JobArgs GenerateDefaultJobArgs(VideoSongJob job)
+	private static FFmpegArgs GenerateDefaultJobArgs(VideoSongJob job)
 	{
-		return new JobArgs(
-			Inputs: new JobInput[]
+		return new FFmpegArgs(
+			Inputs: new FFmpegInput[]
 			{
 				new(job.Anime.GetSourceFile(), new Dictionary<string, string>
 				{
@@ -280,7 +280,7 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase<VideoSongJob>
 				}),
 			},
 			Mapping: new[] { "0:v:0", "0:a:0" },
-			QualityArgs: VideoSongJob.VideoArgs,
+			Args: VideoSongJob.VideoArgs,
 			AudioFilters: null,
 			VideoFilters: null,
 			OutputFile: job.Song.GetVideoFile(job.Anime, job.Resolution)

@@ -34,7 +34,7 @@ public sealed class Mp3SongJob_Tests : SongJob_TestsBase<Mp3SongJob>
 		actual.Should().NotBeEquivalentTo(@default);
 		actual.Should().BeEquivalentTo(@default with
 		{
-			Inputs = new JobInput[]
+			Inputs = new FFmpegInput[]
 			{
 				new(job.Song.GetCleanFile(job.Anime)!, new Dictionary<string, string>
 				{
@@ -160,10 +160,10 @@ public sealed class Mp3SongJob_Tests : SongJob_TestsBase<Mp3SongJob>
 	protected override Mp3SongJob GenerateJob(Anime anime, Song song)
 		=> new(anime, song);
 
-	private static JobArgs GenerateDefaultJobArgs(Mp3SongJob job)
+	private static FFmpegArgs GenerateDefaultJobArgs(Mp3SongJob job)
 	{
-		return new JobArgs(
-			Inputs: new JobInput[]
+		return new FFmpegArgs(
+			Inputs: new FFmpegInput[]
 			{
 				new(job.Anime.GetSourceFile(), new Dictionary<string, string>
 				{
@@ -172,7 +172,7 @@ public sealed class Mp3SongJob_Tests : SongJob_TestsBase<Mp3SongJob>
 				}),
 			},
 			Mapping: new[] { "0:a:0" },
-			QualityArgs: Mp3SongJob.AudioArgs,
+			Args: Mp3SongJob.AudioArgs,
 			AudioFilters: null,
 			VideoFilters: null,
 			OutputFile: job.Song.GetMp3File(job.Anime)

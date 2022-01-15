@@ -1,11 +1,11 @@
 ﻿using System.Text;
 
-namespace SongProcessor.FFmpeg.Jobs;
+namespace SongProcessor.FFmpeg;
 
-public record JobArgs(
-	IReadOnlyList<JobInput> Inputs,
+public record FFmpegArgs(
+	IReadOnlyList<FFmpegInput> Inputs,
 	IReadOnlyList<string> Mapping,
-	IReadOnlyDictionary<string, string> QualityArgs,
+	IReadOnlyDictionary<string, string> Args,
 	IReadOnlyDictionary<string, string>? AudioFilters,
 	IReadOnlyDictionary<string, string>? VideoFilters,
 	string OutputFile
@@ -17,7 +17,7 @@ public record JobArgs(
 
 		AppendInputs(sb, Inputs);
 		AppendMapping(sb, Mapping);
-		AppendArgs(sb, QualityArgs);
+		AppendArgs(sb, Args);
 		AppendFilter(sb, VideoFilters, 'v');
 		AppendFilter(sb, AudioFilters, 'a');
 		AppendFile(sb, OutputFile);
@@ -58,7 +58,7 @@ public record JobArgs(
 		sb.Append('\"');
 	}
 
-	private static void AppendInputs(StringBuilder sb, IReadOnlyList<JobInput> inputs)
+	private static void AppendInputs(StringBuilder sb, IReadOnlyList<FFmpegInput> inputs)
 	{
 		foreach (var input in inputs)
 		{

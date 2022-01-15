@@ -16,12 +16,12 @@ public class Mp3SongJob : SongJob
 	{
 	}
 
-	protected internal virtual JobArgs GenerateArgsInternal()
+	protected internal virtual FFmpegArgs GenerateArgsInternal()
 	{
-		JobInput[] input;
+		FFmpegInput[] input;
 		if (Song.CleanPath is null)
 		{
-			input = new JobInput[]
+			input = new FFmpegInput[]
 			{
 				new(Anime.GetSourceFile(), new Dictionary<string, string>
 				{
@@ -32,7 +32,7 @@ public class Mp3SongJob : SongJob
 		}
 		else
 		{
-			input = new JobInput[]
+			input = new FFmpegInput[]
 			{
 				new(Song.GetCleanFile(Anime)!, new Dictionary<string, string>
 				{
@@ -55,10 +55,10 @@ public class Mp3SongJob : SongJob
 			};
 		}
 
-		return new JobArgs(
+		return new FFmpegArgs(
 			Inputs: input,
 			Mapping: mapping,
-			QualityArgs: AudioArgs,
+			Args: AudioArgs,
 			AudioFilters: audioFilters,
 			VideoFilters: null,
 			OutputFile: GetSanitizedPath()

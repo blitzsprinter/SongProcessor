@@ -12,6 +12,17 @@ public sealed class SourceInfoGatherer : ISourceInfoGatherer
 {
 	private static readonly JsonSerializerOptions _Options = new();
 	private static readonly char[] _SplitChars = new[] { '_', 'd' };
+	private static readonly Dictionary<string, string> _VolumeArgs = new()
+	{
+		["vn"] = "",
+		["sn"] = "",
+		["dn"] = "",
+		["f"] = "null",
+	};
+	private static readonly Dictionary<string, string> _VolumeAudioFilters = new()
+	{
+		["volumedetect"] = "",
+	};
 
 	static SourceInfoGatherer()
 	{
@@ -30,19 +41,24 @@ public sealed class SourceInfoGatherer : ISourceInfoGatherer
 	{
 		if (!File.Exists(file))
 		{
-			throw FileNotFound('a', file);
+			throw FileNotFound(file, 'a');
 		}
 
-		var args =
-			"-vn " +
-			"-sn " +
-			"-dn " +
-			$" -i \"{file}\"" +
-			$" -map 0:a:{track}" +
-			" -af \"volumedetect\" " +
-			"-f null " +
-			"-";
-		using var process = ProcessUtils.FFmpeg.CreateProcess(args);
+		var args = new FFmpegArgs(
+			Inputs: new FFmpegInput[]
+			{
+				new(file, null),
+			},
+			Mapping: new[]
+			{
+				$"0:a:{track}",
+			},
+			Args: _VolumeArgs,
+			AudioFilters: _VolumeAudioFilters,
+			VideoFilters: null,
+			OutputFile: "-"
+		);
+		using var process = ProcessUtils.FFmpeg.CreateProcess(args.ToString());
 
 		var histograms = new Dictionary<int, int>();
 		var maxVolume = 0.00;
@@ -91,11 +107,8 @@ public sealed class SourceInfoGatherer : ISourceInfoGatherer
 		);
 	}
 
-	private static SourceInfoGatheringException Exception(char stream, string file, Exception inner)
-		=> new($"Unable to gather '{stream}' stream info for {file}.", inner);
-
-	private static SourceInfoGatheringException FileNotFound(char stream, string file)
-		=> Exception(stream, file, new FileNotFoundException("File does not exist", file));
+	private static SourceInfoGatheringException FileNotFound(string file, char stream)
+		=> new(file, stream, new FileNotFoundException("File does not exist", file));
 
 	private static async Task<T> GetInfoAsync<T>(
 		char stream,
@@ -105,17 +118,24 @@ public sealed class SourceInfoGatherer : ISourceInfoGatherer
 	{
 		if (!File.Exists(file))
 		{
-			throw FileNotFound(stream, file);
+			throw FileNotFound(file, stream);
 		}
 
-		var args =
-			"-v quiet" +
-			" -print_format json" +
-			" -show_streams" +
-			$" -select_streams {stream}:{track}" +
-			$" \"{file}\"";
-
-		using var process = ProcessUtils.FFprobe.CreateProcess(args);
+		var args = new FFmpegArgs(
+			Inputs: Array.Empty<FFmpegInput>(),
+			Mapping: Array.Empty<string>(),
+			Args: new Dictionary<string, string>
+			{
+				["v"] = "quiet",
+				["print_format"] = "json",
+				["show_streams"] = "",
+				["select_streams"] = $"{stream}:{track}",
+			},
+			AudioFilters: null,
+			VideoFilters: null,
+			OutputFile: file
+		);
+		using var process = ProcessUtils.FFprobe.CreateProcess(args.ToString());
 		process.StartInfo.StandardOutputEncoding = Encoding.UTF8;
 		process.StartInfo.RedirectStandardOutput = true;
 
@@ -123,25 +143,24 @@ public sealed class SourceInfoGatherer : ISourceInfoGatherer
 		// Must call WaitForExit otherwise the json may be incomplete
 		await process.WaitForExitAsync().ConfigureAwait(false);
 
+		T info;
 		try
 		{
 			var output = await JsonSerializer.DeserializeAsync<Output<T>>(
 				process.StandardOutput.BaseStream,
 				_Options
 			).ConfigureAwait(false);
-			if (output is null || output.Streams.FirstOrDefault() is not T result)
-			{
-				throw Exception(stream, file, new JsonException("Invalid JSON supplied."));
-			}
-			return result with
-			{
-				File = file
-			};
+			info = output!.Streams.Single();
 		}
-		catch (Exception e) when (e is not SourceInfoGatheringException)
+		catch (Exception e)
 		{
-			throw Exception(stream, file, e);
+			throw new SourceInfoGatheringException(file, stream, e);
 		}
+
+		return info with
+		{
+			File = file
+		};
 	}
 
 	private sealed record Output<T>(
