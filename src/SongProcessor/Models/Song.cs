@@ -2,7 +2,7 @@
 
 namespace SongProcessor.Models;
 
-[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
+[DebuggerDisplay(ModelUtils.DEBUGGER_DISPLAY)]
 public class Song : ISong
 {
 	public HashSet<int> AlsoIn { get; set; }

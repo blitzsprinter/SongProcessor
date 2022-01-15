@@ -2,7 +2,7 @@
 
 namespace SongProcessor.Models;
 
-[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
+[DebuggerDisplay(ModelUtils.DEBUGGER_DISPLAY)]
 public readonly struct AspectRatio : IEquatable<AspectRatio>, IComparable<AspectRatio>
 {
 	public const char SEPARATOR = '/';

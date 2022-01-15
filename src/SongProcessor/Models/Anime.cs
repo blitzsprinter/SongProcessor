@@ -4,8 +4,8 @@ using System.Diagnostics;
 
 namespace SongProcessor.Models;
 
-[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
-public record Anime : IAnime
+[DebuggerDisplay(ModelUtils.DEBUGGER_DISPLAY)]
+public class Anime : IAnime
 {
 	public string AbsoluteInfoPath { get; }
 	public int Id { get; }

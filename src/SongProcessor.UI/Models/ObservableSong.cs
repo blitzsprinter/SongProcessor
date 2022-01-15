@@ -6,7 +6,7 @@ using System.Diagnostics;
 
 namespace SongProcessor.UI.Models;
 
-[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
+[DebuggerDisplay(ModelUtils.DEBUGGER_DISPLAY)]
 public sealed class ObservableSong : ReactiveObject, ISong
 {
 	private HashSet<int> _AlsoIn = null!;

@@ -8,7 +8,7 @@ using System.Diagnostics;
 
 namespace SongProcessor.UI.Models;
 
-[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
+[DebuggerDisplay(ModelUtils.DEBUGGER_DISPLAY)]
 public sealed class ObservableAnime : ReactiveObject, IAnime
 {
 	private string _AbsoluteInfoPath = null!;

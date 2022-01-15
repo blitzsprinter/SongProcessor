@@ -2,7 +2,7 @@
 
 namespace SongProcessor.Models;
 
-[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
+[DebuggerDisplay(ModelUtils.DEBUGGER_DISPLAY)]
 public class AnimeBase : IAnimeBase
 {
 	public int Id { get; set; }

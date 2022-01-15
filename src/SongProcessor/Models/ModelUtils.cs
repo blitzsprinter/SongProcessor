@@ -4,6 +4,8 @@ namespace SongProcessor.Models;
 
 public static class ModelUtils
 {
+	public const string DEBUGGER_DISPLAY = "{DebuggerDisplay,nq}";
+
 	public static SongTypeAndPosition Create(this SongType type, int? position)
 		=> new(type, position);
 
