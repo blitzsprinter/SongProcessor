@@ -74,7 +74,7 @@ public class VideoSongJob : SongJob
 		}
 
 		var videoFilters = default(Dictionary<string, string>?);
-		if (Anime.VideoInfo?.Info is VideoInfo info
+		if (Anime.VideoInfo is VideoInfo info
 			&& (info.Height != Resolution
 				|| info.SAR != AspectRatio.Square
 				|| (Song.OverrideAspectRatio is AspectRatio r && info.DAR != r)

@@ -12,12 +12,12 @@ public record Anime : IAnime
 	public string Name { get; }
 	public List<Song> Songs { get; }
 	public string? Source => this.GetRelativeOrAbsoluteSourceFile();
-	public SourceInfo<VideoInfo>? VideoInfo { get; }
+	public VideoInfo? VideoInfo { get; }
 	public int Year { get; }
 	IReadOnlyList<ISong> IAnimeBase.Songs => Songs;
 	private string DebuggerDisplay => Name;
 
-	public Anime(string file, IAnimeBase other, SourceInfo<VideoInfo>? videoInfo)
+	public Anime(string file, IAnimeBase other, VideoInfo? videoInfo)
 	{
 		if (file is null)
 		{

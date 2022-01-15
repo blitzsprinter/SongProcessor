@@ -58,7 +58,7 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase<VideoSongJob>
 			VideoFilters = new Dictionary<string, string>
 			{
 				["setsar"] = AspectRatio.Square.ToString(),
-				["setdar"] = job.Anime.VideoInfo?.Info.DAR?.ToString()!,
+				["setdar"] = job.Anime.VideoInfo?.DAR?.ToString()!,
 				["scale"] = "484:272",
 			},
 		});
@@ -70,13 +70,10 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase<VideoSongJob>
 		using var temp = new TempDirectory();
 		var job = GenerateJob(temp.Dir, configureAnime: anime =>
 		{
-			return new Anime(anime.AbsoluteInfoPath, anime, new(
-				anime.VideoInfo?.File!,
-				anime.VideoInfo?.Info! with
-				{
-					SAR = new(4, 3),
-				}
-			));
+			return new Anime(anime.AbsoluteInfoPath, anime, anime.VideoInfo! with
+			{
+				SAR = new(4, 3),
+			});
 		});
 		var actual = job.GenerateArgsInternal();
 
@@ -87,7 +84,7 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase<VideoSongJob>
 			VideoFilters = new Dictionary<string, string>
 			{
 				["setsar"] = AspectRatio.Square.ToString(),
-				["setdar"] = job.Anime.VideoInfo?.Info.DAR?.ToString()!,
+				["setdar"] = job.Anime.VideoInfo?.DAR?.ToString()!,
 				["scale"] = "480:270",
 			},
 		});
@@ -99,13 +96,10 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase<VideoSongJob>
 		using var temp = new TempDirectory();
 		var job = GenerateJob(temp.Dir, configureAnime: anime =>
 		{
-			return new Anime(anime.AbsoluteInfoPath, anime, new(
-				anime.VideoInfo?.File!,
-				anime.VideoInfo?.Info! with
-				{
-					DAR = null
-				}
-			));
+			return new Anime(anime.AbsoluteInfoPath, anime, anime.VideoInfo! with
+			{
+				DAR = null
+			});
 		});
 		job = new(job.Anime, job.Song, job.Resolution + 2);
 
@@ -185,7 +179,7 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase<VideoSongJob>
 
 		var file = await GetSingleFileProducedAsync(temp.Dir, job).ConfigureAwait(false);
 		var newVideoInfo = await Gatherer.GetVideoInfoAsync(file).ConfigureAwait(false);
-		AssertValidLength(job, newVideoInfo.Info);
+		AssertValidLength(job, newVideoInfo);
 
 		job.AlreadyExists.Should().BeTrue();
 		var result = await job.ProcessAsync().ConfigureAwait(false);
@@ -217,13 +211,13 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase<VideoSongJob>
 		var job = GenerateJob(temp.Dir, (anime, song) =>
 		{
 			// Generate a clean version from the entire video
-			song.End = TimeSpan.FromSeconds(anime.VideoInfo!.Value.Info.Duration!.Value);
+			song.End = TimeSpan.FromSeconds(anime.VideoInfo!.Duration!.Value);
 		});
 
 		// Create a duplicate version to treat as a clean version
 		var cleanPath = await GetSingleFileProducedAsync(temp.Dir, job).ConfigureAwait(false);
 		var cleanVideoInfo = await Gatherer.GetVideoInfoAsync(cleanPath).ConfigureAwait(false);
-		AssertValidLength(job, cleanVideoInfo.Info);
+		AssertValidLength(job, cleanVideoInfo);
 
 		{
 			var movedPath = Path.Combine(
@@ -247,28 +241,25 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase<VideoSongJob>
 
 		var file = GetSingleFile(temp.Dir);
 		var newVolumeInfo = await Gatherer.GetVolumeInfoAsync(file).ConfigureAwait(false);
-		newVolumeInfo.Info.MaxVolume.Should().BeLessThan(VolumeInfo.Info.MaxVolume);
-		newVolumeInfo.Info.MeanVolume.Should().BeLessThan(VolumeInfo.Info.MeanVolume);
+		newVolumeInfo.MaxVolume.Should().BeLessThan(VolumeInfo.MaxVolume);
+		newVolumeInfo.MeanVolume.Should().BeLessThan(VolumeInfo.MeanVolume);
 
 		var newVideoInfo = await Gatherer.GetVideoInfoAsync(file).ConfigureAwait(false);
-		AssertValidLength(job, newVideoInfo.Info);
+		AssertValidLength(job, newVideoInfo);
 	}
 
 	protected override Anime CreateAnime(string directory)
 	{
 		var anime = base.CreateAnime(directory);
-		return new Anime(anime.AbsoluteInfoPath, anime, new(
-			anime.VideoInfo!.Value.File,
-			anime.VideoInfo.Value.Info with
-			{
-				DAR = new(16, 9),
-				SAR = AspectRatio.Square,
-			}
-		));
+		return new Anime(anime.AbsoluteInfoPath, anime, anime.VideoInfo! with
+		{
+			DAR = new(16, 9),
+			SAR = AspectRatio.Square,
+		});
 	}
 
 	protected override VideoSongJob GenerateJob(Anime anime, Song song)
-		=> new(anime, song, VideoInfo.Info.Height);
+		=> new(anime, song, VideoInfo.Height);
 
 	private static void AssertValidLength(SongJob job, VideoInfo info)
 	{

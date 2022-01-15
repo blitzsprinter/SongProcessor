@@ -126,7 +126,7 @@ public sealed class Program
 		foreach (var show in anime)
 		{
 			var text = $"[{show.Year}] [{show.Id}] {show.Name}";
-			if (show.VideoInfo?.Info is VideoInfo i)
+			if (show.VideoInfo is VideoInfo i)
 			{
 				text += $" [{i.Width}x{i.Height}] [SAR: {i.SAR}] [DAR: {i.DAR}]";
 			}

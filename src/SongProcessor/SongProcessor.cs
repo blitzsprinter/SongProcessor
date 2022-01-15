@@ -93,7 +93,7 @@ public sealed class SongProcessor : ISongProcessor
 		var jobs = new List<SongJob>();
 		foreach (var anime in animes)
 		{
-			if (anime.VideoInfo?.Info is null)
+			if (anime.VideoInfo is null)
 			{
 				continue;
 			}
@@ -142,7 +142,7 @@ public sealed class SongProcessor : ISongProcessor
 
 	private static IReadOnlyList<Resolution> GetValidResolutions(IAnime anime)
 	{
-		var height = anime.VideoInfo!.Value.Info.Height;
+		var height = anime.VideoInfo!.Height;
 		// Source is smaller than 480p, return mp3 and souce size (but treat as 480p status)
 		if (height < Resolution.RES_480.Size)
 		{

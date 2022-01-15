@@ -89,7 +89,7 @@ public sealed class SongLoader_Tests : FFmpeg_TestsBase
 		await _Loader.SaveAsync(expected).ConfigureAwait(false);
 		var actual = await _Loader.LoadAsync(expected.AbsoluteInfoPath).ConfigureAwait(false);
 		actual.Should().BeEquivalentTo(expected,
-			x => x.ComparingByMembers<SourceInfo<VideoInfo>>());
+			x => x.ComparingByMembers<VideoInfo>());
 	}
 
 	[TestMethod]

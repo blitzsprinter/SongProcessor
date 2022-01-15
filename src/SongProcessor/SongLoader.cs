@@ -48,7 +48,7 @@ public sealed class SongLoader : ISongLoader
 			throw new JsonException($"Unable to parse {fileInfo}.", e);
 		}
 
-		SourceInfo<VideoInfo>? videoInfo = null;
+		var videoInfo = default(VideoInfo?);
 		var source = FileUtils.EnsureAbsoluteFile(fileInfo.DirectoryName!, model.Source);
 		if (source is not null)
 		{

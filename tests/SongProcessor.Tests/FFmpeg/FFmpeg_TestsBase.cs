@@ -13,9 +13,10 @@ public abstract class FFmpeg_TestsBase
 		nameof(Resources),
 		$"{nameof(Resources.ValidVideo)}.mp4"
 	);
-	protected SourceInfo<AudioInfo> AudioInfo { get; set; } = new(VideoPath, new());
+	protected AudioInfo AudioInfo { get; set; } = new(VideoPath);
 	protected SourceInfoGatherer Gatherer { get; set; } = new();
-	protected SourceInfo<VideoInfo> VideoInfo { get; set; } = new(VideoPath, new(
+	protected VideoInfo VideoInfo { get; set; } = new(
+		File: VideoPath,
 		AverageFrameRate: "24000/1001",
 		ClosedCaptions: 0,
 		CodecLongName: "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
@@ -54,13 +55,14 @@ public abstract class FFmpeg_TestsBase
 		NalLengthSize: 4,
 		NbFrames: 125,
 		Profile: "Main"
-	));
-	protected SourceInfo<VolumeInfo> VolumeInfo { get; set; } = new(VideoPath, new(
+	);
+	protected VolumeInfo VolumeInfo { get; set; } = new(
+		File: VideoPath,
 		Histograms: new() { [0] = 25099 },
 		MaxVolume: 0,
 		MeanVolume: -6.1,
 		NSamples: 250880
-	));
+	);
 
 	protected virtual Anime CreateAnime(string directory)
 	{

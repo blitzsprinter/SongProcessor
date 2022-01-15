@@ -5,6 +5,7 @@ using System.Text.Json.Serialization;
 namespace SongProcessor.FFmpeg;
 
 public sealed record VideoInfo(
+	string File,
 	[property: JsonPropertyName("avg_frame_rate")]
 	string AverageFrameRate,
 	[property: JsonPropertyName("closed_captions")]
@@ -85,4 +86,4 @@ public sealed record VideoInfo(
 	bool? QuarterSample = null,
 	[property: JsonPropertyName("sample_aspect_ratio")]
 	AspectRatio? SAR = null
-);
+) : SourceInfo(File);

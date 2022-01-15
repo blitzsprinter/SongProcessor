@@ -36,7 +36,7 @@ public abstract class SongJob_TestsBase<T> : FFmpeg_TestsBase where T : ISongJob
 		var song = new Song()
 		{
 			Start = TimeSpan.FromSeconds(0),
-			End = TimeSpan.FromSeconds(anime.VideoInfo!.Value.Info.Duration!.Value / DIV),
+			End = TimeSpan.FromSeconds(anime.VideoInfo!.Duration!.Value / DIV),
 			Name = Guid.NewGuid().ToString(),
 		};
 		configureSong?.Invoke(anime, song);

@@ -18,7 +18,7 @@ public sealed class ObservableAnime : ReactiveObject, IAnime
 	private bool _IsVisible = true;
 	private string _Name = null!;
 	private ObservableCollection<ObservableSong> _Songs = null!;
-	private SourceInfo<VideoInfo>? _VideoInfo;
+	private VideoInfo? _VideoInfo;
 	private int _Year;
 
 	public string AbsoluteInfoPath
@@ -57,7 +57,7 @@ public sealed class ObservableAnime : ReactiveObject, IAnime
 		set => this.RaiseAndSetIfChanged(ref _Songs, value);
 	}
 	public string? Source => this.GetRelativeOrAbsoluteSourceFile();
-	public SourceInfo<VideoInfo>? VideoInfo
+	public VideoInfo? VideoInfo
 	{
 		get => _VideoInfo;
 		set

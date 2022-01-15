@@ -80,14 +80,14 @@ public sealed class SongProcessor_Tests : FFmpeg_TestsBase
 					End = TimeSpan.FromSeconds(2),
 				},
 			},
-		}, new(VideoInfo.File, VideoInfo.Info with
+		}, VideoInfo with
 		{
 			Height = 360,
-		}));
+		});
 		var expected = new SongJob[]
 		{
 			new Mp3SongJob(anime, anime.Songs.Single()),
-			new VideoSongJob(anime, anime.Songs.Single(), anime.VideoInfo!.Value.Info.Height),
+			new VideoSongJob(anime, anime.Songs.Single(), anime.VideoInfo!.Height),
 		};
 
 		var actual = ((ISongProcessor)_Processor).CreateJobs(new[] { anime });

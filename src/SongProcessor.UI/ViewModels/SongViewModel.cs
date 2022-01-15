@@ -368,14 +368,15 @@ public sealed class SongViewModel : ReactiveObject, IRoutableViewModel, INavigat
 		{
 			var result = await _Gatherer.GetVolumeInfoAsync(path).ConfigureAwait(true);
 			var text = $"Volume information for \"{Path.GetFileName(path)}\":" +
-				$"\nMean volume: {result.Info.MeanVolume}dB" +
-				$"\nMax volume: {result.Info.MaxVolume}dB";
+				$"\nMean volume: {result.MeanVolume}dB" +
+				$"\nMax volume: {result.MaxVolume}dB";
 			_ = Dispatcher.UIThread.InvokeAsync(() =>
 			{
 				return _MessageBoxManager.ShowNoResultAsync(new()
 				{
 					Text = text,
 					Title = "Volume Info",
+					Width = UIUtils.MESSAGE_BOX_WIDTH + path.Length,
 				});
 			}).ConfigureAwait(true);
 		}

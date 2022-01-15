@@ -17,7 +17,7 @@ public sealed class SourceInfoGatherer_Tests : FFmpeg_TestsBase
 	{
 		var actual = await Gatherer.GetAudioInfoAsync(VideoInfo.File).ConfigureAwait(false);
 		actual.Should().BeEquivalentTo(AudioInfo,
-			x => x.ComparingByMembers<SourceInfo<AudioInfo>>());
+			x => x.ComparingByMembers<AudioInfo>());
 	}
 
 	[TestMethod]
@@ -33,7 +33,7 @@ public sealed class SourceInfoGatherer_Tests : FFmpeg_TestsBase
 	{
 		var actual = await Gatherer.GetVideoInfoAsync(VideoInfo.File).ConfigureAwait(false);
 		actual.Should().BeEquivalentTo(VideoInfo,
-			x => x.ComparingByMembers<SourceInfo<VideoInfo>>());
+			x => x.ComparingByMembers<VideoInfo>());
 	}
 
 	[TestMethod]
@@ -49,7 +49,7 @@ public sealed class SourceInfoGatherer_Tests : FFmpeg_TestsBase
 	{
 		var actual = await Gatherer.GetVolumeInfoAsync(VideoInfo.File).ConfigureAwait(false);
 		actual.Should().BeEquivalentTo(VolumeInfo,
-			x => x.ComparingByMembers<SourceInfo<VolumeInfo>>());
+			x => x.ComparingByMembers<VolumeInfo>());
 	}
 
 	[TestMethod]

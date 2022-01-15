@@ -20,13 +20,13 @@ public sealed class SourceInfoGatherer : ISourceInfoGatherer
 		_Options.Converters.Add(new ParseJsonConverter<bool>(bool.Parse));
 	}
 
-	public Task<SourceInfo<AudioInfo>> GetAudioInfoAsync(string file, int track = 0)
+	public Task<AudioInfo> GetAudioInfoAsync(string file, int track = 0)
 		=> GetInfoAsync<AudioInfo>('a', file, track);
 
-	public Task<SourceInfo<VideoInfo>> GetVideoInfoAsync(string file, int track = 0)
+	public Task<VideoInfo> GetVideoInfoAsync(string file, int track = 0)
 		=> GetInfoAsync<VideoInfo>('v', file, track);
 
-	public async Task<SourceInfo<VolumeInfo>> GetVolumeInfoAsync(string file, int track = 0)
+	public async Task<VolumeInfo> GetVolumeInfoAsync(string file, int track = 0)
 	{
 		if (!File.Exists(file))
 		{
@@ -82,12 +82,13 @@ public sealed class SourceInfoGatherer : ISourceInfoGatherer
 		};
 		await process.RunAsync(OutputMode.Async).ConfigureAwait(false);
 
-		return new SourceInfo<VolumeInfo>(file, new VolumeInfo(
-			histograms,
-			maxVolume,
-			meanVolume,
-			nSamples
-		));
+		return new(
+			File: file,
+			Histograms: histograms,
+			MaxVolume: maxVolume,
+			MeanVolume: meanVolume,
+			NSamples: nSamples
+		);
 	}
 
 	private static SourceInfoGatheringException Exception(char stream, string file, Exception inner)
@@ -96,10 +97,11 @@ public sealed class SourceInfoGatherer : ISourceInfoGatherer
 	private static SourceInfoGatheringException FileNotFound(char stream, string file)
 		=> Exception(stream, file, new FileNotFoundException("File does not exist", file));
 
-	private static async Task<SourceInfo<T>> GetInfoAsync<T>(
+	private static async Task<T> GetInfoAsync<T>(
 		char stream,
 		string file,
 		int track)
+		where T : SourceInfo
 	{
 		if (!File.Exists(file))
 		{
@@ -131,7 +133,10 @@ public sealed class SourceInfoGatherer : ISourceInfoGatherer
 			{
 				throw Exception(stream, file, new JsonException("Invalid JSON supplied."));
 			}
-			return new(file, result);
+			return result with
+			{
+				File = file
+			};
 		}
 		catch (Exception e) when (e is not SourceInfoGatheringException)
 		{
