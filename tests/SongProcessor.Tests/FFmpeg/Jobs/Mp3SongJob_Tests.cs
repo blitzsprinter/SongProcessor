@@ -128,7 +128,7 @@ public sealed class Mp3SongJob_Tests : SongJob_TestsBase<Mp3SongJob>
 		// Create a duplicate version to treat as a clean version
 		var cleanPath = await GetSingleFileProducedAsync(temp.Dir, job).ConfigureAwait(false);
 		var cleanVolumeInfo = await Gatherer.GetVolumeInfoAsync(cleanPath).ConfigureAwait(false);
-		AssertValidLength(cleanVolumeInfo.Info.NSamples, ValidVideoVolume.NSamples);
+		AssertValidLength(cleanVolumeInfo.Info.NSamples, VolumeInfo.Info.NSamples);
 
 		{
 			var movedPath = Path.Combine(
@@ -153,8 +153,8 @@ public sealed class Mp3SongJob_Tests : SongJob_TestsBase<Mp3SongJob>
 		var file = GetSingleFile(temp.Dir);
 		var newVolumeInfo = await Gatherer.GetVolumeInfoAsync(file).ConfigureAwait(false);
 		AssertValidLength(job, newVolumeInfo.Info);
-		newVolumeInfo.Info.MaxVolume.Should().BeLessThan(ValidVideoVolume.MaxVolume);
-		newVolumeInfo.Info.MeanVolume.Should().BeLessThan(ValidVideoVolume.MeanVolume);
+		newVolumeInfo.Info.MaxVolume.Should().BeLessThan(VolumeInfo.Info.MaxVolume);
+		newVolumeInfo.Info.MeanVolume.Should().BeLessThan(VolumeInfo.Info.MeanVolume);
 	}
 
 	protected override Mp3SongJob GenerateJob(Anime anime, Song song)
@@ -182,8 +182,8 @@ public sealed class Mp3SongJob_Tests : SongJob_TestsBase<Mp3SongJob>
 	private void AssertValidLength(SongJob job, VolumeInfo info)
 	{
 		var duration = (double)info.NSamples;
-		var divisor = ValidVideoInfo.Duration!.Value / job.Song.GetLength().TotalSeconds;
-		var expected = ValidVideoVolume.NSamples / divisor;
+		var divisor = VideoInfo.Info.Duration!.Value / job.Song.GetLength().TotalSeconds;
+		var expected = VolumeInfo.Info.NSamples / divisor;
 		AssertValidLength(duration, expected);
 	}
 }

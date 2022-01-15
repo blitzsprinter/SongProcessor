@@ -8,15 +8,15 @@ public abstract class FFmpeg_TestsBase
 {
 	public const string FFMPEG_CATEGORY = "FFmpeg";
 	public const string FFPROBE_CATEGORY = "FFprobe";
-	public virtual string FakeFileName { get; } = "DoesNotExist.txt";
-	public virtual SourceInfoGatherer Gatherer { get; } = new();
-	public virtual string ValidVideoFile { get; } = Path.Combine(
+	protected static string VideoPath { get; } = Path.Combine(
 		Directory.GetCurrentDirectory(),
 		nameof(Resources),
 		$"{nameof(Resources.ValidVideo)}.mp4"
 	);
-	public virtual VideoInfo ValidVideoInfo { get; } = new VideoInfo(
-			AverageFrameRate: "24000/1001",
+	protected SourceInfo<AudioInfo> AudioInfo { get; set; } = new(VideoPath, new());
+	protected SourceInfoGatherer Gatherer { get; set; } = new();
+	protected SourceInfo<VideoInfo> VideoInfo { get; set; } = new(VideoPath, new(
+		AverageFrameRate: "24000/1001",
 		ClosedCaptions: 0,
 		CodecLongName: "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
 		CodecName: "h264",
@@ -54,13 +54,13 @@ public abstract class FFmpeg_TestsBase
 		NalLengthSize: 4,
 		NbFrames: 125,
 		Profile: "Main"
-	);
-	public virtual VolumeInfo ValidVideoVolume { get; } = new(
+	));
+	protected SourceInfo<VolumeInfo> VolumeInfo { get; set; } = new(VideoPath, new(
 		Histograms: new() { [0] = 25099 },
 		MaxVolume: 0,
 		MeanVolume: -6.1,
 		NSamples: 250880
-	);
+	));
 
 	protected virtual Anime CreateAnime(string directory)
 	{
@@ -69,8 +69,8 @@ public abstract class FFmpeg_TestsBase
 			Id = 73,
 			Name = "Extremely Long Light Novel Title",
 			Songs = new(),
-			Source = ValidVideoFile,
+			Source = VideoInfo.File,
 			Year = 2500
-		}, new(ValidVideoFile, ValidVideoInfo));
+		}, VideoInfo);
 	}
 }

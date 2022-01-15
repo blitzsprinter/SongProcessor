@@ -49,6 +49,7 @@ public sealed class SongLoader_Tests : FFmpeg_TestsBase
 	}
 
 	[TestMethod]
+	[TestCategory(FFMPEG_CATEGORY)]
 	public async Task LoadInvalidVideo_Test()
 	{
 		using var temp = new TempDirectory();
@@ -64,6 +65,7 @@ public sealed class SongLoader_Tests : FFmpeg_TestsBase
 	}
 
 	[TestMethod]
+	[TestCategory(FFMPEG_CATEGORY)]
 	public async Task SaveAndLoad_Test()
 	{
 		using var temp = new TempDirectory();

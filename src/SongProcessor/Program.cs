@@ -223,7 +223,6 @@ public sealed class Program
 		Display(animes);
 
 		var processor = new SongProcessor();
-		processor.WarningReceived += Console.WriteLine;
 		await processor.ExportFixesAsync(animes, directory).ConfigureAwait(false);
 
 		var jobs = processor.CreateJobs(animes);

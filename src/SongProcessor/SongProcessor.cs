@@ -1,6 +1,5 @@
 ﻿using SongProcessor.FFmpeg.Jobs;
 using SongProcessor.Models;
-using SongProcessor.Results;
 
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
@@ -10,29 +9,7 @@ namespace SongProcessor;
 
 public sealed class SongProcessor : ISongProcessor
 {
-	public event Action<IResult>? WarningReceived;
-
-	public List<SongJob> CreateJobs(IEnumerable<IAnime> animes)
-	{
-		var jobs = new List<SongJob>();
-		foreach (var anime in animes)
-		{
-			if (anime.Source is null)
-			{
-				WarningReceived?.Invoke(new SourceIsNull(anime));
-				continue;
-			}
-			else if (!File.Exists(anime.GetSourceFile()))
-			{
-				throw new FileNotFoundException($"{anime.Name} source does not exist.", anime.Source);
-			}
-
-			jobs.AddRange(CreateJobs(anime).Where(x => !x.AlreadyExists));
-		}
-		return jobs;
-	}
-
-	public string ExportFixes(IEnumerable<IAnime> animes)
+	public string CreateFixes(IEnumerable<IAnime> animes)
 	{
 		static string FormatTimeSpan(TimeSpan ts)
 		{
@@ -111,21 +88,30 @@ public sealed class SongProcessor : ISongProcessor
 		return sb.ToString();
 	}
 
+	public List<SongJob> CreateJobs(IEnumerable<IAnime> animes)
+	{
+		var jobs = new List<SongJob>();
+		foreach (var anime in animes)
+		{
+			if (anime.VideoInfo?.Info is null)
+			{
+				continue;
+			}
+
+			jobs.AddRange(CreateJobs(anime));
+		}
+		return jobs;
+	}
+
 	IReadOnlyList<ISongJob> ISongProcessor.CreateJobs(IEnumerable<IAnime> anime)
 		=> CreateJobs(anime);
 
-	private IEnumerable<SongJob> CreateJobs(IAnime anime)
+	private static IEnumerable<SongJob> CreateJobs(IAnime anime)
 	{
 		foreach (var song in anime.Songs)
 		{
-			if (song.ShouldIgnore)
+			if (song.ShouldIgnore || !song.HasTimeStamp())
 			{
-				WarningReceived?.Invoke(new IsIgnored(song));
-				continue;
-			}
-			if (!song.HasTimeStamp())
-			{
-				WarningReceived?.Invoke(new TimestampIsNull(song));
 				continue;
 			}
 
@@ -136,38 +122,38 @@ public sealed class SongProcessor : ISongProcessor
 					continue;
 				}
 
+				SongJob job;
 				if (resolution.IsMp3)
 				{
-					yield return new Mp3SongJob(anime, song);
+					job = new Mp3SongJob(anime, song);
 				}
 				else
 				{
-					yield return new VideoSongJob(anime, song, resolution.Size);
+					job = new VideoSongJob(anime, song, resolution.Size);
+				}
+
+				if (!job.AlreadyExists)
+				{
+					yield return job;
 				}
 			}
 		}
 	}
 
-	private IReadOnlyList<Resolution> GetValidResolutions(IAnime anime)
+	private static IReadOnlyList<Resolution> GetValidResolutions(IAnime anime)
 	{
-		var height = anime.VideoInfo?.Info?.Height;
-		if (!height.HasValue)
-		{
-			WarningReceived?.Invoke(new VideoIsNull(anime));
-			return Array.Empty<Resolution>();
-		}
-
+		var height = anime.VideoInfo!.Value.Info.Height;
 		// Source is smaller than 480p, return mp3 and souce size (but treat as 480p status)
-		if (height.Value < Resolution.RES_480.Size)
+		if (height < Resolution.RES_480.Size)
 		{
 			return new[]
 			{
 				Resolution.RES_MP3,
-				new(height.Value, Status.Res480),
+				new(height, Status.Res480),
 			};
 		}
 		// Source is smaller than 720p, return mp3 and 480p
-		else if (height.Value < Resolution.RES_720.Size)
+		else if (height < Resolution.RES_720.Size)
 		{
 			return Resolution.UpTo480;
 		}

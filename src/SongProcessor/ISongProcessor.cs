@@ -4,7 +4,7 @@ namespace SongProcessor;
 
 public interface ISongProcessor
 {
-	IReadOnlyList<ISongJob> CreateJobs(IEnumerable<IAnime> anime);
+	string CreateFixes(IEnumerable<IAnime> anime);
 
-	string ExportFixes(IEnumerable<IAnime> anime);
+	IReadOnlyList<ISongJob> CreateJobs(IEnumerable<IAnime> anime);
 }

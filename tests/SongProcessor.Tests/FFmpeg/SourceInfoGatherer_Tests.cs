@@ -9,21 +9,21 @@ namespace SongProcessor.Tests.FFmpeg;
 [TestClass]
 public sealed class SourceInfoGatherer_Tests : FFmpeg_TestsBase
 {
+	private const string FAKE_FILE = "DoesNotExist.txt";
+
 	[TestMethod]
 	[TestCategory(FFPROBE_CATEGORY)]
 	public async Task GetAudioInfo_Test()
 	{
-		var actual = await Gatherer.GetAudioInfoAsync(ValidVideoFile).ConfigureAwait(false);
-		actual.File.Should().Be(ValidVideoFile);
-		actual.Info.Should().Be(new AudioInfo());
-		// uncomment below if volumeinfo implemented
-		//actual.Info.Should().BeEquivalentTo(new AudioInfo());
+		var actual = await Gatherer.GetAudioInfoAsync(VideoInfo.File).ConfigureAwait(false);
+		actual.Should().BeEquivalentTo(AudioInfo,
+			x => x.ComparingByMembers<SourceInfo<AudioInfo>>());
 	}
 
 	[TestMethod]
 	public async Task GetAudioInfoNonExistentFile_Test()
 	{
-		Func<Task> getInfo = () => Gatherer.GetAudioInfoAsync(FakeFileName);
+		Func<Task> getInfo = () => Gatherer.GetAudioInfoAsync(FAKE_FILE);
 		await getInfo.Should().ThrowAsync<SourceInfoGatheringException>().ConfigureAwait(false);
 	}
 
@@ -31,15 +31,15 @@ public sealed class SourceInfoGatherer_Tests : FFmpeg_TestsBase
 	[TestCategory(FFPROBE_CATEGORY)]
 	public async Task GetVideoInfo_Test()
 	{
-		var actual = await Gatherer.GetVideoInfoAsync(ValidVideoFile).ConfigureAwait(false);
-		actual.File.Should().Be(ValidVideoFile);
-		actual.Info.Should().BeEquivalentTo(ValidVideoInfo);
+		var actual = await Gatherer.GetVideoInfoAsync(VideoInfo.File).ConfigureAwait(false);
+		actual.Should().BeEquivalentTo(VideoInfo,
+			x => x.ComparingByMembers<SourceInfo<VideoInfo>>());
 	}
 
 	[TestMethod]
 	public async Task GetVideoInfoNonExistentFile_Test()
 	{
-		Func<Task> getInfo = () => Gatherer.GetVideoInfoAsync(FakeFileName);
+		Func<Task> getInfo = () => Gatherer.GetVideoInfoAsync(FAKE_FILE);
 		await getInfo.Should().ThrowAsync<SourceInfoGatheringException>().ConfigureAwait(false);
 	}
 
@@ -47,15 +47,15 @@ public sealed class SourceInfoGatherer_Tests : FFmpeg_TestsBase
 	[TestCategory(FFMPEG_CATEGORY)]
 	public async Task GetVolumeInfo_Test()
 	{
-		var actual = await Gatherer.GetVolumeInfoAsync(ValidVideoFile).ConfigureAwait(false);
-		actual.File.Should().Be(ValidVideoFile);
-		actual.Info.Should().BeEquivalentTo(ValidVideoVolume);
+		var actual = await Gatherer.GetVolumeInfoAsync(VideoInfo.File).ConfigureAwait(false);
+		actual.Should().BeEquivalentTo(VolumeInfo,
+			x => x.ComparingByMembers<SourceInfo<VolumeInfo>>());
 	}
 
 	[TestMethod]
 	public async Task GetVolumeInfoNonExistentFile_Test()
 	{
-		Func<Task> getInfo = () => Gatherer.GetVolumeInfoAsync(FakeFileName);
+		Func<Task> getInfo = () => Gatherer.GetVolumeInfoAsync(FAKE_FILE);
 		await getInfo.Should().ThrowAsync<SourceInfoGatheringException>().ConfigureAwait(false);
 	}
 }

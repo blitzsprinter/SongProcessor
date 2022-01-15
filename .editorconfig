@@ -5,3 +5,6 @@ dotnet_diagnostic.RCS1158.severity = none
 
 # RCS1021: Convert lambda expression body to expression-body.
 dotnet_diagnostic.RCS1021.severity = none
+
+# CA1822: Mark members as static
+dotnet_diagnostic.CA1822.severity = none

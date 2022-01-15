@@ -1,6 +1,4 @@
-﻿using SongProcessor.Models;
-
-namespace SongProcessor.Results;
+﻿namespace SongProcessor.Results;
 
 public class Canceled : Result
 {
@@ -35,64 +33,11 @@ public class FileAlreadyExists : Result
 	}
 }
 
-public sealed class IsIgnored : Result
-{
-	public ISong Song { get; }
-
-	public IsIgnored(ISong song) : base($"Is ignored: {song.Name}", false)
-	{
-		Song = song;
-	}
-}
-
-public class SourceIsNull : Result
-{
-	public IAnime Anime { get; }
-
-	public SourceIsNull(IAnime anime) : base($"Source is null: {anime.Name}", false)
-	{
-		Anime = anime;
-	}
-}
-
 public class Success : Result
 {
 	public static Success Instance { get; } = new();
 
 	public Success() : base("Successfully encoded the output.", true)
 	{
-	}
-}
-
-public sealed class TimestampIsNull : Result
-{
-	public ISong Song { get; }
-
-	public TimestampIsNull(ISong song) : base($"Timestamp is null: {song.Name}", false)
-	{
-		Song = song;
-	}
-}
-
-public sealed class VideoIsNull : Result
-{
-	public IAnime Anime { get; }
-
-	public VideoIsNull(IAnime anime) : base($"Video info is null: {anime.Name}", false)
-	{
-		Anime = anime;
-	}
-}
-
-public class VideoTooSmall : Result
-{
-	public IAnime Anime { get; }
-	public int Resolution { get; }
-
-	public VideoTooSmall(IAnime anime, int resolution)
-		: base($"Source is smaller than {resolution}p: {anime.Name}", false)
-	{
-		Anime = anime;
-		Resolution = resolution;
 	}
 }

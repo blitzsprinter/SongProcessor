@@ -31,7 +31,7 @@ public static class SongUtils
 		CancellationToken cancellationToken = default)
 	{
 		var path = Path.Combine(directory, fileName);
-		var text = processor.ExportFixes(anime);
+		var text = processor.CreateFixes(anime);
 		return File.WriteAllTextAsync(path, text, cancellationToken);
 	}
 

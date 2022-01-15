@@ -27,7 +27,8 @@ public abstract class SongJob_TestsBase<T> : FFmpeg_TestsBase where T : ISongJob
 		return GetSingleFile(directory);
 	}
 
-	protected T GenerateJob(string directory,
+	protected T GenerateJob(
+		string directory,
 		Action<Anime, Song>? configureSong = null,
 		Func<Anime, Anime>? configureAnime = null)
 	{

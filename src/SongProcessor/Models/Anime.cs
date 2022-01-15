@@ -5,7 +5,7 @@ using System.Diagnostics;
 namespace SongProcessor.Models;
 
 [DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
-public class Anime : IAnime
+public record Anime : IAnime
 {
 	public string AbsoluteInfoPath { get; }
 	public int Id { get; }

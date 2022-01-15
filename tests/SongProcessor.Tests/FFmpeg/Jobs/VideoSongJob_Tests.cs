@@ -247,8 +247,8 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase<VideoSongJob>
 
 		var file = GetSingleFile(temp.Dir);
 		var newVolumeInfo = await Gatherer.GetVolumeInfoAsync(file).ConfigureAwait(false);
-		newVolumeInfo.Info.MaxVolume.Should().BeLessThan(ValidVideoVolume.MaxVolume);
-		newVolumeInfo.Info.MeanVolume.Should().BeLessThan(ValidVideoVolume.MeanVolume);
+		newVolumeInfo.Info.MaxVolume.Should().BeLessThan(VolumeInfo.Info.MaxVolume);
+		newVolumeInfo.Info.MeanVolume.Should().BeLessThan(VolumeInfo.Info.MeanVolume);
 
 		var newVideoInfo = await Gatherer.GetVideoInfoAsync(file).ConfigureAwait(false);
 		AssertValidLength(job, newVideoInfo.Info);
@@ -268,7 +268,7 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase<VideoSongJob>
 	}
 
 	protected override VideoSongJob GenerateJob(Anime anime, Song song)
-			=> new(anime, song, ValidVideoInfo.Height);
+		=> new(anime, song, VideoInfo.Info.Height);
 
 	private static void AssertValidLength(SongJob job, VideoInfo info)
 	{
