@@ -366,10 +366,22 @@ public sealed class SongViewModel : ReactiveObject, IRoutableViewModel, INavigat
 
 		foreach (var path in paths)
 		{
-			var result = await _Gatherer.GetVolumeInfoAsync(path).ConfigureAwait(true);
+			VolumeInfo info;
+			try
+			{
+				info = await _Gatherer.GetVolumeInfoAsync(path).ConfigureAwait(true);
+			}
+			catch (Exception e)
+			{
+				_ = Dispatcher.UIThread.InvokeAsync(
+					() => _MessageBoxManager.ShowExceptionAsync(e)
+				).ConfigureAwait(true);
+				continue;
+			}
+
 			var text = $"Volume information for \"{Path.GetFileName(path)}\":" +
-				$"\nMean volume: {result.MeanVolume}dB" +
-				$"\nMax volume: {result.MaxVolume}dB";
+				$"\nMean volume: {info.MeanVolume}dB" +
+				$"\nMax volume: {info.MaxVolume}dB";
 			_ = Dispatcher.UIThread.InvokeAsync(() =>
 			{
 				return _MessageBoxManager.ShowNoResultAsync(new()
@@ -416,13 +428,7 @@ public sealed class SongViewModel : ReactiveObject, IRoutableViewModel, INavigat
 		}
 		catch (Exception e)
 		{
-			await _MessageBoxManager.ShowNoResultAsync(new()
-			{
-				CanResize = true,
-				Height = UIUtils.MESSAGE_BOX_HEIGHT * 5,
-				Text = e.ToString(),
-				Title = "Failed To Load Songs",
-			}).ConfigureAwait(true);
+			await _MessageBoxManager.ShowExceptionAsync(e).ConfigureAwait(false);
 		}
 	}
 

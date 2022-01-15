@@ -1,15 +1,24 @@
 ﻿using SongProcessor.Converters;
+using SongProcessor.FFmpeg.Jobs;
 using SongProcessor.Models;
 using SongProcessor.Utils;
 
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 
 namespace SongProcessor.FFmpeg;
 
 public sealed class SourceInfoGatherer : ISourceInfoGatherer
 {
+	private const string PROPERTY = "property";
+	private const string VALUE = "value";
+	private const string VOLUME_DETECT_PATTERN =
+		@"\[Parsed_volumedetect_0 @ .*?\] " + // Starts with a method/caller and a hex #
+		$"(?<{PROPERTY}>.*?): " + // Property name is first and has a colon right after
+		$"(?<{VALUE}>.*?)$"; // Value is second
+
 	private static readonly JsonSerializerOptions _Options = new();
 	private static readonly char[] _SplitChars = new[] { '_', 'd' };
 	private static readonly Dictionary<string, string> _VolumeArgs = new()
@@ -23,6 +32,8 @@ public sealed class SourceInfoGatherer : ISourceInfoGatherer
 	{
 		["volumedetect"] = "",
 	};
+	private static readonly Regex VolumeDetectRegex =
+		new(VOLUME_DETECT_PATTERN, RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 
 	static SourceInfoGatherer()
 	{
@@ -66,17 +77,20 @@ public sealed class SourceInfoGatherer : ISourceInfoGatherer
 		var nSamples = 0;
 		process.ErrorDataReceived += (s, e) =>
 		{
-			const string LINE_START = "[Parsed_volumedetect_0 @";
-			if (e.Data?.StartsWith(LINE_START) != true)
+			if (e.Data is null)
 			{
 				return;
 			}
 
-			var cut = e.Data.Split(']')[1].Trim();
-			var kvp = cut.Split(':');
-			string key = kvp[0], value = kvp[1];
+			var match = VolumeDetectRegex.Match(e.Data);
+			if (!match.Success)
+			{
+				return;
+			}
 
-			switch (key)
+			var property = match.Groups[PROPERTY].Value;
+			var value = match.Groups[VALUE].Value;
+			switch (property)
 			{
 				case "n_samples":
 					nSamples = int.Parse(value);
@@ -91,12 +105,18 @@ public sealed class SourceInfoGatherer : ISourceInfoGatherer
 					break;
 
 				default: // histogram_#db
-					var db = int.Parse(key.Split(_SplitChars)[1]);
+					var db = int.Parse(property.Split(_SplitChars)[1]);
 					histograms[db] = int.Parse(value);
 					break;
 			}
 		};
-		await process.RunAsync(OutputMode.Async).ConfigureAwait(false);
+
+		var code = await process.RunAsync(OutputMode.Async).ConfigureAwait(false);
+		if (code != SongJob.FFMPEG_SUCCESS)
+		{
+			var e = new InvalidOperationException($"FFmpeg returned error {code} via '{args}'.");
+			throw new SourceInfoGatheringException(file, 'a', e);
+		}
 
 		return new(
 			File: file,
@@ -110,10 +130,7 @@ public sealed class SourceInfoGatherer : ISourceInfoGatherer
 	private static SourceInfoGatheringException FileNotFound(string file, char stream)
 		=> new(file, stream, new FileNotFoundException("File does not exist", file));
 
-	private static async Task<T> GetInfoAsync<T>(
-		char stream,
-		string file,
-		int track)
+	private static async Task<T> GetInfoAsync<T>(char stream, string file, int track)
 		where T : SourceInfo
 	{
 		if (!File.Exists(file))
@@ -136,11 +153,11 @@ public sealed class SourceInfoGatherer : ISourceInfoGatherer
 			OutputFile: file
 		);
 		using var process = ProcessUtils.FFprobe.CreateProcess(args.ToString());
+
 		process.StartInfo.StandardOutputEncoding = Encoding.UTF8;
 		process.StartInfo.RedirectStandardOutput = true;
-
 		await process.RunAsync(OutputMode.Sync).ConfigureAwait(false);
-		// Must call WaitForExit otherwise the json may be incomplete
+		// Call WaitForExit otherwise the JSON may be incomplete
 		await process.WaitForExitAsync().ConfigureAwait(false);
 
 		T info;
@@ -150,7 +167,11 @@ public sealed class SourceInfoGatherer : ISourceInfoGatherer
 				process.StandardOutput.BaseStream,
 				_Options
 			).ConfigureAwait(false);
-			info = output!.Streams.Single();
+			if (output?.Streams?.SingleOrDefault() is not T temp)
+			{
+				throw new JsonException($"FFmpeg returned invalid JSON via '{args}'.");
+			}
+			info = temp;
 		}
 		catch (Exception e)
 		{

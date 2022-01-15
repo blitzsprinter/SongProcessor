@@ -30,6 +30,17 @@ public static class UIUtils
 		return manager.GetDirectoryAsync(directory, "Directory");
 	}
 
+	public static Task ShowExceptionAsync(this IMessageBoxManager manager, Exception e)
+	{
+		return manager.ShowNoResultAsync(new()
+		{
+			CanResize = true,
+			Height = MESSAGE_BOX_HEIGHT * 5,
+			Text = e.ToString(),
+			Title = "An Exception Has Occurred",
+		});
+	}
+
 	public static Task ShowNoResultAsync(
 		this IMessageBoxManager manager,
 		MessageBoxViewModel<object> viewModel)

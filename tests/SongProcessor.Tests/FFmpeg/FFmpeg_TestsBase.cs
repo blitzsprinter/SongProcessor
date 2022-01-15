@@ -51,6 +51,7 @@ public abstract class FFmpeg_TestsBase
 		ChromaLocation: "left",
 		Duration: 5.213542,
 		DurationTicks: 125125,
+		FieldOrder: "progressive",
 		IsAvc: true,
 		NalLengthSize: 4,
 		NbFrames: 125,

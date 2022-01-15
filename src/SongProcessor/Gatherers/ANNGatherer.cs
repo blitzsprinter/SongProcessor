@@ -12,12 +12,12 @@ public sealed class ANNGatherer : IAnimeGatherer
 	private const string NAME = "name";
 	private const string POSITION = "position";
 	private const string SONG_PATTERN =
-		$@"(?<{POSITION}>\d*?)" + //Some openings/endings will have a position
-		"(: )?" + //The position will be followed up with a colon and space
-		$@"""(?<{NAME}>.+?)""" + //The name will be in quotes
-		".+?by " + //The name may have a translation in parans, and will be followed with by
-		$"(?<{ARTIST}>.+?)" + //The artist is just a simple match of any characters
-		@"( \(eps?|$)"; //The artist ends at (eps/ep ###-###) or the end of the line
+		$@"(?<{POSITION}>\d*?)" + // Some openings/endings will have a position
+		"(: )?" + // Position will be followed up with a colon and space
+		$@"""(?<{NAME}>.+?)""" + // Name will be in quotes
+		".+?by " + // Name may have a translation in parans, and will be followed with 'by'
+		$"(?<{ARTIST}>.+?)" + // Artist is just a simple match of any characters
+		@"( \(eps?|$)"; // Artist ends at (eps/ep ###-###) or the end of the line
 	private const string URL =
 		"https://cdn.animenewsnetwork.com/encyclopedia/api.xml?anime=";
 
