@@ -19,7 +19,7 @@ public sealed class SourceInfoGatherer : ISourceInfoGatherer
 		$"(?<{PROPERTY}>.*?): " + // Property name is first and has a colon right after
 		$"(?<{VALUE}>.*?)$"; // Value is second
 
-	private static readonly JsonSerializerOptions _Options = new();
+	private static readonly JsonSerializerOptions _Options = CreateJsonOptions();
 	private static readonly char[] _SplitChars = new[] { '_', 'd' };
 	private static readonly Dictionary<string, string> _VolumeArgs = new()
 	{
@@ -35,18 +35,11 @@ public sealed class SourceInfoGatherer : ISourceInfoGatherer
 	private static readonly Regex VolumeDetectRegex =
 		new(VOLUME_DETECT_PATTERN, RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 
-	static SourceInfoGatherer()
-	{
-		_Options.NumberHandling = JsonNumberHandling.AllowReadingFromString;
-		_Options.Converters.Add(new AspectRatioJsonConverter());
-		_Options.Converters.Add(new ParseJsonConverter<bool>(bool.Parse));
-	}
-
 	public Task<AudioInfo> GetAudioInfoAsync(string file, int track = 0)
-		=> GetInfoAsync<AudioInfo>('a', file, track);
+		=> GetInfoAsync<AudioInfo>(file, 'a', track);
 
 	public Task<VideoInfo> GetVideoInfoAsync(string file, int track = 0)
-		=> GetInfoAsync<VideoInfo>('v', file, track);
+		=> GetInfoAsync<VideoInfo>(file, 'v', track);
 
 	public async Task<VolumeInfo> GetVolumeInfoAsync(string file, int track = 0)
 	{
@@ -68,8 +61,8 @@ public sealed class SourceInfoGatherer : ISourceInfoGatherer
 			AudioFilters: _VolumeAudioFilters,
 			VideoFilters: null,
 			OutputFile: "-"
-		);
-		using var process = ProcessUtils.FFmpeg.CreateProcess(args.ToString());
+		).ToString();
+		using var process = ProcessUtils.FFmpeg.CreateProcess(args);
 
 		var histograms = new Dictionary<int, int>();
 		var maxVolume = 0.00;
@@ -114,8 +107,11 @@ public sealed class SourceInfoGatherer : ISourceInfoGatherer
 		var code = await process.RunAsync(OutputMode.Async).ConfigureAwait(false);
 		if (code != SongJob.FFMPEG_SUCCESS)
 		{
-			var e = new InvalidOperationException($"FFmpeg returned error {code} via '{args}'.");
-			throw new SourceInfoGatheringException(file, 'a', e);
+			throw new SourceInfoGatheringException(
+				file: file,
+				stream: 'a',
+				innerException: new ProgramException(ProcessUtils.FFmpeg, args, code)
+			);
 		}
 
 		return new(
@@ -127,10 +123,21 @@ public sealed class SourceInfoGatherer : ISourceInfoGatherer
 		);
 	}
 
+	private static JsonSerializerOptions CreateJsonOptions()
+	{
+		var options = new JsonSerializerOptions
+		{
+			NumberHandling = JsonNumberHandling.AllowReadingFromString
+		};
+		options.Converters.Add(new AspectRatioJsonConverter());
+		options.Converters.Add(new ParseJsonConverter<bool>(bool.Parse));
+		return options;
+	}
+
 	private static SourceInfoGatheringException FileNotFound(string file, char stream)
 		=> new(file, stream, new FileNotFoundException("File does not exist", file));
 
-	private static async Task<T> GetInfoAsync<T>(char stream, string file, int track)
+	private static async Task<T> GetInfoAsync<T>(string file, char stream, int track)
 		where T : SourceInfo
 	{
 		if (!File.Exists(file))
@@ -151,12 +158,20 @@ public sealed class SourceInfoGatherer : ISourceInfoGatherer
 			AudioFilters: null,
 			VideoFilters: null,
 			OutputFile: file
-		);
-		using var process = ProcessUtils.FFprobe.CreateProcess(args.ToString());
+		).ToString();
+		using var process = ProcessUtils.FFprobe.CreateProcess(args);
 
 		process.StartInfo.StandardOutputEncoding = Encoding.UTF8;
 		process.StartInfo.RedirectStandardOutput = true;
-		await process.RunAsync(OutputMode.Sync).ConfigureAwait(false);
+		var code = await process.RunAsync(OutputMode.Sync).ConfigureAwait(false);
+		if (code != SongJob.FFMPEG_SUCCESS)
+		{
+			throw new SourceInfoGatheringException(
+				file: file,
+				stream: stream,
+				innerException: new ProgramException(ProcessUtils.FFprobe, args, code)
+			);
+		}
 		// Call WaitForExit otherwise the JSON may be incomplete
 		await process.WaitForExitAsync().ConfigureAwait(false);
 
@@ -167,7 +182,7 @@ public sealed class SourceInfoGatherer : ISourceInfoGatherer
 				process.StandardOutput.BaseStream,
 				_Options
 			).ConfigureAwait(false);
-			if (output?.Streams?.SingleOrDefault() is not T temp)
+			if (output?.Streams?.Length != 1 || output.Streams[0] is not T temp)
 			{
 				throw new JsonException($"FFmpeg returned invalid JSON via '{args}'.");
 			}

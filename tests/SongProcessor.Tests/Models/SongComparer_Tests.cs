@@ -53,6 +53,7 @@ public sealed class SongComparer_Tests
 			Copy(x => x.Type = SongType.Ed.Create(3)),
 			Copy(x => x.Type = SongType.In.Create(null)),
 		};
+		expected.Should().BeInAscendingOrder(SongComparer.Instance);
 
 		var rng = new Random(0);
 		var randomized = expected.OrderBy(_ => rng.Next()).ToList();

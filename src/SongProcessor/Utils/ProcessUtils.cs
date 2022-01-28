@@ -15,10 +15,12 @@ public enum OutputMode : uint
 public readonly struct Program
 {
 	public string File { get; }
+	public string Name { get; }
 
-	public Program(string file)
+	public Program(string file, string name)
 	{
 		File = file;
+		Name = name;
 	}
 
 	public Process CreateProcess(string args)
@@ -58,11 +60,11 @@ public static class ProcessUtils
 		{
 			if (TryGetProgram(dir, program, out var path))
 			{
-				return new Program(path);
+				return new Program(path, program);
 			}
 			else if (TryGetProgram(Path.Combine(dir, "bin"), program, out path))
 			{
-				return new Program(path);
+				return new Program(path, program);
 			}
 		}
 		throw new InvalidOperationException($"Unable to find {program}.");

@@ -33,7 +33,7 @@ public sealed class SourceInfoGatherer_Tests : FFmpeg_TestsBase
 		(await getInfo.Should()
 			.ThrowAsync<SourceInfoGatheringException>()
 			.ConfigureAwait(false))
-			.WithInnerException<JsonException>();
+			.WithInnerException<ProgramException>();
 	}
 
 	[TestMethod]
@@ -66,7 +66,7 @@ public sealed class SourceInfoGatherer_Tests : FFmpeg_TestsBase
 		(await getInfo.Should()
 			.ThrowAsync<SourceInfoGatheringException>()
 			.ConfigureAwait(false))
-			.WithInnerException<JsonException>();
+			.WithInnerException<ProgramException>();
 	}
 
 	[TestMethod]
@@ -99,7 +99,7 @@ public sealed class SourceInfoGatherer_Tests : FFmpeg_TestsBase
 		(await getInfo.Should()
 			.ThrowAsync<SourceInfoGatheringException>()
 			.ConfigureAwait(false))
-			.WithInnerException<InvalidOperationException>();
+			.WithInnerException<ProgramException>();
 	}
 
 	[TestMethod]

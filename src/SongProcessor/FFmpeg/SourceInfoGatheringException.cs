@@ -19,7 +19,7 @@ public class SourceInfoGatheringException : Exception
 	{
 	}
 
-	public SourceInfoGatheringException(string file, char stream, Exception? innerException)
+	public SourceInfoGatheringException(string file, char stream, Exception? innerException = null)
 		: this($"Unable to gather '{stream}' stream info for {file}.", innerException)
 	{
 		File = file;

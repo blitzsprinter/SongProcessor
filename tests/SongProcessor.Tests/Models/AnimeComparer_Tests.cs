@@ -43,6 +43,7 @@ public sealed class AnimeComparer_Tests
 			Copy(x => x.Name += "a"),
 			Copy(x => x.Year = Anime.Year + 1),
 		};
+		expected.Should().BeInAscendingOrder(AnimeComparer.Instance);
 
 		var rng = new Random(0);
 		var randomized = expected.OrderBy(_ => rng.Next()).ToList();

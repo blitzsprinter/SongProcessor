@@ -17,28 +17,28 @@ public sealed class SongLoader_Tests : FFmpeg_TestsBase
 	private readonly ISongLoader _Loader = new SongLoader(new SourceInfoGatherer());
 
 	[TestMethod]
-	public async Task LoadFileDoesntExist_Test()
-	{
-		using var temp = new TempDirectory();
-		var path = Path.Combine(temp.Dir, "info.amq");
-
-		var actual = await _Loader.LoadAsync(path).ConfigureAwait(false);
-		actual.Should().BeNull();
-	}
-
-	[TestMethod]
-	public async Task LoadFileEmpty_Test()
+	public async Task LoadEmptyFile_Test()
 	{
 		using var temp = new TempDirectory();
 		var path = Path.Combine(temp.Dir, "info.amq");
 		File.Create(path).Dispose();
 
+		Func<Task> load = () => _Loader.LoadAsync(path);
+		await load.Should().ThrowAsync<JsonException>().ConfigureAwait(false);
+	}
+
+	[TestMethod]
+	public async Task LoadFakeFile_Test()
+	{
+		using var temp = new TempDirectory();
+		var path = Path.Combine(temp.Dir, "info.amq");
+
 		var actual = await _Loader.LoadAsync(path).ConfigureAwait(false);
 		actual.Should().BeNull();
 	}
 
 	[TestMethod]
-	public async Task LoadInvalid_Test()
+	public async Task LoadInvalidFile_Test()
 	{
 		using var temp = new TempDirectory();
 		var path = Path.Combine(temp.Dir, "info.amq");
@@ -61,7 +61,7 @@ public sealed class SongLoader_Tests : FFmpeg_TestsBase
 		}).ConfigureAwait(false);
 
 		Func<Task> load = () => _Loader.LoadAsync(anime.AbsoluteInfoPath);
-		await load.Should().ThrowAsync<InvalidOperationException>().ConfigureAwait(false);
+		await load.Should().ThrowAsync<SourceInfoGatheringException>().ConfigureAwait(false);
 	}
 
 	[TestMethod]
@@ -99,7 +99,7 @@ public sealed class SongLoader_Tests : FFmpeg_TestsBase
 		using var fs = File.Create(anime.AbsoluteInfoPath);
 
 		Func<Task> save = () => _Loader.SaveAsync(anime);
-		await save.Should().ThrowAsync<InvalidOperationException>().ConfigureAwait(false);
+		await save.Should().ThrowAsync<IOException>().ConfigureAwait(false);
 	}
 
 	[TestMethod]
