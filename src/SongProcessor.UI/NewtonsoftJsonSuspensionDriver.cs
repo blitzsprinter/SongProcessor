@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿#define USE_NAV_STACK_FIX
+
+using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
 using ReactiveUI;
@@ -36,11 +38,8 @@ public class NewtonsoftJsonSuspensionDriver : ISuspensionDriver
 
 	public IObservable<object> LoadState()
 	{
-		if (!File.Exists(_File))
-		{
-			return Observable.Return(default(object))!;
-		}
-
+		// ReactiveUI relies on this method throwing an exception
+		// to determine if CreateNewAppState should be called
 		var lines = File.ReadAllText(_File);
 		var state = JsonConvert.DeserializeObject<object>(lines, _Options);
 		return Observable.Return(state)!;
@@ -53,6 +52,35 @@ public class NewtonsoftJsonSuspensionDriver : ISuspensionDriver
 		return Observable.Return(Unit.Default);
 	}
 
+#if USE_NAV_STACK_FIX
+
+	private sealed class NavigationStackValueProvider : IValueProvider
+	{
+		private readonly IValueProvider _Original;
+
+		public NavigationStackValueProvider(IValueProvider original)
+		{
+			_Original = original;
+		}
+
+		public object? GetValue(object target)
+			=> _Original.GetValue(target);
+
+		public void SetValue(object target, object? value)
+		{
+			var castedTarget = (RoutingState)target!;
+			var castedValue = (IEnumerable<IRoutableViewModel>)value!;
+
+			castedTarget.NavigationStack.Clear();
+			foreach (var vm in castedValue)
+			{
+				castedTarget.NavigationStack.Add(vm);
+			}
+		}
+	}
+
+#endif
+
 	private sealed class WritablePropertiesOnlyResolver : DefaultContractResolver
 	{
 		protected override IList<JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization)
@@ -60,7 +88,19 @@ public class NewtonsoftJsonSuspensionDriver : ISuspensionDriver
 			var props = base.CreateProperties(type, memberSerialization);
 			for (var i = props.Count - 1; i >= 0; --i)
 			{
-				if (!props[i].Writable)
+				var prop = props[i];
+
+#if USE_NAV_STACK_FIX
+				if (prop.DeclaringType == typeof(RoutingState)
+					&& prop.PropertyName == nameof(RoutingState.NavigationStack))
+				{
+					prop.Ignored = false;
+					prop.Writable = true;
+					prop.ValueProvider = new NavigationStackValueProvider(prop.ValueProvider!);
+				}
+				else
+#endif
+				if (!prop.Writable)
 				{
 					props.RemoveAt(i);
 				}

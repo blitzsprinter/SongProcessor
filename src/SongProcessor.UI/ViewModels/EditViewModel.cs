@@ -214,8 +214,8 @@ public sealed class EditViewModel : ReactiveObject, IRoutableViewModel, IValidat
 		ValidationContext.ValidationStatusChange.Subscribe(
 			x => ButtonText = x.IsValid ? "Save" : x.Text.ToSingleLine(" "));
 
-		Save = ReactiveCommand.CreateFromTask(PrivateSave, this.IsValid());
-		SelectCleanPath = ReactiveCommand.CreateFromTask(PrivateSelectCleanPath);
+		Save = ReactiveCommand.CreateFromTask(SaveAsync, this.IsValid());
+		SelectCleanPath = ReactiveCommand.CreateFromTask(SelectCleanPathAsync);
 	}
 
 	private static AspectRatio? GetAspectRatio(AspectRatio ratio)
@@ -252,7 +252,7 @@ public sealed class EditViewModel : ReactiveObject, IRoutableViewModel, IValidat
 		return status;
 	}
 
-	private async Task PrivateSave()
+	private async Task SaveAsync()
 	{
 		_Song.Artist = Artist;
 		_Song.OverrideAspectRatio = GetAspectRatio(AspectRatio);
@@ -271,7 +271,7 @@ public sealed class EditViewModel : ReactiveObject, IRoutableViewModel, IValidat
 		await _Loader.SaveAsync(_Anime).ConfigureAwait(false);
 	}
 
-	private async Task PrivateSelectCleanPath()
+	private async Task SelectCleanPathAsync()
 	{
 		var dir = _Anime.GetDirectory();
 		var result = await _MessageBoxManager.GetFilesAsync(dir, "Clean Path", false).ConfigureAwait(true);

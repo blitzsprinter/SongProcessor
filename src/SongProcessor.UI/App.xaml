@@ -3,22 +3,15 @@
 						 x:Class="SongProcessor.UI.App">
 
 	<Application.Styles>
-		<StyleInclude Source="resm:Avalonia.Themes.Default.DefaultTheme.xaml?assembly=Avalonia.Themes.Default" />
-		<StyleInclude Source="resm:Avalonia.Themes.Default.Accents.BaseDark.xaml?assembly=Avalonia.Themes.Default" />
+		<FluentTheme Mode="Dark" />
 		<Style Selector=":is(TextBox)">
 			<Setter Property="VerticalContentAlignment" Value="Center" />
 		</Style>
 		<Style Selector="Button">
-			<Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderMidBrush}" />
-		</Style>
-		<Style Selector="Button.round/template/ContentPresenter">
-			<Setter Property="CornerRadius" Value="10" />
-		</Style>
-		<Style Selector="Button.round">
-			<Setter Property="BorderThickness" Value="2" />
-		</Style>
-		<Style Selector="Button:pointerover.round/template/ContentPresenter">
-			<Setter Property="BorderBrush" Value="#FFDD4812" />
+			<Setter Property="HorizontalAlignment" Value="Stretch" />
+			<Setter Property="VerticalAlignment" Value="Stretch" />
+			<Setter Property="HorizontalContentAlignment" Value="Center" />
+			<Setter Property="VerticalContentAlignment" Value="Center" />
 		</Style>
 		<Style Selector="HeaderedContentControl">
 			<Setter Property="Template">
@@ -26,7 +19,7 @@
 					<ControlTemplate>
 						<Border>
 							<StackPanel>
-								<ContentPresenter TextBlock.FontWeight="Bold"
+								<ContentPresenter ContentPresenter.FontWeight="Bold"
 																	Content="{TemplateBinding Header}" />
 								<Border BorderBrush="{TemplateBinding Background}"
 												BorderThickness="2" CornerRadius="5">

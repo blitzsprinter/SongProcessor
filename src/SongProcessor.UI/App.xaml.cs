@@ -50,7 +50,7 @@ public class App : Application
 		Locator.CurrentMutable.RegisterConstant<IEnumerable<IAnimeGatherer>>(gatherers);
 
 		// Set up suspension to save view model information
-		var suspension = new AutoSuspendHelper(ApplicationLifetime);
+		var suspension = new AutoSuspendHelper(ApplicationLifetime!);
 		var driver = new NewtonsoftJsonSuspensionDriver("appstate.json")
 		{
 #if DEBUG
@@ -63,7 +63,7 @@ public class App : Application
 				loader,
 				processor,
 				gatherer,
-				Clipboard,
+				Clipboard!,
 				messageBoxManager,
 				gatherers
 			);
@@ -83,8 +83,8 @@ public class App : Application
 
 	private class HostScreenWrapper : IScreen
 	{
-		internal IScreen Screen { get; set; } = null!;
-
 		RoutingState IScreen.Router => Screen.Router;
+
+		internal IScreen Screen { get; set; } = null!;
 	}
 }

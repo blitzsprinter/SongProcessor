@@ -110,20 +110,20 @@ public sealed class AddViewModel : ReactiveObject, IRoutableViewModel
 			x => x.Directory,
 			x => x.Id,
 			(directory, id) => System.IO.Directory.Exists(directory) && id > 0);
-		Add = ReactiveCommand.CreateFromTask(PrivateAdd, canAdd);
-		DeleteAnime = ReactiveCommand.CreateFromTask<IAnime>(PrivateDeleteAnime);
-		SelectDirectory = ReactiveCommand.CreateFromTask(PrivateSelectDirectory);
+		Add = ReactiveCommand.CreateFromTask(AddAsync, canAdd);
+		DeleteAnime = ReactiveCommand.CreateFromTask<IAnime>(DeleteAnimeAsync);
+		SelectDirectory = ReactiveCommand.CreateFromTask(SelectDirectoryAsync);
 	}
 
 	private AddViewModel() : this(
-		Locator.Current.GetService<IScreen>(),
-		Locator.Current.GetService<ISongLoader>(),
-		Locator.Current.GetService<IMessageBoxManager>(),
-		Locator.Current.GetService<IEnumerable<IAnimeGatherer>>())
+		Locator.Current.GetService<IScreen>()!,
+		Locator.Current.GetService<ISongLoader>()!,
+		Locator.Current.GetService<IMessageBoxManager>()!,
+		Locator.Current.GetService<IEnumerable<IAnimeGatherer>>()!)
 	{
 	}
 
-	private async Task PrivateAdd()
+	private async Task AddAsync()
 	{
 		try
 		{
@@ -145,7 +145,7 @@ public sealed class AddViewModel : ReactiveObject, IRoutableViewModel
 		}
 	}
 
-	private async Task PrivateDeleteAnime(IAnime anime)
+	private async Task DeleteAnimeAsync(IAnime anime)
 	{
 		var result = await _MessageBoxManager.ConfirmAsync(new()
 		{
@@ -161,7 +161,7 @@ public sealed class AddViewModel : ReactiveObject, IRoutableViewModel
 		File.Delete(anime.AbsoluteInfoPath);
 	}
 
-	private async Task PrivateSelectDirectory()
+	private async Task SelectDirectoryAsync()
 	{
 		var path = await _MessageBoxManager.GetDirectoryAsync(Directory).ConfigureAwait(true);
 		if (string.IsNullOrWhiteSpace(path))

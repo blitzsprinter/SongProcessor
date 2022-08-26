@@ -60,12 +60,12 @@ public sealed class MainViewModel : ReactiveObject, IScreen
 	}
 
 	private MainViewModel() : this(
-		Locator.Current.GetService<ISongLoader>(),
-		Locator.Current.GetService<ISongProcessor>(),
-		Locator.Current.GetService<ISourceInfoGatherer>(),
-		Locator.Current.GetService<IClipboard>(),
-		Locator.Current.GetService<IMessageBoxManager>(),
-		Locator.Current.GetService<IEnumerable<IAnimeGatherer>>())
+		Locator.Current.GetService<ISongLoader>()!,
+		Locator.Current.GetService<ISongProcessor>()!,
+		Locator.Current.GetService<ISourceInfoGatherer>()!,
+		Locator.Current.GetService<IClipboard>()!,
+		Locator.Current.GetService<IMessageBoxManager>()!,
+		Locator.Current.GetService<IEnumerable<IAnimeGatherer>>()!)
 	{
 	}
 

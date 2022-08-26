@@ -143,35 +143,35 @@ public sealed class SongViewModel : ReactiveObject, IRoutableViewModel, INavigat
 		_SystemClipboard = clipboard ?? throw new ArgumentNullException(nameof(clipboard));
 		_MessageBoxManager = messageBoxManager ?? throw new ArgumentNullException(nameof(messageBoxManager));
 
-		Unload = ReactiveCommand.Create(PrivateUnload);
-		CopyANNID = ReactiveCommand.CreateFromTask<int>(PrivateCopyANNID);
-		OpenInfoFile = ReactiveCommand.Create<ObservableAnime>(PrivateOpenInfoFile);
-		GetVolumeInfo = ReactiveCommand.CreateFromTask<ObservableAnime>(PrivateGetVolumeInfo);
-		DuplicateAnime = ReactiveCommand.CreateFromTask<ObservableAnime>(PrivateDuplicateAnime);
-		DeleteAnime = ReactiveCommand.CreateFromTask<ObservableAnime>(PrivateDeleteAnime);
-		ClearSongs = ReactiveCommand.CreateFromTask<ObservableAnime>(PrivateClearSongs);
-		ChangeSource = ReactiveCommand.CreateFromTask<ObservableAnime>(PrivateChangeSource);
-		ClearSource = ReactiveCommand.CreateFromTask<ObservableAnime>(PrivateClearSource);
-		AddSong = ReactiveCommand.Create<ObservableAnime>(PrivateAddSong);
-		EditSong = ReactiveCommand.Create<ObservableSong>(PrivateEditSong);
-		CopySong = ReactiveCommand.Create<ObservableSong>(PrivateCopySong);
-		CutSong = ReactiveCommand.Create<ObservableSong>(PrivateCutSong);
-		DeleteSong = ReactiveCommand.CreateFromTask<ObservableSong>(PrivateDeleteSong);
-		ExportFixes = ReactiveCommand.CreateFromTask(PrivateExportFixes);
-		ProcessSongs = ReactiveCommand.CreateFromObservable(PrivateProcessSongs);
+		Unload = ReactiveCommand.CreateFromTask(UnloadAsync);
+		CopyANNID = ReactiveCommand.CreateFromTask<int>(CopyANNIDAsync);
+		OpenInfoFile = ReactiveCommand.CreateFromTask<ObservableAnime>(OpenInfoFileAsync);
+		GetVolumeInfo = ReactiveCommand.CreateFromTask<ObservableAnime>(GetVolumeInfoAsync);
+		DuplicateAnime = ReactiveCommand.CreateFromTask<ObservableAnime>(DuplicateAnimeAsync);
+		DeleteAnime = ReactiveCommand.CreateFromTask<ObservableAnime>(DeleteAnimeAsync);
+		ClearSongs = ReactiveCommand.CreateFromTask<ObservableAnime>(ClearSongsAsync);
+		ChangeSource = ReactiveCommand.CreateFromTask<ObservableAnime>(ChangeSourceAsync);
+		ClearSource = ReactiveCommand.CreateFromTask<ObservableAnime>(ClearSourceAsync);
+		AddSong = ReactiveCommand.CreateFromTask<ObservableAnime>(AddSongAsync);
+		EditSong = ReactiveCommand.CreateFromTask<ObservableSong>(EditSongAsync);
+		CopySong = ReactiveCommand.CreateFromTask<ObservableSong>(CopySongAsync);
+		CutSong = ReactiveCommand.CreateFromTask<ObservableSong>(CutSongAsync);
+		DeleteSong = ReactiveCommand.CreateFromTask<ObservableSong>(DeleteSongAsync);
+		ExportFixes = ReactiveCommand.CreateFromTask(ExportFixesAsync);
+		ProcessSongs = ReactiveCommand.CreateFromObservable(ProcessSongsObservable);
 		CancelProcessing = ReactiveCommand.Create(() => { });
-		SelectDirectory = ReactiveCommand.CreateFromTask(PrivateSelectDirectory);
-		ModifyMultipleSongsStatus = ReactiveCommand.CreateFromTask<StatusModifier>(PrivateModifyMultipleSongsStatus);
+		SelectDirectory = ReactiveCommand.CreateFromTask(SelectDirectoryAsync);
+		ModifyMultipleSongsStatus = ReactiveCommand.CreateFromTask<StatusModifier>(ModifyMultipleSongsStatusAsync);
 
 		var validDirectory = this
 			.WhenAnyValue(x => x.Directory)
 			.Select(System.IO.Directory.Exists);
-		Load = ReactiveCommand.CreateFromTask(PrivateLoad, validDirectory);
+		Load = ReactiveCommand.CreateFromTask(LoadAsync, validDirectory);
 
 		var validClipboard = this
 			.WhenAnyValue(x => x.ClipboardSong)
 			.Select(x => x is not null);
-		PasteSong = ReactiveCommand.CreateFromTask<ObservableAnime>(PrivatePasteSong, validClipboard);
+		PasteSong = ReactiveCommand.CreateFromTask<ObservableAnime>(PasteSongAsync, validClipboard);
 
 		var loading = Load.IsExecuting;
 		var processing = ProcessSongs.IsExecuting;
@@ -197,37 +197,20 @@ public sealed class SongViewModel : ReactiveObject, IRoutableViewModel, INavigat
 	}
 
 	private SongViewModel() : this(
-		Locator.Current.GetService<IScreen>(),
-		Locator.Current.GetService<ISongLoader>(),
-		Locator.Current.GetService<ISongProcessor>(),
-		Locator.Current.GetService<ISourceInfoGatherer>(),
-		Locator.Current.GetService<IClipboard>(),
-		Locator.Current.GetService<IMessageBoxManager>())
+		Locator.Current.GetService<IScreen>()!,
+		Locator.Current.GetService<ISongLoader>()!,
+		Locator.Current.GetService<ISongProcessor>()!,
+		Locator.Current.GetService<ISourceInfoGatherer>()!,
+		Locator.Current.GetService<IClipboard>()!,
+		Locator.Current.GetService<IMessageBoxManager>()!)
 	{
 	}
 
-	private void ModifyVisibility(ObservableAnime anime)
-	{
-		var isExpanderVisible = false;
-		foreach (var song in anime.Songs)
-		{
-			song.IsVisible = Search.IsVisible(song) && SongVisibility.IsVisible(song);
-			if (song.IsVisible)
-			{
-				isExpanderVisible = true;
-			}
-		}
-
-		anime.IsExpanded = SongVisibility.IsExpanded;
-		anime.IsExpanderVisible = isExpanderVisible;
-		anime.IsVisible = Search.IsVisible(anime);
-	}
-
-	private void PrivateAddSong(ObservableAnime anime)
+	private async Task AddSongAsync(ObservableAnime anime)
 	{
 		var song = new ObservableSong(anime, new Song());
 		anime.Songs.Add(song);
-		HostScreen.Router.Navigate.Execute(new EditViewModel(
+		await HostScreen.Router.Navigate.Execute(new EditViewModel(
 			HostScreen,
 			_Loader,
 			_MessageBoxManager,
@@ -235,11 +218,10 @@ public sealed class SongViewModel : ReactiveObject, IRoutableViewModel, INavigat
 		));
 	}
 
-	private async Task PrivateChangeSource(ObservableAnime anime)
+	private async Task ChangeSourceAsync(ObservableAnime anime)
 	{
 		var dir = anime.GetDirectory();
-		var defFile = Path.GetFileName(anime.GetSourceFile());
-		var result = await _MessageBoxManager.GetFilesAsync(dir, "Source", false, defFile).ConfigureAwait(true);
+		var result = await _MessageBoxManager.GetFilesAsync(dir, "Source", false).ConfigureAwait(true);
 		if (result.SingleOrDefault() is not string file)
 		{
 			return;
@@ -265,7 +247,7 @@ public sealed class SongViewModel : ReactiveObject, IRoutableViewModel, INavigat
 		await _Loader.SaveAsync(anime).ConfigureAwait(true);
 	}
 
-	private async Task PrivateClearSongs(ObservableAnime anime)
+	private async Task ClearSongsAsync(ObservableAnime anime)
 	{
 		var result = await _MessageBoxManager.ConfirmAsync(new()
 		{
@@ -281,19 +263,22 @@ public sealed class SongViewModel : ReactiveObject, IRoutableViewModel, INavigat
 		await _Loader.SaveAsync(anime).ConfigureAwait(true);
 	}
 
-	private async Task PrivateClearSource(ObservableAnime anime)
+	private async Task ClearSourceAsync(ObservableAnime anime)
 	{
 		anime.VideoInfo = null;
 		await _Loader.SaveAsync(anime).ConfigureAwait(true);
 	}
 
-	private Task PrivateCopyANNID(int id)
+	private Task CopyANNIDAsync(int id)
 		=> _SystemClipboard.SetTextAsync(id.ToString());
 
-	private void PrivateCopySong(ObservableSong song)
-		=> ClipboardSong = new(song, false, null);
+	private Task CopySongAsync(ObservableSong song)
+	{
+		ClipboardSong = new(song, false, null);
+		return Task.CompletedTask;
+	}
 
-	private void PrivateCutSong(ObservableSong song)
+	private Task CutSongAsync(ObservableSong song)
 	{
 		ClipboardSong = new(song, true, () =>
 		{
@@ -301,9 +286,10 @@ public sealed class SongViewModel : ReactiveObject, IRoutableViewModel, INavigat
 			anime.Songs.Remove(song);
 			return _Loader.SaveAsync(anime);
 		});
+		return Task.CompletedTask;
 	}
 
-	private async Task PrivateDeleteAnime(ObservableAnime anime)
+	private async Task DeleteAnimeAsync(ObservableAnime anime)
 	{
 		var result = await _MessageBoxManager.ConfirmAsync(new()
 		{
@@ -319,7 +305,7 @@ public sealed class SongViewModel : ReactiveObject, IRoutableViewModel, INavigat
 		File.Delete(anime.AbsoluteInfoPath);
 	}
 
-	private async Task PrivateDeleteSong(ObservableSong song)
+	private async Task DeleteSongAsync(ObservableSong song)
 	{
 		var anime = song.Parent;
 		var result = await _MessageBoxManager.ConfirmAsync(new()
@@ -336,15 +322,15 @@ public sealed class SongViewModel : ReactiveObject, IRoutableViewModel, INavigat
 		await _Loader.SaveAsync(anime).ConfigureAwait(true);
 	}
 
-	private async Task PrivateDuplicateAnime(ObservableAnime anime)
+	private async Task DuplicateAnimeAsync(ObservableAnime anime)
 	{
 		var file = await _Loader.SaveNewAsync(anime.GetDirectory(), anime, _SaveOptions).ConfigureAwait(true);
 		Anime.Add(new ObservableAnime(new Anime(file!, anime, anime.VideoInfo)));
 	}
 
-	private void PrivateEditSong(ObservableSong song)
+	private async Task EditSongAsync(ObservableSong song)
 	{
-		HostScreen.Router.Navigate.Execute(new EditViewModel(
+		await HostScreen.Router.Navigate.Execute(new EditViewModel(
 			HostScreen,
 			_Loader,
 			_MessageBoxManager,
@@ -352,10 +338,10 @@ public sealed class SongViewModel : ReactiveObject, IRoutableViewModel, INavigat
 		));
 	}
 
-	private Task PrivateExportFixes()
+	private Task ExportFixesAsync()
 		=> _Processor.ExportFixesAsync(Anime, Directory!);
 
-	private async Task PrivateGetVolumeInfo(ObservableAnime anime)
+	private async Task GetVolumeInfoAsync(ObservableAnime anime)
 	{
 		var dir = anime.GetDirectory();
 		var paths = await _MessageBoxManager.GetFilesAsync(dir, "Volume Info", true).ConfigureAwait(true);
@@ -394,7 +380,7 @@ public sealed class SongViewModel : ReactiveObject, IRoutableViewModel, INavigat
 		}
 	}
 
-	private async Task PrivateLoad()
+	private async Task LoadAsync()
 	{
 		try
 		{
@@ -432,7 +418,7 @@ public sealed class SongViewModel : ReactiveObject, IRoutableViewModel, INavigat
 		}
 	}
 
-	private async Task PrivateModifyMultipleSongsStatus(StatusModifier modifier)
+	private async Task ModifyMultipleSongsStatusAsync(StatusModifier modifier)
 	{
 		var isRemove = modifier < 0;
 		var status = modifier.ToStatus();
@@ -467,7 +453,24 @@ public sealed class SongViewModel : ReactiveObject, IRoutableViewModel, INavigat
 		}
 	}
 
-	private void PrivateOpenInfoFile(ObservableAnime anime)
+	private void ModifyVisibility(ObservableAnime anime)
+	{
+		var isExpanderVisible = false;
+		foreach (var song in anime.Songs)
+		{
+			song.IsVisible = Search.IsVisible(song) && SongVisibility.IsVisible(song);
+			if (song.IsVisible)
+			{
+				isExpanderVisible = true;
+			}
+		}
+
+		anime.IsExpanded = SongVisibility.IsExpanded;
+		anime.IsExpanderVisible = isExpanderVisible;
+		anime.IsVisible = Search.IsVisible(anime);
+	}
+
+	private Task OpenInfoFileAsync(ObservableAnime anime)
 	{
 		new Process
 		{
@@ -476,9 +479,10 @@ public sealed class SongViewModel : ReactiveObject, IRoutableViewModel, INavigat
 				UseShellExecute = true
 			}
 		}.Start();
+		return Task.CompletedTask;
 	}
 
-	private async Task PrivatePasteSong(ObservableAnime anime)
+	private async Task PasteSongAsync(ObservableAnime anime)
 	{
 		var clipboard = ClipboardSong!;
 		anime.Songs.Add(new ObservableSong(anime, clipboard.Value));
@@ -490,7 +494,7 @@ public sealed class SongViewModel : ReactiveObject, IRoutableViewModel, INavigat
 		}
 	}
 
-	private IObservable<Unit> PrivateProcessSongs()
+	private IObservable<Unit> ProcessSongsObservable()
 	{
 		return Observable.StartAsync(async token =>
 		{
@@ -536,7 +540,7 @@ public sealed class SongViewModel : ReactiveObject, IRoutableViewModel, INavigat
 		.TakeUntil(CancelProcessing);
 	}
 
-	private async Task PrivateSelectDirectory()
+	private async Task SelectDirectoryAsync()
 	{
 		var path = await _MessageBoxManager.GetDirectoryAsync(Directory).ConfigureAwait(true);
 		if (string.IsNullOrWhiteSpace(path))
@@ -547,7 +551,7 @@ public sealed class SongViewModel : ReactiveObject, IRoutableViewModel, INavigat
 		Directory = path;
 	}
 
-	private void PrivateUnload()
+	private Task UnloadAsync()
 	{
 		foreach (var subscriptions in _Subscriptions)
 		{
@@ -557,5 +561,6 @@ public sealed class SongViewModel : ReactiveObject, IRoutableViewModel, INavigat
 		Anime.Clear();
 		SelectedItems.Clear();
 		ClipboardSong = null;
+		return Task.CompletedTask;
 	}
 }

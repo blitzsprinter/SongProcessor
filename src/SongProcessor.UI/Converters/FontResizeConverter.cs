@@ -17,7 +17,7 @@ public sealed class FontResizeConverter : IValueConverter
 		ConvertFactor = convertFactor;
 	}
 
-	public object Convert(object value, Type _, object _2, CultureInfo _3)
+	public object? Convert(object? value, Type _, object? _2, CultureInfo _3)
 	{
 		if (value is not double dVal)
 		{
@@ -30,9 +30,6 @@ public sealed class FontResizeConverter : IValueConverter
 		return Math.Max((int)(dVal * ConvertFactor), 1);
 	}
 
-	public object ConvertBack(object _, Type _2, object _3, CultureInfo _4)
-#pragma warning disable RCS1079 // Throwing of new NotImplementedException.
+	public object? ConvertBack(object? _, Type _2, object? _3, CultureInfo _4)
 		=> throw new NotImplementedException();
-
-#pragma warning restore RCS1079 // Throwing of new NotImplementedException.
 }
