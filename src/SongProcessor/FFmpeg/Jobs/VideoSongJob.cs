@@ -40,9 +40,6 @@ public class VideoSongJob : SongJob
 		Resolution = resolution;
 	}
 
-	protected override string GenerateArgs()
-		=> GenerateArgsInternal().ToString();
-
 	protected internal virtual FFmpegArgs GenerateArgsInternal()
 	{
 		var input = new List<FFmpegInput>
@@ -120,6 +117,9 @@ public class VideoSongJob : SongJob
 			OutputFile: GetSanitizedPath()
 		);
 	}
+
+	protected override string GenerateArgs()
+			=> GenerateArgsInternal().ToString();
 
 	protected override string GetUnsanitizedPath()
 		=> Song.GetVideoFile(Anime, Resolution);
