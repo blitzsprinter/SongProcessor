@@ -153,6 +153,7 @@ public sealed class SongProcessor_Tests : FFmpeg_TestsBase
 		{
 			videoInfo = createVideoInfo();
 		}
-		return new(@"C:\info.amq", animeBase, videoInfo);
+		var file = Path.Combine(Directory.GetCurrentDirectory(), "info.amq");
+		return new(file, animeBase, videoInfo);
 	}
 }
