@@ -3,6 +3,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using SongProcessor.Models;
+using SongProcessor.Utils;
 
 namespace SongProcessor.Tests.Models;
 
@@ -26,7 +27,7 @@ public sealed class Anime_Tests
 	[TestMethod]
 	public void CopyConstructor_Test()
 	{
-		var expected = new Anime(@"C:\anime.amq", new AnimeBase
+		var expected = new Anime(Path.Combine(ProcessUtils.Root, "anime.amq"), new AnimeBase
 		{
 			Id = 73,
 			Name = "Anime",
@@ -39,7 +40,7 @@ public sealed class Anime_Tests
 					Type = SongType.Op.Create(1),
 				},
 			],
-			Source = @"C:\video.mkv",
+			Source = Path.Combine(ProcessUtils.Root, "video.mkv"),
 			Year = 1984,
 		}, null);
 		var actual = new Anime(expected);

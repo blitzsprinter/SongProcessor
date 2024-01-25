@@ -195,8 +195,8 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase<VideoSongJob>
 		var job = GenerateJob(temp.Dir);
 		var cts = new CancellationTokenSource();
 
-		var task = job.ProcessAsync(cts.Token);
 		cts.Cancel();
+		var task = job.ProcessAsync(cts.Token);
 
 		var result = await task.ConfigureAwait(false);
 		result.IsSuccess.Should().BeNull();

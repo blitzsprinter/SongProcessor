@@ -106,8 +106,8 @@ public sealed class Mp3SongJob_Tests : SongJob_TestsBase<Mp3SongJob>
 		var job = GenerateJob(temp.Dir);
 		var cts = new CancellationTokenSource();
 
-		var task = job.ProcessAsync(cts.Token);
 		cts.Cancel();
+		var task = job.ProcessAsync(cts.Token);
 
 		var result = await task.ConfigureAwait(false);
 		result.IsSuccess.Should().BeNull();
