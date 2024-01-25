@@ -43,22 +43,6 @@ public abstract class SongJob : ISongJob
 		}
 
 		using var process = ProcessUtils.FFmpeg.CreateProcess(GenerateArgs());
-		process.OnCancel((_, _) =>
-		{
-			// We can't just send 'q' to FFmpeg and have it quit gracefully because
-			// sometimes the path never gets released and then can't get deleted
-			process.Kill(entireProcessTree: true);
-			if (!process.WaitForExit(250))
-			{
-				return;
-			}
-
-			try
-			{
-				File.Delete(file);
-			}
-			catch { } // Nothing we can do
-		}, token);
 		// FFmpeg will output the information we want to std:out
 		var progressBuilder = new ProgressBuilder();
 		process.OutputDataReceived += (_, e) =>
@@ -86,13 +70,35 @@ public abstract class SongJob : ISongJob
 			errors.Add(e.Data);
 		};
 
-		var code = await process.RunAsync(OutputMode.Async).ConfigureAwait(false);
-		return code switch
+		var runTask = process.RunAsync(OutputMode.Async);
+		var tasks = token is null
+			? new[] { runTask }
+			: new[] { runTask, process.WaitForExitAsync(token.Value) };
+
+		var task = await Task.WhenAny(tasks).ConfigureAwait(false);
+		if (task == runTask)
 		{
-			FFMPEG_SUCCESS => Success.Instance,
-			FFMPEG_ABORTED => Canceled.Instance,
-			_ => new Error(code, errors ?? []),
-		};
+			var exitCode = await runTask.ConfigureAwait(false);
+			return exitCode switch
+			{
+				FFMPEG_SUCCESS => Success.Instance,
+				FFMPEG_ABORTED => Canceled.Instance,
+				_ => new Error(exitCode, errors ?? []),
+			};
+		}
+		else
+		{
+			// We can't just send 'q' to FFmpeg and have it quit gracefully because
+			// sometimes the path never gets released and then can't get deleted
+			process.Kill(entireProcessTree: true);
+
+			try
+			{
+				File.Delete(file);
+			}
+			catch { } // Nothing we can do
+			return Canceled.Instance;
+		}
 	}
 
 	protected abstract string GenerateArgs();

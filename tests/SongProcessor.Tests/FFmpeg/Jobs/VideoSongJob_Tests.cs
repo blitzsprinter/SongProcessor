@@ -197,17 +197,12 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase<VideoSongJob>
 
 		var sw = System.Diagnostics.Stopwatch.StartNew();
 
-		var tcs = new TaskCompletionSource<IResult>();
-		_ = Task.Run(async () =>
-		{
-			tcs.SetResult(await job.ProcessAsync(cts.Token).ConfigureAwait(false));
-		});
-		await Task.Delay(20).ConfigureAwait(false);
+		var task = job.ProcessAsync(cts.Token);
 		Console.WriteLine($"started: {sw.ElapsedMilliseconds}ms");
 		cts.Cancel();
 		Console.WriteLine($"cancelled: {sw.ElapsedMilliseconds}ms");
 
-		var result = await tcs.Task.ConfigureAwait(false);
+		var result = await task.ConfigureAwait(false);
 		Console.WriteLine($"awaited: {sw.ElapsedMilliseconds}ms");
 		result.IsSuccess.Should().BeNull();
 		result.Should().BeOfType<Canceled>();

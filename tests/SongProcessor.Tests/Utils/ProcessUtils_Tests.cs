@@ -44,34 +44,6 @@ public sealed class ProcessUtils_Tests
 	}
 
 	[TestMethod]
-	public async Task OnCancel_Test()
-	{
-		var process = ProcessUtils.FindProgram("dotnet").CreateProcess("--version");
-		var source = new CancellationTokenSource();
-		var invokeCount = 0;
-		process.OnCancel((_, _) => ++invokeCount, source.Token);
-
-		source.Cancel();
-		source.Cancel();
-		invokeCount.Should().Be(1);
-
-		await process.RunAsync(OutputMode.Sync).ConfigureAwait(false);
-	}
-
-	[TestMethod]
-	public async Task OnCancelAfterExited_Test()
-	{
-		var process = ProcessUtils.FindProgram("dotnet").CreateProcess("--version");
-		var source = new CancellationTokenSource();
-		var invokeCount = 0;
-		process.OnCancel((_, _) => ++invokeCount, source.Token);
-
-		await process.RunAsync(OutputMode.Sync).ConfigureAwait(false);
-		source.Cancel();
-		invokeCount.Should().Be(0);
-	}
-
-	[TestMethod]
 	public async Task OnComplete_Test()
 	{
 		var process = ProcessUtils.FindProgram("dotnet").CreateProcess("--version");
@@ -87,8 +59,6 @@ public sealed class ProcessUtils_Tests
 	{
 		var process = ProcessUtils.FindProgram("dotnet").CreateProcess("--version");
 		process.EnableRaisingEvents = false;
-		Action onCancel = () => _ = process.OnCancel((_, _) => { });
-		onCancel.Should().Throw<ArgumentException>();
 		Action onCompleted = () => _ = process.OnComplete(_ => { });
 		onCompleted.Should().Throw<ArgumentException>();
 	}
@@ -97,8 +67,6 @@ public sealed class ProcessUtils_Tests
 	public void OnXNullCallback_Test()
 	{
 		var process = ProcessUtils.FindProgram("dotnet").CreateProcess("--version");
-		Action onCancel = () => _ = process.OnCancel(null!);
-		onCancel.Should().Throw<ArgumentNullException>();
 		Action onCompleted = () => _ = process.OnComplete(null!);
 		onCompleted.Should().Throw<ArgumentNullException>();
 	}

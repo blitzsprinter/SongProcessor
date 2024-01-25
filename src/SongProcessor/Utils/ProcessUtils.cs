@@ -70,45 +70,6 @@ public static class ProcessUtils
 	public static string GetProgramName(string program)
 		=> OperatingSystem.IsWindows() ? $"{program}.exe" : program;
 
-	public static Process OnCancel(
-		this Process process,
-		EventHandler callback,
-		CancellationToken? token = null)
-	{
-		process.CallbackGuards(callback);
-
-		var isCanceled = 0;
-		void OnCancel(object? sender, EventArgs args)
-		{
-			if (Interlocked.Exchange(ref isCanceled, 1) == 0)
-			{
-				callback.Invoke(sender, args);
-			}
-		}
-
-		// If the program gets canceled, shut down the process
-		Console.CancelKeyPress += OnCancel;
-		// If the program gets shut down, make sure it also shuts down the process
-		AppDomain.CurrentDomain.ProcessExit += OnCancel;
-		// If an unhandled exception occurs, also attempt to shut down the process
-		AppDomain.CurrentDomain.UnhandledException += OnCancel;
-		// Same if a cancellation token is canceled
-		var registration = token?.Register(() => OnCancel(token, EventArgs.Empty));
-
-		// After the process is exited, remove all the cancel handling
-		void OnExited(object? sender, EventArgs e)
-		{
-			process.Exited -= OnExited;
-			Console.CancelKeyPress -= OnCancel;
-			AppDomain.CurrentDomain.ProcessExit -= OnCancel;
-			AppDomain.CurrentDomain.UnhandledException -= OnCancel;
-			registration?.Dispose();
-		}
-		process.Exited += OnExited;
-
-		return process;
-	}
-
 	public static Process OnComplete(this Process process, Action<int> callback)
 	{
 		process.CallbackGuards(callback);
