@@ -3,7 +3,7 @@
 						 x:Class="SongProcessor.UI.App">
 
 	<Application.Styles>
-		<FluentTheme />
+		<SimpleTheme />
 		<Style Selector=":is(TextBox)">
 			<Setter Property="VerticalContentAlignment" Value="Center" />
 		</Style>
