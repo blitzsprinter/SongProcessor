@@ -1,6 +1,6 @@
-﻿using Avalonia.Controls;
+﻿using ReactiveUI;
 
-using ReactiveUI;
+using SongProcessor.UI.Views;
 
 using System.Reactive;
 using System.Reactive.Linq;
@@ -12,6 +12,7 @@ public sealed class MessageBoxViewModel<T> : ReactiveObject
 	private string? _ButtonText = "Ok";
 	private bool _CanResize;
 	private T? _CurrentOption;
+	private bool _HasOptions;
 	private int _Height = UIUtils.MESSAGE_BOX_HEIGHT;
 	private IEnumerable<T>? _Options;
 	private string? _Text;
@@ -33,6 +34,11 @@ public sealed class MessageBoxViewModel<T> : ReactiveObject
 		get => _CurrentOption;
 		set => this.RaiseAndSetIfChanged(ref _CurrentOption, value);
 	}
+	public bool HasOptions
+	{
+		get => _HasOptions;
+		private set => this.RaiseAndSetIfChanged(ref _HasOptions, value);
+	}
 	public int Height
 	{
 		get => _Height;
@@ -45,7 +51,8 @@ public sealed class MessageBoxViewModel<T> : ReactiveObject
 		{
 			this.RaiseAndSetIfChanged(ref _Options, value);
 			CurrentOption = default!;
-			ButtonText = Options is null ? "Ok" : "Confirm";
+			HasOptions = value?.Any() ?? false;
+			ButtonText = HasOptions ? "Confirm" : "Ok";
 		}
 	}
 	public string? Text
@@ -65,11 +72,14 @@ public sealed class MessageBoxViewModel<T> : ReactiveObject
 	}
 
 	#region Commands
-	public ReactiveCommand<Window, Unit> CloseCommand { get; }
+	public ReactiveCommand<MessageBox, Unit> Escape { get; }
+	public ReactiveCommand<MessageBox, Unit> Ok { get; }
 	#endregion Commands
 
 	public MessageBoxViewModel()
 	{
+		Escape = ReactiveCommand.Create<MessageBox>(x => x.Close());
+
 		var canClose = this.WhenAnyValue(
 			x => x.CurrentOption!,
 			x => x.Options,
@@ -79,8 +89,8 @@ public sealed class MessageBoxViewModel<T> : ReactiveObject
 				All = all,
 			})
 			.Select(x => x.All is null || !Equals(x.Current, default));
-		CloseCommand = ReactiveCommand.Create<Window>(
-			x => x.Close(CurrentOption!),
+		Ok = ReactiveCommand.Create<MessageBox>(
+			x => x.Close(CurrentOption),
 			canClose
 		);
 	}

@@ -9,55 +9,49 @@
     <ApplicationIcon>cirno_at_computer_pTB_icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Update="**\*.xaml.cs">
+    <Compile Update="**\*.axaml.cs">
       <DependentUpon>%(Filename)</DependentUpon>
     </Compile>
-    <AvaloniaResource Include="**\*.xaml">
+		<AvaloniaXaml Remove="**\*.axaml" />
+    <AvaloniaResource Include="**\*.axaml">
       <SubType>Designer</SubType>
     </AvaloniaResource>
   </ItemGroup>
   <ItemGroup>
-    <AvaloniaResource Remove="Views\AddView.xaml" />
-    <AvaloniaResource Remove="Views\EditView.xaml" />
-    <AvaloniaResource Remove="Views\MessageBox.xaml" />
-    <AvaloniaResource Remove="Views\SongView.xaml" />
+    <PackageReference Include="Avalonia" Version="11.0.7" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.0.7" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="11.0.7" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.7" />
+    <PackageReference Include="DynamicData" Version="8.3.27" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="ReactiveUI.Validation" Version="3.1.7" />
   </ItemGroup>
   <ItemGroup>
-    <None Remove="Views\AddView.xaml" />
-    <None Remove="Views\EditView.xaml" />
-    <None Remove="Views\MessageBox.xaml" />
-    <None Remove="Views\SongView.xaml" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Avalonia" Version="11.0.0-preview1" />
-    <PackageReference Include="Avalonia.Desktop" Version="11.0.0-preview1" />
-    <PackageReference Include="Avalonia.ReactiveUI" Version="11.0.0-preview1" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.0-preview1" />
-    <PackageReference Include="DynamicData" Version="7.9.14" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.2-beta1" />
-    <PackageReference Include="ReactiveUI.Validation" Version="3.0.1" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Views\AddView.xaml">
+    <EmbeddedResource Include="Views\AddView.axaml">
       <Generator>MSBuild:Compile</Generator>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Views\SongView.xaml">
+    <EmbeddedResource Include="Views\SongView.axaml">
       <Generator>MSBuild:Compile</Generator>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Views\EditView.xaml">
+    <EmbeddedResource Include="Views\EditView.axaml">
       <Generator>MSBuild:Compile</Generator>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Views\MessageBox.xaml">
+    <EmbeddedResource Include="Views\MessageBox.axaml">
       <Generator>MSBuild:Compile</Generator>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SongProcessor\SongProcessor.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Views\SongView.axaml.cs">
+      <DependentUpon>SongView.axaml</DependentUpon>
+    </Compile>
   </ItemGroup>
 </Project>

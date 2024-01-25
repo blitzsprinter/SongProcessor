@@ -20,7 +20,7 @@ public class App : Application
 
 	public override void OnFrameworkInitializationCompleted()
 	{
-		AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+		AppDomain.CurrentDomain.UnhandledException += (_, e) =>
 		{
 			var path = Path.Combine(Directory.GetCurrentDirectory(), "CrashLog.txt");
 			var text = $"[{DateTime.UtcNow:G}] {e.ExceptionObject}\n";
@@ -32,7 +32,7 @@ public class App : Application
 		// Create a wrapper for the not yet created state
 		// so when deserializing the saved view models IScreen isn't null
 		var screenWrapper = new HostScreenWrapper();
-		Locator.CurrentMutable.RegisterConstant(Clipboard);
+		Locator.CurrentMutable.RegisterConstant(window.Clipboard);
 		Locator.CurrentMutable.RegisterConstant<IMessageBoxManager>(messageBoxManager);
 		Locator.CurrentMutable.RegisterConstant<IScreen>(screenWrapper);
 
@@ -63,7 +63,7 @@ public class App : Application
 				loader,
 				processor,
 				gatherer,
-				Clipboard!,
+				window.Clipboard!,
 				messageBoxManager,
 				gatherers
 			);

@@ -4,8 +4,8 @@
 						 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 						 xmlns:models="clr-namespace:SongProcessor.Models;assembly=SongProcessor"
 						 xmlns:uimodels="clr-namespace:SongProcessor.UI.Models;assembly=SongProcessor.UI"
-						 mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-						 x:Class="SongProcessor.UI.Views.AddView">
+						 x:Class="SongProcessor.UI.Views.AddView"
+						 mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450">
 
 	<Grid RowDefinitions="3*,1*">
 		<TextBlock Text="Hello :)">
@@ -16,7 +16,7 @@
 				</MultiBinding>
 			</TextBlock.IsVisible>
 		</TextBlock>
-		<TreeView Name="Tree" Items="{Binding Anime}">
+		<TreeView Name="Tree" ItemsSource="{Binding Anime}">
 			<TreeView.IsVisible>
 				<MultiBinding Converter="{x:Static BoolConverters.And}">
 					<Binding Path="!!Anime.Count" />
@@ -41,7 +41,8 @@
 				</DataTemplate>
 			</TreeView.DataTemplates>
 		</TreeView>
-		<TextBlock Text="{Binding Exception}" IsVisible="{Binding !!Exception}" />
+		<TextBlock Text="{Binding Exception}"
+							 IsVisible="{Binding Exception, Converter={x:Static ObjectConverters.IsNotNull}}" />
 
 		<Grid Grid.Row="1" RowDefinitions="1*,1*" ColumnDefinitions="9*,1*">
 			<Grid ColumnDefinitions="9*,1*">
@@ -63,7 +64,8 @@
 				<HeaderedContentControl Header="Add Inserts">
 					<CheckBox IsChecked="{Binding AddInserts}" IsEnabled="{Binding AddSongs}" />
 				</HeaderedContentControl>
-				<ComboBox Items="{Binding GathererNames}" SelectedItem="{Binding SelectedGathererName}" />
+				<ComboBox ItemsSource="{Binding GathererNames}"
+									SelectedItem="{Binding SelectedGathererName}" />
 
 				<UniformGrid.Styles>
 					<Style Selector="HeaderedContentControl">

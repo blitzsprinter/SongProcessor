@@ -2,8 +2,8 @@
 						 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 						 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 						 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-						 mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-						 x:Class="SongProcessor.UI.Views.EditView">
+						 x:Class="SongProcessor.UI.Views.EditView"
+						 mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450">
 
 	<Grid ColumnDefinitions="5*,10*,3*,10*,5*" RowDefinitions="10*,100*,10*,3*,10*,10*">
 		<UniformGrid Grid.Column="1" Grid.Row="1" Columns="1">
@@ -40,12 +40,12 @@
 			</HeaderedContentControl>
 			<HeaderedContentControl Header="Song Type">
 				<Grid ColumnDefinitions="5*,1*">
-					<ComboBox Grid.Column="0" Items="{Binding SongTypes}" SelectedItem="{Binding SongType}" />
+					<ComboBox Grid.Column="0" ItemsSource="{Binding SongTypes}" SelectedItem="{Binding SongType}" />
 					<NumericUpDown Grid.Column="1" Minimum="0" Value="{Binding SongPosition}" />
 				</Grid>
 			</HeaderedContentControl>
 			<HeaderedContentControl Header="Override Aspect Ratio">
-				<ComboBox Items="{Binding AspectRatios}" SelectedItem="{Binding AspectRatio}" />
+				<ComboBox ItemsSource="{Binding AspectRatios}" SelectedItem="{Binding AspectRatio}" />
 			</HeaderedContentControl>
 			<HeaderedContentControl Header="Volume Modifier">
 				<NumericUpDown Value="{Binding VolumeModifier}" />

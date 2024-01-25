@@ -6,9 +6,9 @@
 						 xmlns:controls="clr-namespace:SongProcessor.UI.Controls;assembly=SongProcessor.UI"
 						 xmlns:converters="clr-namespace:SongProcessor.UI.Converters;assembly=SongProcessor.UI"
 						 xmlns:uimodels="clr-namespace:SongProcessor.UI.Models;assembly=SongProcessor.UI"
+						 x:Class="SongProcessor.UI.Views.SongView"
 						 mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="800"
-						 Name="Me"
-						 x:Class="SongProcessor.UI.Views.SongView">
+						 Name="Me">
 
 	<UserControl.Styles>
 		<Style Selector=":is(InputElement).notWhenBusy">
@@ -20,7 +20,7 @@
 	<Grid RowDefinitions="1*,19*">
 		<Grid ColumnDefinitions="8*,1*,1*" Classes="notWhenBusy">
 			<TextBox Watermark="Directory" Text="{Binding Directory}"
-							 KeyDown="OnKeyDown" IsEnabled="{Binding !Anime.Count}" />
+							 IsEnabled="{Binding !Anime.Count}" KeyDown="OnKeyDown" />
 			<Button Grid.Column="1" Content="Select"
 							Command="{Binding SelectDirectory}" IsEnabled="{Binding !Anime.Count}" />
 			<Button Grid.Column="2" Content="Load"
@@ -83,7 +83,7 @@
 			</Grid.ContextMenu>
 
 			<TreeView SelectionMode="Multiple" ClipToBounds="True"
-								Items="{Binding Anime}" SelectedItems="{Binding SelectedItems}">
+								ItemsSource="{Binding Anime}" SelectedItems="{Binding SelectedItems}">
 				<TreeView.DataTemplates>
 					<TreeDataTemplate DataType="uimodels:ObservableAnime" ItemsSource="{Binding Songs}">
 						<TextBlock Classes="anime"
@@ -190,7 +190,11 @@
 
 					<!-- Anime -->
 					<Style Selector="TreeView > TreeViewItem">
-						<Setter Property="IsExpanded" Value="{Binding IsExpanded}" />
+						<!--
+						I have no idea why but setting the binding mode for IsExpanded to OneWay
+						fixes an issue with the binding mode not functioning as TwoWay ???????
+						-->
+						<Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=OneWay}" />
 						<Setter Property="IsVisible" Value="{Binding IsVisible}" />
 					</Style>
 
@@ -214,7 +218,9 @@
 				<Button Grid.Row="1" Content="Cancel"
 								Command="{Binding CancelProcessing}" IsVisible="{Binding IsProcessing}" />
 
-				<UniformGrid Grid.Row="3" Columns="1" IsVisible="{Binding !!ProcessingData}">
+				<UniformGrid Grid.Row="3" Columns="1"
+										 IsVisible="{Binding ProcessingData,
+																 Converter={x:Static ObjectConverters.IsNotNull}}">
 					<UniformGrid.Styles>
 						<Style Selector=":is(TextBlock)">
 							<Setter Property="TextWrapping" Value="Wrap" />

@@ -195,15 +195,10 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase<VideoSongJob>
 		var job = GenerateJob(temp.Dir, div: 1);
 		var cts = new CancellationTokenSource();
 
-		var sw = System.Diagnostics.Stopwatch.StartNew();
-
 		var task = job.ProcessAsync(cts.Token);
-		Console.WriteLine($"started: {sw.ElapsedMilliseconds}ms");
 		cts.Cancel();
-		Console.WriteLine($"cancelled: {sw.ElapsedMilliseconds}ms");
 
 		var result = await task.ConfigureAwait(false);
-		Console.WriteLine($"awaited: {sw.ElapsedMilliseconds}ms");
 		result.IsSuccess.Should().BeNull();
 		result.Should().BeOfType<Canceled>();
 	}

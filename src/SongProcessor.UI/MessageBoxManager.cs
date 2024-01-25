@@ -1,5 +1,5 @@
 ﻿using Avalonia.Controls;
-using Avalonia.Platform.Storage.FileIO;
+using Avalonia.Platform.Storage;
 
 using SongProcessor.UI.ViewModels;
 using SongProcessor.UI.Views;
@@ -12,16 +12,15 @@ public sealed class MessageBoxManager(Window window) : IMessageBoxManager
 
 	public async Task<string?> GetDirectoryAsync(string directory, string title)
 	{
+		var start = await _Window.StorageProvider.TryGetFolderFromPathAsync(directory).ConfigureAwait(true);
 		var result = await _Window.StorageProvider.OpenFolderPickerAsync(new()
 		{
 			AllowMultiple = false,
-			SuggestedStartLocation = new BclStorageFolder(directory),
+			SuggestedStartLocation = start,
 			Title = title,
 		}).ConfigureAwait(true);
 
-		return result.SingleOrDefault()?.TryGetUri(out var uri) ?? false
-			? uri.LocalPath
-			: null;
+		return result.SingleOrDefault()?.TryGetLocalPath();
 	}
 
 	public async Task<string[]> GetFilesAsync(
@@ -29,18 +28,18 @@ public sealed class MessageBoxManager(Window window) : IMessageBoxManager
 		string title,
 		bool allowMultiple = true)
 	{
+		var start = await _Window.StorageProvider.TryGetFolderFromPathAsync(directory).ConfigureAwait(true);
 		var result = await _Window.StorageProvider.OpenFilePickerAsync(new()
 		{
 			AllowMultiple = allowMultiple,
-			SuggestedStartLocation = new BclStorageFolder(directory),
+			SuggestedStartLocation = start,
 			Title = title,
 		}).ConfigureAwait(true);
 
 		return result.Select(x =>
 		{
-			return x.TryGetUri(out var uri)
-				? uri.LocalPath
-				: throw new InvalidOperationException($"Unable to get URI for a file gathered from {directory}.");
+			return x.TryGetLocalPath()
+				?? throw new InvalidOperationException($"Unable to get URI for a file gathered from {directory}.");
 		}).ToArray();
 	}
 

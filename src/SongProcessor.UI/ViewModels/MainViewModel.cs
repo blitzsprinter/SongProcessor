@@ -1,5 +1,7 @@
 ﻿using Avalonia.Input.Platform;
 
+using DynamicData.Binding;
+
 using ReactiveUI;
 
 using SongProcessor.FFmpeg;
@@ -70,7 +72,12 @@ public sealed class MainViewModel : ReactiveObject, IScreen
 	}
 
 	private IObservable<bool> CanGoBack()
-		=> CanNavigate().CombineLatest(Router.NavigateBack.CanExecute, (x, y) => x && y);
+	{
+		var notSingle = this
+			.WhenAnyValue(x => x.Router.NavigationStack.Count)
+			.Select(x => x > 0);
+		return CanNavigate().CombineLatest(notSingle, (x, y) => x && y);
+	}
 
 	private IObservable<bool> CanNavigate()
 	{

@@ -1,0 +1,77 @@
+[1/25/2024 10:27:42 AM] Avalonia.Markup.Xaml.XamlLoadException: No precompiled XAML found for SongProcessor.UI.Views.MainWindow, make sure to specify x:Class and include your XAML file as AvaloniaResource
+   at Avalonia.Markup.Xaml.AvaloniaXamlLoader.Load(Object obj)
+   at SongProcessor.UI.Views.MainWindow.InitializeComponent() in C:\Users\User\Source\Repos\SongProcessor\src\SongProcessor.UI\Views\MainWindow.axaml.cs:line 16
+   at SongProcessor.UI.Views.MainWindow..ctor() in C:\Users\User\Source\Repos\SongProcessor\src\SongProcessor.UI\Views\MainWindow.axaml.cs:line 12
+   at SongProcessor.UI.App.OnFrameworkInitializationCompleted() in C:\Users\User\Source\Repos\SongProcessor\src\SongProcessor.UI\App.axaml.cs:line 30
+   at Avalonia.AppBuilder.SetupUnsafe()
+   at Avalonia.AppBuilder.Setup()
+   at Avalonia.AppBuilder.SetupWithoutStarting()
+   at Avalonia.DesignerSupport.Remote.RemoteDesignerEntryPoint.AppInitializer.ConfigureApp(IAvaloniaRemoteTransportConnection transport, CommandLineArgs args, Object obj)
+   at Avalonia.DesignerSupport.Remote.RemoteDesignerEntryPoint.Main(String[] cmdline)
+   at Avalonia.Designer.HostApp.Program.Main(String[] args)
+[1/25/2024 10:28:05 AM] Avalonia.Markup.Xaml.XamlLoadException: No precompiled XAML found for SongProcessor.UI.Views.MainWindow, make sure to specify x:Class and include your XAML file as AvaloniaResource
+   at Avalonia.Markup.Xaml.AvaloniaXamlLoader.Load(Object obj)
+   at SongProcessor.UI.Views.MainWindow.InitializeComponent() in C:\Users\User\Source\Repos\SongProcessor\src\SongProcessor.UI\Views\MainWindow.axaml.cs:line 16
+   at SongProcessor.UI.Views.MainWindow..ctor() in C:\Users\User\Source\Repos\SongProcessor\src\SongProcessor.UI\Views\MainWindow.axaml.cs:line 12
+   at SongProcessor.UI.App.OnFrameworkInitializationCompleted() in C:\Users\User\Source\Repos\SongProcessor\src\SongProcessor.UI\App.axaml.cs:line 30
+   at Avalonia.AppBuilder.SetupUnsafe()
+   at Avalonia.AppBuilder.Setup()
+   at Avalonia.AppBuilder.SetupWithoutStarting()
+   at Avalonia.DesignerSupport.Remote.RemoteDesignerEntryPoint.AppInitializer.ConfigureApp(IAvaloniaRemoteTransportConnection transport, CommandLineArgs args, Object obj)
+   at Avalonia.DesignerSupport.Remote.RemoteDesignerEntryPoint.Main(String[] cmdline)
+   at Avalonia.Designer.HostApp.Program.Main(String[] args)
+[1/25/2024 10:28:06 AM] Avalonia.Markup.Xaml.XamlLoadException: No precompiled XAML found for SongProcessor.UI.Views.MainWindow, make sure to specify x:Class and include your XAML file as AvaloniaResource
+   at Avalonia.Markup.Xaml.AvaloniaXamlLoader.Load(Object obj)
+   at SongProcessor.UI.Views.MainWindow.InitializeComponent() in C:\Users\User\Source\Repos\SongProcessor\src\SongProcessor.UI\Views\MainWindow.axaml.cs:line 16
+   at SongProcessor.UI.Views.MainWindow..ctor() in C:\Users\User\Source\Repos\SongProcessor\src\SongProcessor.UI\Views\MainWindow.axaml.cs:line 12
+   at SongProcessor.UI.App.OnFrameworkInitializationCompleted() in C:\Users\User\Source\Repos\SongProcessor\src\SongProcessor.UI\App.axaml.cs:line 30
+   at Avalonia.AppBuilder.SetupUnsafe()
+   at Avalonia.AppBuilder.Setup()
+   at Avalonia.AppBuilder.SetupWithoutStarting()
+   at Avalonia.DesignerSupport.Remote.RemoteDesignerEntryPoint.AppInitializer.ConfigureApp(IAvaloniaRemoteTransportConnection transport, CommandLineArgs args, Object obj)
+   at Avalonia.DesignerSupport.Remote.RemoteDesignerEntryPoint.Main(String[] cmdline)
+   at Avalonia.Designer.HostApp.Program.Main(String[] args)
+[1/25/2024 10:28:08 AM] Avalonia.Markup.Xaml.XamlLoadException: No precompiled XAML found for SongProcessor.UI.Views.MainWindow, make sure to specify x:Class and include your XAML file as AvaloniaResource
+   at Avalonia.Markup.Xaml.AvaloniaXamlLoader.Load(Object obj)
+   at SongProcessor.UI.Views.MainWindow.InitializeComponent() in C:\Users\User\Source\Repos\SongProcessor\src\SongProcessor.UI\Views\MainWindow.axaml.cs:line 16
+   at SongProcessor.UI.Views.MainWindow..ctor() in C:\Users\User\Source\Repos\SongProcessor\src\SongProcessor.UI\Views\MainWindow.axaml.cs:line 12
+   at SongProcessor.UI.App.OnFrameworkInitializationCompleted() in C:\Users\User\Source\Repos\SongProcessor\src\SongProcessor.UI\App.axaml.cs:line 30
+   at Avalonia.AppBuilder.SetupUnsafe()
+   at Avalonia.AppBuilder.Setup()
+   at Avalonia.AppBuilder.SetupWithoutStarting()
+   at Avalonia.DesignerSupport.Remote.RemoteDesignerEntryPoint.AppInitializer.ConfigureApp(IAvaloniaRemoteTransportConnection transport, CommandLineArgs args, Object obj)
+   at Avalonia.DesignerSupport.Remote.RemoteDesignerEntryPoint.Main(String[] cmdline)
+   at Avalonia.Designer.HostApp.Program.Main(String[] args)
+[1/25/2024 10:28:16 AM] Avalonia.Markup.Xaml.XamlLoadException: No precompiled XAML found for SongProcessor.UI.Views.MainWindow, make sure to specify x:Class and include your XAML file as AvaloniaResource
+   at Avalonia.Markup.Xaml.AvaloniaXamlLoader.Load(Object obj)
+   at SongProcessor.UI.Views.MainWindow.InitializeComponent() in C:\Users\User\Source\Repos\SongProcessor\src\SongProcessor.UI\Views\MainWindow.axaml.cs:line 16
+   at SongProcessor.UI.Views.MainWindow..ctor() in C:\Users\User\Source\Repos\SongProcessor\src\SongProcessor.UI\Views\MainWindow.axaml.cs:line 12
+   at SongProcessor.UI.App.OnFrameworkInitializationCompleted() in C:\Users\User\Source\Repos\SongProcessor\src\SongProcessor.UI\App.axaml.cs:line 30
+   at Avalonia.AppBuilder.SetupUnsafe()
+   at Avalonia.AppBuilder.Setup()
+   at Avalonia.AppBuilder.SetupWithoutStarting()
+   at Avalonia.DesignerSupport.Remote.RemoteDesignerEntryPoint.AppInitializer.ConfigureApp(IAvaloniaRemoteTransportConnection transport, CommandLineArgs args, Object obj)
+   at Avalonia.DesignerSupport.Remote.RemoteDesignerEntryPoint.Main(String[] cmdline)
+   at Avalonia.Designer.HostApp.Program.Main(String[] args)
+[1/25/2024 10:28:24 AM] Avalonia.Markup.Xaml.XamlLoadException: No precompiled XAML found for SongProcessor.UI.Views.MainWindow, make sure to specify x:Class and include your XAML file as AvaloniaResource
+   at Avalonia.Markup.Xaml.AvaloniaXamlLoader.Load(Object obj)
+   at SongProcessor.UI.Views.MainWindow.InitializeComponent() in C:\Users\User\Source\Repos\SongProcessor\src\SongProcessor.UI\Views\MainWindow.axaml.cs:line 16
+   at SongProcessor.UI.Views.MainWindow..ctor() in C:\Users\User\Source\Repos\SongProcessor\src\SongProcessor.UI\Views\MainWindow.axaml.cs:line 12
+   at SongProcessor.UI.App.OnFrameworkInitializationCompleted() in C:\Users\User\Source\Repos\SongProcessor\src\SongProcessor.UI\App.axaml.cs:line 30
+   at Avalonia.AppBuilder.SetupUnsafe()
+   at Avalonia.AppBuilder.Setup()
+   at Avalonia.AppBuilder.SetupWithoutStarting()
+   at Avalonia.DesignerSupport.Remote.RemoteDesignerEntryPoint.AppInitializer.ConfigureApp(IAvaloniaRemoteTransportConnection transport, CommandLineArgs args, Object obj)
+   at Avalonia.DesignerSupport.Remote.RemoteDesignerEntryPoint.Main(String[] cmdline)
+   at Avalonia.Designer.HostApp.Program.Main(String[] args)
+[1/25/2024 10:28:54 AM] Avalonia.Markup.Xaml.XamlLoadException: No precompiled XAML found for SongProcessor.UI.Views.MainWindow, make sure to specify x:Class and include your XAML file as AvaloniaResource
+   at Avalonia.Markup.Xaml.AvaloniaXamlLoader.Load(Object obj)
+   at SongProcessor.UI.Views.MainWindow.InitializeComponent() in C:\Users\User\Source\Repos\SongProcessor\src\SongProcessor.UI\Views\MainWindow.axaml.cs:line 16
+   at SongProcessor.UI.Views.MainWindow..ctor() in C:\Users\User\Source\Repos\SongProcessor\src\SongProcessor.UI\Views\MainWindow.axaml.cs:line 12
+   at SongProcessor.UI.App.OnFrameworkInitializationCompleted() in C:\Users\User\Source\Repos\SongProcessor\src\SongProcessor.UI\App.axaml.cs:line 30
+   at Avalonia.AppBuilder.SetupUnsafe()
+   at Avalonia.AppBuilder.Setup()
+   at Avalonia.AppBuilder.SetupWithoutStarting()
+   at Avalonia.DesignerSupport.Remote.RemoteDesignerEntryPoint.AppInitializer.ConfigureApp(IAvaloniaRemoteTransportConnection transport, CommandLineArgs args, Object obj)
+   at Avalonia.DesignerSupport.Remote.RemoteDesignerEntryPoint.Main(String[] cmdline)
+   at Avalonia.Designer.HostApp.Program.Main(String[] args)

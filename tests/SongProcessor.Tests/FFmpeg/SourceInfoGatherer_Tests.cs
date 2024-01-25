@@ -4,8 +4,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using SongProcessor.FFmpeg;
 
-using System.Text.Json;
-
 namespace SongProcessor.Tests.FFmpeg;
 
 [TestClass]

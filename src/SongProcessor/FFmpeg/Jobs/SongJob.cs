@@ -70,12 +70,31 @@ public abstract class SongJob : ISongJob
 			errors.Add(e.Data);
 		};
 
+		void KillProcess(object? sender, EventArgs? args)
+		{
+			// We can't just send 'q' to FFmpeg and have it quit gracefully because
+			// sometimes the path never gets released and then can't get deleted
+			process.Kill(entireProcessTree: true);
+
+			try
+			{
+				File.Delete(file);
+			}
+			catch { } // Nothing we can do
+		}
+		Console.CancelKeyPress += KillProcess;
+		AppDomain.CurrentDomain.ProcessExit += KillProcess;
+		AppDomain.CurrentDomain.UnhandledException += KillProcess;
+
 		var runTask = process.RunAsync(OutputMode.Async);
 		var tasks = token is null
 			? new[] { runTask }
 			: new[] { runTask, process.WaitForExitAsync(token.Value) };
 
 		var task = await Task.WhenAny(tasks).ConfigureAwait(false);
+		Console.CancelKeyPress -= KillProcess;
+		AppDomain.CurrentDomain.ProcessExit -= KillProcess;
+		AppDomain.CurrentDomain.UnhandledException -= KillProcess;
 		if (task == runTask)
 		{
 			var exitCode = await runTask.ConfigureAwait(false);
@@ -88,15 +107,7 @@ public abstract class SongJob : ISongJob
 		}
 		else
 		{
-			// We can't just send 'q' to FFmpeg and have it quit gracefully because
-			// sometimes the path never gets released and then can't get deleted
-			process.Kill(entireProcessTree: true);
-
-			try
-			{
-				File.Delete(file);
-			}
-			catch { } // Nothing we can do
+			KillProcess(null, null);
 			return Canceled.Instance;
 		}
 	}
