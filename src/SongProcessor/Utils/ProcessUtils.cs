@@ -25,8 +25,11 @@ public static class ProcessUtils
 {
 	private static readonly IReadOnlyList<Environment.SpecialFolder> SpecialFolders
 		= GetValues<Environment.SpecialFolder>();
+
 	public static Program FFmpeg { get; } = FindProgram("ffmpeg");
 	public static Program FFprobe { get; } = FindProgram("ffprobe");
+	public static string Root { get; }
+		= Directory.GetDirectoryRoot(Directory.GetCurrentDirectory());
 
 	public static Process CreateProcess(string program, string args)
 	{
@@ -48,7 +51,7 @@ public static class ProcessUtils
 
 	public static Program FindProgram(string program)
 	{
-		program = OperatingSystem.IsWindows() ? $"{program}.exe" : program;
+		program = GetProgramName(program);
 		//Look through every directory and any subfolders they have called bin
 		foreach (var dir in GetDirectories(program))
 		{
@@ -63,6 +66,9 @@ public static class ProcessUtils
 		}
 		throw new InvalidOperationException($"Unable to find {program}.");
 	}
+
+	public static string GetProgramName(string program)
+		=> OperatingSystem.IsWindows() ? $"{program}.exe" : program;
 
 	public static Process OnCancel(
 		this Process process,

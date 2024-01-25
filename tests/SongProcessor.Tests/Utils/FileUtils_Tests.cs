@@ -9,15 +9,8 @@ namespace SongProcessor.Tests.Utils;
 [TestClass]
 public sealed class FileUtils_Tests
 {
-	public static string Dir { get; }
+	public static string Dir { get; } = Path.Combine(ProcessUtils.Root, "joe", "mama");
 	public static string Name { get; } = "dn.txt";
-	public static string Root { get; }
-
-	static FileUtils_Tests()
-	{
-		Root = Directory.GetDirectoryRoot(Directory.GetCurrentDirectory());
-		Dir = Path.Combine(Root, "joe", "mama");
-	}
 
 	[TestMethod]
 	public void EnsureAbsolutePathNotQualified_Test()
@@ -28,19 +21,19 @@ public sealed class FileUtils_Tests
 
 	[TestMethod]
 	public void EnsureAbsolutePathPathNull_Test()
-		=> FileUtils.EnsureAbsoluteFile(Root, null).Should().BeNull();
+		=> FileUtils.EnsureAbsoluteFile(ProcessUtils.Root, null).Should().BeNull();
 
 	[TestMethod]
 	public void EnsureAbsolutePathQualified_Test()
 	{
-		var path = Path.Combine(Root, Name);
+		var path = Path.Combine(ProcessUtils.Root, Name);
 		FileUtils.EnsureAbsoluteFile(Dir, path).Should().Be(path);
 	}
 
 	[TestMethod]
 	public void GetRelativeOrAbsolutePathAbsolute_Test()
 	{
-		var path = Path.Combine(Root, Name);
+		var path = Path.Combine(ProcessUtils.Root, Name);
 		FileUtils.GetRelativeOrAbsoluteFile(Dir, path).Should().Be(path);
 	}
 

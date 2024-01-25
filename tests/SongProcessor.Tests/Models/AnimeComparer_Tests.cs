@@ -3,13 +3,14 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using SongProcessor.Models;
+using SongProcessor.Utils;
 
 namespace SongProcessor.Tests.Models;
 
 [TestClass]
 public sealed class AnimeComparer_Tests
 {
-	private static Anime Anime { get; } = new Anime(@"C:\anime.amq", new AnimeBase
+	private static Anime Anime { get; } = new Anime(Path.Combine(ProcessUtils.Root, "anime.amq"), new AnimeBase
 	{
 		Id = 73,
 		Name = "Anime",

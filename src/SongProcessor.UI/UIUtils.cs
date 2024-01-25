@@ -26,7 +26,9 @@ public static class UIUtils
 		this IMessageBoxManager manager,
 		string? directory)
 	{
-		directory = Directory.Exists(directory) ? directory! : Environment.CurrentDirectory;
+		directory = Directory.Exists(directory)
+			? directory!
+			: Directory.GetCurrentDirectory();
 		return manager.GetDirectoryAsync(directory, "Directory");
 	}
 

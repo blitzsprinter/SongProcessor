@@ -20,9 +20,9 @@ public sealed class ProcessUtils_Tests
 	public void FindProgramBin_Test()
 	{
 		const string PROGRAM = "joemama";
-		var dir = Path.Combine(Environment.CurrentDirectory, "bin");
+		var dir = Path.Combine(Directory.GetCurrentDirectory(), "bin");
 		Directory.CreateDirectory(dir);
-		var path = Path.Combine(dir, $"{PROGRAM}.exe");
+		var path = Path.Combine(dir, ProcessUtils.GetProgramName(PROGRAM));
 		File.Create(path).Dispose();
 
 		_ = ProcessUtils.FindProgram(PROGRAM);
