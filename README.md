@@ -4,7 +4,8 @@ This program exists to cut out clips of videos for AMQ.
 
 FFmpeg and ffprobe must be installed for this program to work.
 
-![](https://i.imgur.com/ExcDfez.png)
+![Program Image](https://github.com/natekford/SongProcessor/assets/22116714/4f8268ba-1f84-42bc-a51d-9a761d1bbaae)
+
 
 ## Compiling
 
