@@ -37,7 +37,7 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase<VideoSongJob>
 			Inputs = new FFmpegInput[]
 			{
 				@default.Inputs[0],
-				new(job.Song.GetCleanFile(job.Anime)!, null!),
+				new(job.Song.GetCleanFile(job.Anime)!, null),
 			},
 			Mapping = new[] { "0:v:0", "1:a:0" },
 		});

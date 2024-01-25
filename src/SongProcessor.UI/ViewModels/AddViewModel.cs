@@ -59,7 +59,7 @@ public sealed class AddViewModel : ReactiveObject, IRoutableViewModel
 		get => _AddSongs;
 		set => this.RaiseAndSetIfChanged(ref _AddSongs, value);
 	}
-	public ObservableCollection<IAnime> Anime { get; } = new();
+	public ObservableCollection<IAnime> Anime { get; } = [];
 	[DataMember]
 	public string? Directory
 	{

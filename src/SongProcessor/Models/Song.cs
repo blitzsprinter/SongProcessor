@@ -24,7 +24,7 @@ public class Song : ISong
 
 	public Song()
 	{
-		AlsoIn = new();
+		AlsoIn = [];
 		Artist = null!;
 		Name = null!;
 	}

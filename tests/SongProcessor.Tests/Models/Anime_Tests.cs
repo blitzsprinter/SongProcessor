@@ -30,15 +30,15 @@ public sealed class Anime_Tests
 		{
 			Id = 73,
 			Name = "Anime",
-			Songs = new()
-			{
+			Songs =
+			[
 				new()
 				{
 					Artist = "Artist",
 					Name = "Name",
 					Type = SongType.Op.Create(1),
 				},
-			},
+			],
 			Source = @"C:\video.mkv",
 			Year = 1984,
 		}, null);

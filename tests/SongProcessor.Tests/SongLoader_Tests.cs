@@ -96,7 +96,7 @@ public sealed class SongLoader_Tests : FFmpeg_TestsBase
 	{
 		using var temp = new TempDirectory();
 		var anime = CreateAnime(temp.Dir);
-		using var fs = File.Create(anime.AbsoluteInfoPath);
+		await using var fs = File.Create(anime.AbsoluteInfoPath);
 
 		Func<Task> save = () => _Loader.SaveAsync(anime);
 		await save.Should().ThrowAsync<IOException>().ConfigureAwait(false);

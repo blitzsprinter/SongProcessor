@@ -4,17 +4,12 @@ using System.Globalization;
 
 namespace SongProcessor.UI.Converters;
 
-public sealed class FontResizeConverter : IValueConverter
+public sealed class FontResizeConverter(double convertFactor) : IValueConverter
 {
-	public double ConvertFactor { get; set; }
+	public double ConvertFactor { get; set; } = convertFactor;
 
 	public FontResizeConverter() : this(.015)
 	{
-	}
-
-	public FontResizeConverter(double convertFactor)
-	{
-		ConvertFactor = convertFactor;
 	}
 
 	public object? Convert(object? value, Type _, object? _2, CultureInfo _3)

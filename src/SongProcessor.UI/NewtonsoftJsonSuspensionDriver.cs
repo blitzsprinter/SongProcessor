@@ -5,33 +5,31 @@ using Newtonsoft.Json.Serialization;
 
 using ReactiveUI;
 
+using SongProcessor.UI.ViewModels;
+
 using System.Reactive;
 using System.Reactive.Linq;
 
 namespace SongProcessor.UI;
 
-public class NewtonsoftJsonSuspensionDriver : ISuspensionDriver
+public class NewtonsoftJsonSuspensionDriver(string Path) : ISuspensionDriver
 {
-	private readonly string _File;
 	private readonly JsonSerializerSettings _Options = new()
 	{
 		ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
 		ContractResolver = new WritablePropertiesOnlyResolver(),
 		Formatting = Formatting.Indented,
-		TypeNameHandling = TypeNameHandling.All,
+		ObjectCreationHandling = ObjectCreationHandling.Replace,
+		SerializationBinder = new NamespaceSerializationBinder(),
+		TypeNameHandling = TypeNameHandling.Auto,
 	};
 	public bool DeleteOnInvalidState { get; set; }
 
-	public NewtonsoftJsonSuspensionDriver(string file)
-	{
-		_File = file;
-	}
-
 	public IObservable<Unit> InvalidateState()
 	{
-		if (DeleteOnInvalidState && File.Exists(_File))
+		if (DeleteOnInvalidState && File.Exists(Path))
 		{
-			File.Delete(_File);
+			File.Delete(Path);
 		}
 		return Observable.Return(Unit.Default);
 	}
@@ -40,31 +38,38 @@ public class NewtonsoftJsonSuspensionDriver : ISuspensionDriver
 	{
 		// ReactiveUI relies on this method throwing an exception
 		// to determine if CreateNewAppState should be called
-		var lines = File.ReadAllText(_File);
-		var state = JsonConvert.DeserializeObject<object>(lines, _Options);
+		var lines = File.ReadAllText(Path);
+		var state = JsonConvert.DeserializeObject<MainViewModel>(lines, _Options);
 		return Observable.Return(state)!;
 	}
 
 	public IObservable<Unit> SaveState(object state)
 	{
 		var lines = JsonConvert.SerializeObject(state, _Options);
-		File.WriteAllText(_File, lines);
+		File.WriteAllText(Path, lines);
 		return Observable.Return(Unit.Default);
+	}
+
+	private sealed class NamespaceSerializationBinder : DefaultSerializationBinder
+	{
+		const string MyNamespace = nameof(SongProcessor);
+
+		public override Type BindToType(string? assemblyName, string typeName)
+		{
+			if (!typeName.StartsWith(MyNamespace, StringComparison.OrdinalIgnoreCase))
+			{
+				throw new JsonSerializationException($"Request type {typeName} not supported.");
+			}
+			return base.BindToType(assemblyName, typeName);
+		}
 	}
 
 #if USE_NAV_STACK_FIX
 
-	private sealed class NavigationStackValueProvider : IValueProvider
+	private sealed class NavigationStackValueProvider(IValueProvider Original) : IValueProvider
 	{
-		private readonly IValueProvider _Original;
-
-		public NavigationStackValueProvider(IValueProvider original)
-		{
-			_Original = original;
-		}
-
 		public object? GetValue(object target)
-			=> _Original.GetValue(target);
+			=> Original.GetValue(target);
 
 		public void SetValue(object target, object? value)
 		{
@@ -72,9 +77,9 @@ public class NewtonsoftJsonSuspensionDriver : ISuspensionDriver
 			var castedValue = (IEnumerable<IRoutableViewModel>)value!;
 
 			castedTarget.NavigationStack.Clear();
-			foreach (var vm in castedValue)
+			foreach (var viewModel in castedValue)
 			{
-				castedTarget.NavigationStack.Add(vm);
+				castedTarget.NavigationStack.Add(viewModel);
 			}
 		}
 	}

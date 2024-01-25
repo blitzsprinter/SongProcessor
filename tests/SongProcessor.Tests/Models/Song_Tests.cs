@@ -14,7 +14,7 @@ public sealed class Song_Tests
 	{
 		var expected = new Song()
 		{
-			AlsoIn = new() { 1, 2, 3 },
+			AlsoIn = [1, 2, 3],
 			Artist = "Artist",
 			CleanPath = @"C:\song.flac",
 			End = TimeSpan.FromMinutes(3),

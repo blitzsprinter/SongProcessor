@@ -71,7 +71,7 @@ public abstract class FFmpeg_TestsBase
 		{
 			Id = 73,
 			Name = "Extremely Long Light Novel Title",
-			Songs = new(),
+			Songs = [],
 			Source = VideoInfo.File,
 			Year = 2500
 		}, VideoInfo);

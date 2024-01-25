@@ -6,14 +6,9 @@ using SongProcessor.UI.Views;
 
 namespace SongProcessor.UI;
 
-public sealed class MessageBoxManager : IMessageBoxManager
+public sealed class MessageBoxManager(Window window) : IMessageBoxManager
 {
-	private readonly Window _Window;
-
-	public MessageBoxManager(Window window)
-	{
-		_Window = window;
-	}
+	private readonly Window _Window = window;
 
 	public async Task<string?> GetDirectoryAsync(string directory, string title)
 	{

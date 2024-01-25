@@ -5,15 +5,9 @@ using System.ComponentModel;
 
 namespace SongProcessor.UI;
 
-public class SortedObservableCollection<T> : ObservableCollection<T>
+public class SortedObservableCollection<T>(IComparer<T> comparer, IEnumerable<T>? collection = null) : ObservableCollection<T>(collection ?? Array.Empty<T>())
 {
-	public IComparer<T> Comparer { get; }
-
-	public SortedObservableCollection(IComparer<T> comparer, IEnumerable<T>? collection = null)
-		: base(collection ?? Array.Empty<T>())
-	{
-		Comparer = comparer;
-	}
+	public IComparer<T> Comparer { get; } = comparer;
 
 	protected int GetSortedIndex(T item)
 	{

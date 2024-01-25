@@ -6,22 +6,17 @@ using System.Web;
 
 namespace SongProcessor.Gatherers;
 
-public sealed class AniDBGatherer : IAnimeGatherer
+public sealed class AniDBGatherer(HttpClient? client = null) : IAnimeGatherer
 {
 	private const string CREATOR = "creator";
 	private const string RELTYPE = "reltype";
 	private const string SONG = "song";
 	private const string URL = "https://anidb.net/anime/";
 
-	private static readonly HashSet<string> SongProperties = new() { SONG, CREATOR };
+	private static readonly HashSet<string> SongProperties = [SONG, CREATOR];
 
-	private readonly HttpClient _Client;
+	private readonly HttpClient _Client = client ?? GathererUtils.DefaultGathererClient;
 	public string Name { get; } = "AniDB";
-
-	public AniDBGatherer(HttpClient? client = null)
-	{
-		_Client = client ?? GathererUtils.DefaultGathererClient;
-	}
 
 	public async Task<AnimeBase> GetAsync(int id, GatherOptions options)
 	{
@@ -29,7 +24,7 @@ public sealed class AniDBGatherer : IAnimeGatherer
 		response.EnsureSuccessStatusCode();
 
 		var doc = new HtmlDocument();
-		using (var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
+		await using (var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
 		{
 			doc.Load(stream);
 		}

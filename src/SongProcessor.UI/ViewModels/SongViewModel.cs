@@ -40,7 +40,7 @@ public sealed class SongViewModel : ReactiveObject, IRoutableViewModel, INavigat
 	private readonly ObservableAsPropertyHelper<bool> _MultipleItemsSelected;
 	private readonly ObservableAsPropertyHelper<bool> _OnlySongsSelected;
 	private readonly ISongProcessor _Processor;
-	private readonly List<IDisposable> _Subscriptions = new();
+	private readonly List<IDisposable> _Subscriptions = [];
 	private readonly IClipboard _SystemClipboard;
 	private Clipboard<ObservableSong>? _ClipboardSong;
 	private int _CurrentJob;
@@ -48,7 +48,7 @@ public sealed class SongViewModel : ReactiveObject, IRoutableViewModel, INavigat
 	private ProcessingData? _ProcessingData;
 	private int _QueuedJobs;
 	private SearchTerms _Search = new();
-	private AvaloniaList<object> _SelectedItems = new();
+	private AvaloniaList<object> _SelectedItems = [];
 	private SongVisibility _SongVisibility = new();
 
 	public ObservableCollection<ObservableAnime> Anime { get; } =

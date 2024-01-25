@@ -37,7 +37,7 @@ public sealed class SongLoader : ISongLoader
 		}
 
 		AnimeBase model;
-		using (var fs = File.OpenRead(file))
+		await using (var fs = File.OpenRead(file))
 		{
 			model = (await JsonSerializer.DeserializeAsync<AnimeBase>(fs, _Options).ConfigureAwait(false))!;
 		}
@@ -56,7 +56,7 @@ public sealed class SongLoader : ISongLoader
 	public async Task SaveAsync(string file, IAnimeBase anime)
 	{
 		var model = new AnimeBase(anime);
-		using var fs = File.OpenWrite(file);
+		await using var fs = File.OpenWrite(file);
 		await JsonSerializer.SerializeAsync(fs, model, _Options).ConfigureAwait(false);
 	}
 

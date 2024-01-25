@@ -16,7 +16,7 @@ public class AnimeBase : IAnimeBase
 	public AnimeBase()
 	{
 		Name = null!;
-		Songs = new();
+		Songs = [];
 	}
 
 	public AnimeBase(IAnimeBase other)

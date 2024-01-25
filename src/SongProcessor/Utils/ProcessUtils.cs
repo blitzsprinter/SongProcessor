@@ -12,16 +12,10 @@ public enum OutputMode : uint
 	Async = 1U << 0,
 }
 
-public readonly struct Program
+public readonly struct Program(string file, string name)
 {
-	public string File { get; }
-	public string Name { get; }
-
-	public Program(string file, string name)
-	{
-		File = file;
-		Name = name;
-	}
+	public string File { get; } = file;
+	public string Name { get; } = name;
 
 	public Process CreateProcess(string args)
 		=> ProcessUtils.CreateProcess(File, args);

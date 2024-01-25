@@ -35,8 +35,8 @@ public sealed class ANNGatherer_Tests : Gatherer_TestsBase<ANNGatherer>
 	{
 		Id = ANN_ID,
 		Name = "Jormungand",
-		Songs = new()
-		{
+		Songs =
+		[
 			new()
 			{
 				Artist = "Mami Kawada",
@@ -56,7 +56,7 @@ public sealed class ANNGatherer_Tests : Gatherer_TestsBase<ANNGatherer>
 				Type = SongType.Ed.Create(2),
 			},
 			// ANN doesn't have the inserts documented for this
-		},
+		],
 		Source = null,
 		Year = 2012
 	};

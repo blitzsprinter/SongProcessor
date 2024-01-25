@@ -47,8 +47,8 @@ public abstract class JsonConverter_TestsBase<TItem, TConverter>
 
 	protected virtual async Task<T> DeserializeAsync<T>(string input)
 	{
-		using var ms = new MemoryStream();
-		using var writer = new StreamWriter(ms);
+		await using var ms = new MemoryStream();
+		await using var writer = new StreamWriter(ms);
 
 		await writer.WriteAsync(input).ConfigureAwait(false);
 		await writer.FlushAsync().ConfigureAwait(false);
@@ -59,7 +59,7 @@ public abstract class JsonConverter_TestsBase<TItem, TConverter>
 
 	protected virtual async Task<string> SerializeAsync<T>(T value)
 	{
-		using var ms = new MemoryStream();
+		await using var ms = new MemoryStream();
 		using var reader = new StreamReader(ms);
 
 		await JsonSerializer.SerializeAsync(ms, value, CreateOptions()).ConfigureAwait(false);

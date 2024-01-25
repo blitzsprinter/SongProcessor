@@ -6,7 +6,7 @@ using System.Xml.Linq;
 
 namespace SongProcessor.Gatherers;
 
-public sealed class ANNGatherer : IAnimeGatherer
+public sealed class ANNGatherer(HttpClient? client = null) : IAnimeGatherer
 {
 	private const string ARTIST = "artist";
 	private const string NAME = "name";
@@ -28,13 +28,8 @@ public sealed class ANNGatherer : IAnimeGatherer
 		"yyyy"
 	];
 
-	private readonly HttpClient _Client;
+	private readonly HttpClient _Client = client ?? GathererUtils.DefaultGathererClient;
 	public string Name { get; } = "ANN";
-
-	public ANNGatherer(HttpClient? client = null)
-	{
-		_Client = client ?? GathererUtils.DefaultGathererClient;
-	}
 
 	public async Task<AnimeBase> GetAsync(int id, GatherOptions options)
 	{
@@ -42,7 +37,7 @@ public sealed class ANNGatherer : IAnimeGatherer
 		response.EnsureSuccessStatusCode();
 
 		XElement doc;
-		using (var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
+		await using (var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
 		{
 			doc = XElement.Load(stream);
 		}

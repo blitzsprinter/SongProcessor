@@ -136,8 +136,8 @@ public sealed class AniDBGatherer_Tests : Gatherer_TestsBase<AniDBGatherer>
 	{
 		Id = ANN_ID,
 		Name = "Jormungand",
-		Songs = new()
-		{
+		Songs =
+		[
 			new()
 			{
 				Artist = "Kawada Mami",
@@ -186,7 +186,7 @@ public sealed class AniDBGatherer_Tests : Gatherer_TestsBase<AniDBGatherer>
 				Name = "Jormungand",
 				Type = SongType.In.Create(null),
 			},
-		},
+		],
 		Source = null,
 		Year = 2012
 	};
