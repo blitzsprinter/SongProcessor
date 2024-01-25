@@ -30,13 +30,14 @@ public abstract class SongJob_TestsBase<T> : FFmpeg_TestsBase where T : ISongJob
 	protected T GenerateJob(
 		string directory,
 		Action<Anime, Song>? configureSong = null,
-		Func<Anime, Anime>? configureAnime = null)
+		Func<Anime, Anime>? configureAnime = null,
+		int div = DIV)
 	{
 		var anime = CreateAnime(directory);
 		var song = new Song()
 		{
 			Start = TimeSpan.FromSeconds(0),
-			End = TimeSpan.FromSeconds(anime.VideoInfo!.Duration!.Value / DIV),
+			End = TimeSpan.FromSeconds(anime.VideoInfo!.Duration!.Value / div),
 			Name = Guid.NewGuid().ToString(),
 		};
 		configureSong?.Invoke(anime, song);

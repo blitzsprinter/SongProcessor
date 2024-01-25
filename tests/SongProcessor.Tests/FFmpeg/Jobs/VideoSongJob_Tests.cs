@@ -192,11 +192,11 @@ public sealed class VideoSongJob_Tests : SongJob_TestsBase<VideoSongJob>
 	public async Task ProcessVideoCanceled_Test()
 	{
 		using var temp = new TempDirectory();
-		var job = GenerateJob(temp.Dir);
+		var job = GenerateJob(temp.Dir, div: 1);
 		var cts = new CancellationTokenSource();
 
-		cts.Cancel();
 		var task = job.ProcessAsync(cts.Token);
+		cts.Cancel();
 
 		var result = await task.ConfigureAwait(false);
 		result.IsSuccess.Should().BeNull();

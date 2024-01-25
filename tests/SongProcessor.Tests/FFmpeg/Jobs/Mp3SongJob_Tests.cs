@@ -103,11 +103,11 @@ public sealed class Mp3SongJob_Tests : SongJob_TestsBase<Mp3SongJob>
 	public async Task ProcessMp3Canceled_Test()
 	{
 		using var temp = new TempDirectory();
-		var job = GenerateJob(temp.Dir);
+		var job = GenerateJob(temp.Dir, div: 1);
 		var cts = new CancellationTokenSource();
 
-		cts.Cancel();
 		var task = job.ProcessAsync(cts.Token);
+		cts.Cancel();
 
 		var result = await task.ConfigureAwait(false);
 		result.IsSuccess.Should().BeNull();
