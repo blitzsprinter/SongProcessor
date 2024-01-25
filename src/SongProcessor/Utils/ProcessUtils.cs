@@ -128,7 +128,7 @@ public static class ProcessUtils
 		var tcs = new TaskCompletionSource<int>();
 
 		process.EnableRaisingEvents = true;
-		process.OnComplete(code => tcs.SetResult(code));
+		process.OnComplete(tcs.SetResult);
 		process.Start();
 
 		if ((mode & OutputMode.Async) != 0)
