@@ -23,10 +23,10 @@ public sealed class ANNGatherer : IAnimeGatherer
 
 	private static readonly Regex SongRegex =
 		new(SONG_PATTERN, RegexOptions.Compiled | RegexOptions.ExplicitCapture);
-	private static readonly string[] VintageFormats = new[]
-	{
+	private static readonly string[] VintageFormats =
+	[
 		"yyyy"
-	};
+	];
 
 	private readonly HttpClient _Client;
 	public string Name { get; } = "ANN";

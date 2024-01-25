@@ -164,7 +164,7 @@ public sealed class SongProcessor : ISongProcessor
 		}
 	}
 
-	private readonly struct Resolution
+	private readonly struct Resolution(int size, Status status)
 	{
 		public static readonly Resolution RES_480 = new(480, Status.Res480);
 		public static readonly Resolution RES_720 = new(720, Status.Res720);
@@ -183,13 +183,7 @@ public sealed class SongProcessor : ISongProcessor
 		private const int MP3 = -1;
 
 		public bool IsMp3 => Size == MP3;
-		public int Size { get; }
-		public Status Status { get; }
-
-		public Resolution(int size, Status status)
-		{
-			Size = size;
-			Status = status;
-		}
+		public int Size { get; } = size;
+		public Status Status { get; } = status;
 	}
 }

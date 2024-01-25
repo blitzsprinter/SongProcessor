@@ -82,7 +82,7 @@ public abstract class SongJob : ISongJob
 				return;
 			}
 
-			errors ??= new();
+			errors ??= [];
 			errors.Add(e.Data);
 		};
 
@@ -91,7 +91,7 @@ public abstract class SongJob : ISongJob
 		{
 			FFMPEG_SUCCESS => Success.Instance,
 			FFMPEG_ABORTED => Canceled.Instance,
-			_ => new Error(code, errors ?? new()),
+			_ => new Error(code, errors ?? []),
 		};
 	}
 

@@ -20,7 +20,7 @@ public sealed class SourceInfoGatherer : ISourceInfoGatherer
 		$"(?<{VALUE}>.*?)$"; // Value is second
 
 	private static readonly JsonSerializerOptions _Options = CreateJsonOptions();
-	private static readonly char[] _SplitChars = new[] { '_', 'd' };
+	private static readonly char[] _SplitChars = ['_', 'd'];
 	private static readonly Dictionary<string, string> _VolumeArgs = new()
 	{
 		["vn"] = "",

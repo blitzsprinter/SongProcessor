@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 
 namespace SongProcessor.FFmpeg.Jobs;
 
-public class Mp3SongJob : SongJob
+public class Mp3SongJob(IAnime anime, ISong song) : SongJob(anime, song)
 {
 	protected internal static IReadOnlyDictionary<string, string> AudioArgs { get; } = new Dictionary<string, string>(Args)
 	{
@@ -12,33 +12,29 @@ public class Mp3SongJob : SongJob
 		["f"] = "mp3"
 	}.ToImmutableDictionary();
 
-	public Mp3SongJob(IAnime anime, ISong song) : base(anime, song)
-	{
-	}
-
 	protected internal virtual FFmpegArgs GenerateArgsInternal()
 	{
 		FFmpegInput[] input;
 		if (Song.CleanPath is null)
 		{
-			input = new FFmpegInput[]
-			{
+			input =
+			[
 				new(Anime.GetSourceFile(), new Dictionary<string, string>
 				{
 					["ss"] = Song.Start.ToString(), // Starting time
 					["to"] = Song.End.ToString(), // Ending time
 				}),
-			};
+			];
 		}
 		else
 		{
-			input = new FFmpegInput[]
-			{
+			input =
+			[
 				new(Song.GetCleanFile(Anime)!, new Dictionary<string, string>
 				{
 					["to"] = Song.GetLength().ToString(), // Should start at needed segment
 				}),
-			};
+			];
 		}
 
 		var mapping = new[]

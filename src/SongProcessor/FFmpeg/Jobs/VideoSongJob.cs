@@ -9,7 +9,7 @@ using System.Collections.Immutable;
 
 namespace SongProcessor.FFmpeg.Jobs;
 
-public class VideoSongJob : SongJob
+public class VideoSongJob(IAnime anime, ISong song, int resolution) : SongJob(anime, song)
 {
 #if AV1
 	private const string LIB = "libaom-av1";
@@ -18,7 +18,7 @@ public class VideoSongJob : SongJob
 	private const string LIB = "libvpx-vp9";
 #endif
 
-	public int Resolution { get; }
+	public int Resolution { get; } = resolution;
 
 	protected internal static IReadOnlyDictionary<string, string> VideoArgs { get; } = new Dictionary<string, string>(Args)
 	{
@@ -35,11 +35,6 @@ public class VideoSongJob : SongJob
 		["ac"] = "2",
 	}.ToImmutableDictionary();
 
-	public VideoSongJob(IAnime anime, ISong song, int resolution) : base(anime, song)
-	{
-		Resolution = resolution;
-	}
-
 	protected internal virtual FFmpegArgs GenerateArgsInternal()
 	{
 		var input = new List<FFmpegInput>
@@ -54,20 +49,20 @@ public class VideoSongJob : SongJob
 		string[] mapping;
 		if (Song.CleanPath is null)
 		{
-			mapping = new[]
-			{
+			mapping =
+			[
 				$"0:v:{Song.OverrideVideoTrack}",
 				$"0:a:{Song.OverrideAudioTrack}",
-			};
+			];
 		}
 		else
 		{
 			input.Add(new(Song.GetCleanFile(Anime)!, null));
-			mapping = new[]
-			{
+			mapping =
+			[
 				$"0:v:{Song.OverrideVideoTrack}",
 				$"1:a:{Song.OverrideAudioTrack}",
-			};
+			];
 		}
 
 		var videoFilters = default(Dictionary<string, string>?);
@@ -78,13 +73,10 @@ public class VideoSongJob : SongJob
 			)
 		)
 		{
-			var dar = Song.OverrideAspectRatio ?? info.DAR;
-			if (dar is null)
-			{
-				throw new InvalidOperationException($"DAR cannot be null: {Anime.GetSourceFile()}.");
-			}
+			var dar = (Song.OverrideAspectRatio ?? info.DAR)
+				?? throw new InvalidOperationException($"DAR cannot be null: {Anime.GetSourceFile()}.");
 
-			var width = (int)(Resolution * dar.Value.Ratio);
+			var width = (int)(Resolution * dar.Ratio);
 			// Make sure width is always even, otherwise sometimes things can break
 			if (width % 2 != 0)
 			{
@@ -94,7 +86,7 @@ public class VideoSongJob : SongJob
 			videoFilters = new()
 			{
 				["setsar"] = AspectRatio.Square.ToString(),
-				["setdar"] = dar.Value.ToString(),
+				["setdar"] = dar.ToString(),
 				["scale"] = $"{width}:{Resolution}"
 			};
 		}
