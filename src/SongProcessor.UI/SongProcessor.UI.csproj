@@ -1,57 +1,45 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <LangVersion>preview</LangVersion>
-    <OutputType>WinExe</OutputType>
-    <ApplicationIcon>cirno_at_computer_pTB_icon.ico</ApplicationIcon>
-  </PropertyGroup>
-  <ItemGroup>
-    <Compile Update="**\*.axaml.cs">
-      <DependentUpon>%(Filename)</DependentUpon>
-    </Compile>
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<ApplicationIcon>cirno_at_computer_pTB_icon.ico</ApplicationIcon>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Avalonia" Version="11.0.7" />
+		<PackageReference Include="Avalonia.Desktop" Version="11.0.7" />
+		<PackageReference Include="Avalonia.ReactiveUI" Version="11.0.7" />
+		<PackageReference Include="Avalonia.Themes.Simple" Version="11.0.7" />
+		<PackageReference Include="DynamicData" Version="8.3.27" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<PackageReference Include="ReactiveUI.Validation" Version="3.1.7" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\SongProcessor\SongProcessor.csproj" />
+	</ItemGroup>
+	
+	<ItemGroup>
+		<Compile Update="**\*.axaml.cs">
+			<DependentUpon>%(Filename)</DependentUpon>
+		</Compile>
 		<AvaloniaXaml Remove="**\*.axaml" />
-    <AvaloniaResource Include="**\*.axaml">
-      <SubType>Designer</SubType>
-    </AvaloniaResource>
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Avalonia" Version="11.0.7" />
-    <PackageReference Include="Avalonia.Desktop" Version="11.0.7" />
-    <PackageReference Include="Avalonia.ReactiveUI" Version="11.0.7" />
-    <PackageReference Include="Avalonia.Themes.Simple" Version="11.0.7" />
-    <PackageReference Include="DynamicData" Version="8.3.27" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="ReactiveUI.Validation" Version="3.1.7" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Views\AddView.axaml">
-      <Generator>MSBuild:Compile</Generator>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Views\SongView.axaml">
-      <Generator>MSBuild:Compile</Generator>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Views\EditView.axaml">
-      <Generator>MSBuild:Compile</Generator>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Views\MessageBox.axaml">
-      <Generator>MSBuild:Compile</Generator>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\SongProcessor\SongProcessor.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Update="Views\SongView.axaml.cs">
-      <DependentUpon>SongView.axaml</DependentUpon>
-    </Compile>
-  </ItemGroup>
+		<AvaloniaResource Include="**\*.axaml">
+			<SubType>Designer</SubType>
+		</AvaloniaResource>
+	</ItemGroup>
+	
+	<ItemGroup>
+		<EmbeddedResource Include="Views\AddView.axaml">
+			<Generator>MSBuild:Compile</Generator>
+		</EmbeddedResource>
+		<EmbeddedResource Include="Views\EditView.axaml">
+			<Generator>MSBuild:Compile</Generator>
+		</EmbeddedResource>
+		<EmbeddedResource Include="Views\SongView.axaml">
+			<Generator>MSBuild:Compile</Generator>
+		</EmbeddedResource>
+		<EmbeddedResource Include="Views\MessageBox.axaml">
+			<Generator>MSBuild:Compile</Generator>
+		</EmbeddedResource>
+	</ItemGroup>
 </Project>

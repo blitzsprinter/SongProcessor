@@ -1,18 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <LangVersion>preview</LangVersion>
-    <OutputType>Exe</OutputType>
-    <ApplicationIcon>cirno_at_computer_pTB_icon.ico</ApplicationIcon>
-  </PropertyGroup>
-  <ItemGroup>
-    <None Include="..\..\.editorconfig" Link=".editorconfig" />
-  </ItemGroup>
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<ApplicationIcon>cirno_at_computer_pTB_icon.ico</ApplicationIcon>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.57" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="HtmlAgilityPack" Version="1.11.57" />
+	</ItemGroup>
 </Project>
