@@ -1,13 +1,11 @@
-﻿using Avalonia.Controls;
-using Avalonia.Input;
-using Avalonia.Markup.Xaml;
+﻿using Avalonia.Input;
 using Avalonia.ReactiveUI;
 
 using SongProcessor.UI.ViewModels;
 
 namespace SongProcessor.UI.Views;
 
-public sealed class SongView : ReactiveUserControl<SongViewModel>
+public partial class SongView : ReactiveUserControl<SongViewModel>
 {
 	public SongView()
 	{
@@ -21,7 +19,4 @@ public sealed class SongView : ReactiveUserControl<SongViewModel>
 			ViewModel?.Load?.Execute();
 		}
 	}
-
-	private void InitializeComponent()
-		=> AvaloniaXamlLoader.Load(this);
 }

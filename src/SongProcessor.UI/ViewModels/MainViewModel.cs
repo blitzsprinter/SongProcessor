@@ -1,7 +1,5 @@
 ﻿using Avalonia.Input.Platform;
 
-using DynamicData.Binding;
-
 using ReactiveUI;
 
 using SongProcessor.FFmpeg;

@@ -1,11 +1,10 @@
 ﻿using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
 
 using SongProcessor.UI.ViewModels;
 
 namespace SongProcessor.UI.Views;
 
-public sealed class MessageBox : Window
+public partial class MessageBox : Window
 {
 	public MessageBox()
 	{
@@ -23,7 +22,4 @@ public sealed class MessageBox : Window
 			Focusable = true,
 		}.ShowDialog<T>(window);
 	}
-
-	private void InitializeComponent()
-		=> AvaloniaXamlLoader.Load(this);
 }
