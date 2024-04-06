@@ -19,6 +19,8 @@ public sealed class MessageBox : Window
 		return new MessageBox
 		{
 			DataContext = viewModel,
+			// Focusable otherwise Escape keybind doesn't work
+			Focusable = true,
 		}.ShowDialog<T>(window);
 	}
 

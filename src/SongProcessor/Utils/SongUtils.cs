@@ -23,7 +23,7 @@ public static class SongUtils
 {
 	public const int LOAD_SLOW = 0;
 
-	public static Task ExportFixesAsync(
+	public static async Task<string> ExportFixesAsync(
 		this ISongProcessor processor,
 		IEnumerable<IAnime> anime,
 		string directory,
@@ -32,7 +32,8 @@ public static class SongUtils
 	{
 		var path = Path.Combine(directory, fileName);
 		var text = processor.CreateFixes(anime);
-		return File.WriteAllTextAsync(path, text, cancellationToken);
+		await File.WriteAllTextAsync(path, text, cancellationToken).ConfigureAwait(false);
+		return path;
 	}
 
 	public static IEnumerable<string> GetFiles(this ISongLoader loader, string directory)

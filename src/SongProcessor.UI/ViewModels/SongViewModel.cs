@@ -338,8 +338,15 @@ public sealed class SongViewModel : ReactiveObject, IRoutableViewModel, INavigat
 		));
 	}
 
-	private Task ExportFixesAsync()
-		=> _Processor.ExportFixesAsync(Anime, Directory!);
+	private async Task ExportFixesAsync()
+	{
+		var outputFile = await _Processor.ExportFixesAsync(Anime, Directory!).ConfigureAwait(true);
+		await _MessageBoxManager.ShowNoResultAsync(new()
+		{
+			Text = $"Exported to {outputFile}",
+			Title = "Exported Fixes",
+		}).ConfigureAwait(true);
+	}
 
 	private async Task GetVolumeInfoAsync(ObservableAnime anime)
 	{
@@ -414,7 +421,7 @@ public sealed class SongViewModel : ReactiveObject, IRoutableViewModel, INavigat
 		}
 		catch (Exception e)
 		{
-			await _MessageBoxManager.ShowExceptionAsync(e).ConfigureAwait(false);
+			await _MessageBoxManager.ShowExceptionAsync(e).ConfigureAwait(true);
 		}
 	}
 
