@@ -1,12 +1,8 @@
 ﻿using FluentAssertions;
-
 using HtmlAgilityPack;
-
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 using SongProcessor.Gatherers;
 using SongProcessor.Models;
-
 using System.Net;
 
 namespace SongProcessor.Tests.Gatherers;
